@@ -1,0 +1,715 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('Supabase credentials not configured. User features will be disabled.');
+}
+
+export const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
+
+// ============================================================================
+// AUTH HELPERS
+// ============================================================================
+
+export async function signInWithGoogle() {
+  if (!supabase) return { error: { message: 'Supabase not configured' } };
+
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  });
+}
+
+export async function signOut() {
+  if (!supabase) return { error: null };
+  return supabase.auth.signOut();
+}
+
+export async function getCurrentUser() {
+  if (!supabase) return null;
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
+export function onAuthStateChange(callback) {
+  if (!supabase) return { data: { subscription: { unsubscribe: () => {} } } };
+  return supabase.auth.onAuthStateChange(callback);
+}
+
+// ============================================================================
+// PROFILE HELPERS
+// ============================================================================
+
+export async function getProfile(userId) {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching profile:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function updateProfile(updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', user.id)
+    .select()
+    .single();
+}
+
+export async function completeOnboarding() {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('profiles')
+    .update({ onboarding_completed: true })
+    .eq('id', user.id)
+    .select()
+    .single();
+}
+
+// ============================================================================
+// CHILDREN HELPERS
+// ============================================================================
+
+export async function getChildren() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('children')
+    .select('*')
+    .order('created_at');
+
+  if (error) {
+    console.error('Error fetching children:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function addChild(child) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('children')
+    .insert({ ...child, user_id: user.id })
+    .select()
+    .single();
+}
+
+export async function updateChild(id, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('children')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+}
+
+export async function deleteChild(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('children')
+    .delete()
+    .eq('id', id);
+}
+
+// ============================================================================
+// FAVORITES HELPERS
+// ============================================================================
+
+export async function getFavorites() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('favorites')
+    .select(`
+      *,
+      children(name, color)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching favorites:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function addFavorite(campId, childId = null, notes = null) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('favorites')
+    .insert({
+      user_id: user.id,
+      camp_id: campId,
+      child_id: childId,
+      notes
+    })
+    .select()
+    .single();
+}
+
+export async function removeFavorite(campId, childId = null) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  let query = supabase
+    .from('favorites')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('camp_id', campId);
+
+  if (childId) {
+    query = query.eq('child_id', childId);
+  } else {
+    query = query.is('child_id', null);
+  }
+
+  return query;
+}
+
+export async function isFavorite(campId) {
+  if (!supabase) return false;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data, error } = await supabase
+    .from('favorites')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('camp_id', campId)
+    .limit(1);
+
+  if (error) return false;
+  return data && data.length > 0;
+}
+
+// ============================================================================
+// SCHEDULED CAMPS HELPERS
+// ============================================================================
+
+export async function getScheduledCamps() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('scheduled_camps')
+    .select(`
+      *,
+      children(name, color)
+    `)
+    .order('start_date');
+
+  if (error) {
+    console.error('Error fetching scheduled camps:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function addScheduledCamp(schedule) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('scheduled_camps')
+    .insert({ ...schedule, user_id: user.id })
+    .select()
+    .single();
+}
+
+export async function updateScheduledCamp(id, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('scheduled_camps')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+}
+
+export async function deleteScheduledCamp(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('scheduled_camps')
+    .delete()
+    .eq('id', id);
+}
+
+// Check for conflicts
+export async function checkConflicts(childId, startDate, endDate, excludeId = null) {
+  if (!supabase) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .rpc('check_schedule_conflict', {
+      p_user_id: user.id,
+      p_child_id: childId,
+      p_start_date: startDate,
+      p_end_date: endDate,
+      p_exclude_id: excludeId
+    });
+
+  if (error) {
+    console.error('Error checking conflicts:', error);
+    return [];
+  }
+  return data || [];
+}
+
+// ============================================================================
+// REVIEWS HELPERS
+// ============================================================================
+
+export async function getReviews(campId) {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('reviews')
+    .select(`
+      *,
+      profiles(full_name, avatar_url)
+    `)
+    .eq('camp_id', campId)
+    .eq('status', 'published')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching reviews:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function getCampRatings(campId) {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('camp_ratings')
+    .select('*')
+    .eq('camp_id', campId)
+    .single();
+
+  if (error) {
+    return null;
+  }
+  return data;
+}
+
+export async function addReview(review) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('reviews')
+    .insert({ ...review, user_id: user.id })
+    .select()
+    .single();
+}
+
+export async function updateReview(id, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('reviews')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+}
+
+export async function deleteReview(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('reviews')
+    .delete()
+    .eq('id', id);
+}
+
+export async function voteReviewHelpful(reviewId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('review_helpful_votes')
+    .insert({ review_id: reviewId, user_id: user.id })
+    .select()
+    .single();
+}
+
+export async function removeReviewVote(reviewId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('review_helpful_votes')
+    .delete()
+    .eq('review_id', reviewId)
+    .eq('user_id', user.id);
+}
+
+// ============================================================================
+// NOTIFICATIONS HELPERS
+// ============================================================================
+
+export async function getNotifications(unreadOnly = false) {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from('notifications')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (unreadOnly) {
+    query = query.eq('read', false);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching notifications:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function markNotificationRead(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('notifications')
+    .update({ read: true, read_at: new Date().toISOString() })
+    .eq('id', id);
+}
+
+export async function markAllNotificationsRead() {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase.rpc('mark_all_notifications_read', { p_user_id: user.id });
+}
+
+export async function getUnreadNotificationCount() {
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('read', false);
+
+  if (error) return 0;
+  return count || 0;
+}
+
+// ============================================================================
+// COMPARISON LISTS HELPERS
+// ============================================================================
+
+export async function getComparisonLists() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('comparison_lists')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching comparison lists:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function createComparisonList(name, campIds, childId = null) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('comparison_lists')
+    .insert({
+      user_id: user.id,
+      name,
+      camp_ids: campIds,
+      child_id: childId
+    })
+    .select()
+    .single();
+}
+
+export async function updateComparisonList(id, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('comparison_lists')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+}
+
+export async function deleteComparisonList(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('comparison_lists')
+    .delete()
+    .eq('id', id);
+}
+
+export async function shareComparisonList(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const shareToken = crypto.randomUUID();
+
+  return supabase
+    .from('comparison_lists')
+    .update({ is_shared: true, share_token: shareToken })
+    .eq('id', id)
+    .select()
+    .single();
+}
+
+export async function getSharedComparisonList(shareToken) {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('comparison_lists')
+    .select('*')
+    .eq('share_token', shareToken)
+    .eq('is_shared', true)
+    .single();
+
+  if (error) return null;
+  return data;
+}
+
+// ============================================================================
+// WATCHLIST HELPERS
+// ============================================================================
+
+export async function getWatchlist() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('camp_watchlist')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching watchlist:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function addToWatchlist(campId, options = {}) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('camp_watchlist')
+    .insert({
+      user_id: user.id,
+      camp_id: campId,
+      ...options
+    })
+    .select()
+    .single();
+}
+
+export async function removeFromWatchlist(campId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('camp_watchlist')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('camp_id', campId);
+}
+
+// ============================================================================
+// QUESTIONS & ANSWERS HELPERS
+// ============================================================================
+
+export async function getQuestions(campId) {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('camp_questions')
+    .select(`
+      *,
+      profiles(full_name, avatar_url),
+      camp_answers(
+        *,
+        profiles(full_name, avatar_url)
+      )
+    `)
+    .eq('camp_id', campId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching questions:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function askQuestion(campId, questionText) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('camp_questions')
+    .insert({
+      user_id: user.id,
+      camp_id: campId,
+      question_text: questionText
+    })
+    .select()
+    .single();
+}
+
+export async function answerQuestion(questionId, answerText) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('camp_answers')
+    .insert({
+      user_id: user.id,
+      question_id: questionId,
+      answer_text: answerText
+    })
+    .select()
+    .single();
+}
+
+// ============================================================================
+// CAMP SESSIONS HELPERS
+// ============================================================================
+
+export async function getCampSessions(campId) {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('camp_sessions')
+    .select('*')
+    .eq('camp_id', campId)
+    .eq('is_available', true)
+    .order('start_date');
+
+  if (error) {
+    console.error('Error fetching camp sessions:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function getAllSessions() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('camp_sessions')
+    .select('*')
+    .eq('is_available', true)
+    .order('start_date');
+
+  if (error) {
+    console.error('Error fetching all sessions:', error);
+    return [];
+  }
+  return data;
+}
+
+// ============================================================================
+// SUMMER WEEKS HELPER
+// ============================================================================
+
+export function getSummerWeeks2026() {
+  const weeks = [];
+  const startDate = new Date('2026-06-08'); // First Monday after school ends
+
+  for (let i = 0; i < 11; i++) {
+    const weekStart = new Date(startDate);
+    weekStart.setDate(startDate.getDate() + (i * 7));
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 4); // Mon-Fri
+
+    weeks.push({
+      weekNum: i + 1,
+      startDate: weekStart.toISOString().split('T')[0],
+      endDate: weekEnd.toISOString().split('T')[0],
+      label: `Week ${i + 1}`,
+      display: `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    });
+  }
+
+  return weeks;
+}
