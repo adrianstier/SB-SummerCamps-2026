@@ -32,10 +32,10 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(requestLogger());
 }
 
-// Apply rate limiting to all API routes
+// Apply rate limiting to all API routes (higher limit for testing)
 app.use('/api', rateLimit({
   windowMs: 60000,    // 1 minute
-  maxRequests: 100    // 100 requests per minute
+  maxRequests: 500    // 500 requests per minute (increased for E2E testing)
 }));
 
 // Serve static files from dist in production
