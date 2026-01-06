@@ -620,136 +620,87 @@ export default function App() {
         </div>
       </header>
 
-      {/* Filter Bar */}
-      <section className="sticky top-0 z-40" style={{ background: 'var(--sand-50)', borderBottom: '1px solid var(--sand-200)' }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-          {/* Filter Presets - One-tap persona-based filters */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            <span className="text-xs font-medium uppercase tracking-wide self-center mr-2" style={{ color: 'var(--sand-400)' }}>I need:</span>
-            <button
-              onClick={() => {
-                clearFilters();
-                setExtendedCare(true);
-                setFoodIncluded(true);
-              }}
-              className={`preset-pill ${extendedCare && foodIncluded && !maxPrice ? 'active' : ''}`}
-            >
-              <span>👩‍💼</span> Working Parent
-            </button>
-            <button
-              onClick={() => {
-                clearFilters();
-                setMaxPrice('300');
-              }}
-              className={`preset-pill ${maxPrice === '300' && !extendedCare ? 'active' : ''}`}
-            >
-              <span>💰</span> Budget-Friendly
-            </button>
-            <button
-              onClick={() => {
-                clearFilters();
-                setSelectedCategory('Sports');
-              }}
-              className={`preset-pill ${selectedCategory === 'Sports' ? 'active' : ''}`}
-            >
-              <span>⚽</span> Active Kids
-            </button>
-            <button
-              onClick={() => {
-                clearFilters();
-                setSelectedCategory('Science/STEM');
-              }}
-              className={`preset-pill ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
-            >
-              <span>🔬</span> STEM Explorer
-            </button>
-            <button
-              onClick={() => {
-                clearFilters();
-                setSelectedCategory('Art');
-              }}
-              className={`preset-pill ${selectedCategory === 'Art' ? 'active' : ''}`}
-            >
-              <span>🎨</span> Creative
-            </button>
-          </div>
-
-          {/* Quick Filters - Problem-oriented */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            <span className="text-xs font-medium uppercase tracking-wide self-center mr-1" style={{ color: 'var(--sand-400)' }}>Filter:</span>
-            <button
-              onClick={() => setMaxPrice(maxPrice === '300' ? '' : '300')}
-              className={`quick-filter-pill ${maxPrice === '300' ? 'active' : ''}`}
-            >
-              Under $300/wk
-            </button>
-            <button
-              onClick={() => setExtendedCare(!extendedCare)}
-              className={`quick-filter-pill ${extendedCare ? 'active' : ''}`}
-            >
-              Full-Day Coverage
-            </button>
-            <button
-              onClick={() => setFoodIncluded(!foodIncluded)}
-              className={`quick-filter-pill ${foodIncluded ? 'active' : ''}`}
-            >
-              Meals Included
-            </button>
-            <button
-              onClick={() => setHasTransport(!hasTransport)}
-              className={`quick-filter-pill ${hasTransport ? 'active' : ''}`}
-            >
-              Has Transport
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Filter Toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`filter-pill ${showFilters ? 'active' : ''}`}
-            >
-              <FilterIcon />
-              <span>Filters</span>
-              {activeFilterCount > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{
-                  background: showFilters ? 'rgba(255,255,255,0.2)' : 'var(--terra-500)',
-                  color: 'white'
-                }}>
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-
-            {/* Category Pills */}
-            <div className="flex flex-wrap gap-2 flex-1">
+      {/* Filter Bar - Editorial Style */}
+      <section className="filter-bar-section sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          {/* Main Filter Row */}
+          <div className="filter-bar-inner">
+            {/* Left: Quick Presets as elegant text links */}
+            <div className="filter-presets">
+              <span className="filter-presets-label">Quick find</span>
+              <div className="filter-presets-divider" />
               <button
-                onClick={() => setSelectedCategory('All')}
-                className={`filter-pill ${selectedCategory === 'All' ? 'active' : ''}`}
+                onClick={() => {
+                  clearFilters();
+                  setExtendedCare(true);
+                  setFoodIncluded(true);
+                }}
+                className={`filter-preset-link ${extendedCare && foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`}
               >
-                All Camps
+                Full-Day Care
               </button>
-              {categories.slice(0, 5).map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`filter-pill ${selectedCategory === cat ? 'active' : ''}`}
-                >
-                  {cat}
-                </button>
-              ))}
-              {categories.length > 5 && (
-                <button
-                  onClick={() => setShowFilters(true)}
-                  className="filter-pill"
-                >
-                  +{categories.length - 5} more
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  clearFilters();
+                  setMaxPrice('300');
+                }}
+                className={`filter-preset-link ${maxPrice === '300' && !extendedCare && selectedCategory === 'All' ? 'active' : ''}`}
+              >
+                Under $300
+              </button>
+              <button
+                onClick={() => {
+                  clearFilters();
+                  setSelectedCategory('Sports');
+                }}
+                className={`filter-preset-link ${selectedCategory === 'Sports' ? 'active' : ''}`}
+              >
+                Sports
+              </button>
+              <button
+                onClick={() => {
+                  clearFilters();
+                  setSelectedCategory('Art');
+                }}
+                className={`filter-preset-link ${selectedCategory === 'Art' ? 'active' : ''}`}
+              >
+                Art & Creative
+              </button>
+              <button
+                onClick={() => {
+                  clearFilters();
+                  setSelectedCategory('Science/STEM');
+                }}
+                className={`filter-preset-link ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
+              >
+                STEM
+              </button>
+              <button
+                onClick={() => {
+                  clearFilters();
+                  setSelectedCategory('Nature/Outdoor');
+                }}
+                className={`filter-preset-link ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}
+              >
+                Outdoors
+              </button>
             </div>
 
-            {/* Sort dropdown (desktop) */}
-            <div className="hidden md:block">
+            {/* Right: Filter Controls */}
+            <div className="filter-controls">
+              {/* All Filters Button */}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`filter-control-btn ${showFilters ? 'active' : ''}`}
+              >
+                <FilterIcon />
+                <span>All Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="filter-count">{activeFilterCount}</span>
+                )}
+              </button>
+
+              {/* Sort dropdown */}
               <select
                 value={`${sortBy}-${sortDir}`}
                 onChange={(e) => {
@@ -757,15 +708,20 @@ export default function App() {
                   setSortBy(field);
                   setSortDir(dir);
                 }}
-                className="filter-pill appearance-none cursor-pointer pr-8 bg-no-repeat bg-right"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234a3f35'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundSize: '16px', backgroundPosition: 'right 12px center' }}
+                className="filter-sort-select"
               >
-                <option value="camp_name-asc">Name A–Z</option>
-                <option value="camp_name-desc">Name Z–A</option>
-                <option value="min_price-asc">Price: Low to High</option>
-                <option value="min_price-desc">Price: High to Low</option>
-                <option value="min_age-asc">Age: Youngest First</option>
+                <option value="camp_name-asc">A–Z</option>
+                <option value="camp_name-desc">Z–A</option>
+                <option value="min_price-asc">Price ↑</option>
+                <option value="min_price-desc">Price ↓</option>
               </select>
+
+              {/* Clear filters */}
+              {activeFilterCount > 0 && (
+                <button onClick={clearFilters} className="filter-clear-btn">
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         </div>
