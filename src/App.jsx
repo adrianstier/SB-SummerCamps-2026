@@ -9,39 +9,109 @@ import { Dashboard } from './components/Dashboard';
 import { CampComparison } from './components/CampComparison';
 import { ReviewsList, ReviewsSummary } from './components/Reviews';
 import { AdminDashboard } from './components/AdminDashboard';
+import { supabase } from './lib/supabase';
 
-// API functions
-const API_BASE = '/api';
-
+// Fetch camps from Supabase
 async function fetchCamps(filters = {}) {
-  const params = new URLSearchParams();
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== null && value !== undefined && value !== '' && value !== false) {
-      if (Array.isArray(value)) {
-        if (value.length > 0) params.set(key, value.join(','));
-      } else {
-        params.set(key, value);
-      }
-    }
-  });
+  if (!supabase) {
+    return { camps: [], total: 0 };
+  }
 
-  const response = await fetch(`${API_BASE}/camps?${params}`);
-  return response.json();
+  let query = supabase.from('camps').select('*');
+
+  // Apply filters
+  if (filters.search) {
+    query = query.or(`camp_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+  }
+
+  if (filters.category && filters.category !== 'All') {
+    query = query.eq('category', filters.category);
+  }
+
+  if (filters.minAge) {
+    query = query.gte('max_age', parseInt(filters.minAge));
+  }
+
+  if (filters.maxAge) {
+    query = query.lte('min_age', parseInt(filters.maxAge));
+  }
+
+  if (filters.maxPrice) {
+    query = query.lte('min_price', parseInt(filters.maxPrice));
+  }
+
+  if (!filters.includeClosed) {
+    query = query.eq('is_closed', false);
+  }
+
+  const { data, error } = await query.order('camp_name');
+
+  if (error) {
+    console.error('Error fetching camps:', error);
+    return { camps: [], total: 0 };
+  }
+
+  return { camps: data || [], total: data?.length || 0 };
 }
 
 async function fetchCategories() {
-  const response = await fetch(`${API_BASE}/categories`);
-  return response.json();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('camps')
+    .select('category')
+    .not('category', 'is', null);
+
+  if (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
+
+  const categories = [...new Set(data.map(c => c.category))];
+  return categories.sort();
 }
 
 async function fetchKeywords() {
-  const response = await fetch(`${API_BASE}/keywords`);
-  return response.json();
+  return [];
 }
 
 async function fetchStats() {
-  const response = await fetch(`${API_BASE}/stats`);
-  return response.json();
+  if (!supabase) {
+    return { total: 0, active: 0, closed: 0, categories: {}, priceRange: {}, ageRange: {} };
+  }
+
+  const { data: camps, error } = await supabase.from('camps').select('*');
+
+  if (error || !camps) {
+    return { total: 0, active: 0, closed: 0, categories: {}, priceRange: {}, ageRange: {} };
+  }
+
+  const active = camps.filter(c => !c.is_closed);
+
+  const categories = {};
+  active.forEach(c => {
+    if (c.category) {
+      categories[c.category] = (categories[c.category] || 0) + 1;
+    }
+  });
+
+  const prices = active.filter(c => c.min_price).map(c => c.min_price);
+  const ages = active.filter(c => c.min_age);
+
+  return {
+    total: camps.length,
+    active: active.length,
+    closed: camps.length - active.length,
+    categories,
+    priceRange: {
+      min: prices.length ? Math.min(...prices) : null,
+      max: prices.length ? Math.max(...active.filter(c => c.max_price).map(c => c.max_price)) : null
+    },
+    ageRange: {
+      min: ages.length ? Math.min(...ages.map(c => c.min_age)) : null,
+      max: ages.length ? Math.max(...ages.filter(c => c.max_age).map(c => c.max_age)) : null
+    }
+  };
 }
 
 // Format price for display
@@ -59,8 +129,8 @@ function formatPrice(camp) {
   const max = parseInt(maxPrice);
 
   if (isNaN(min)) return camp.price_week || 'TBD';
-  if (min === max || isNaN(max)) return `$${min}`;
-  return `$${min}–${max}`;
+  if (min === max || isNaN(max)) return `$${min}/wk`;
+  return `$${min}–${max}/wk`;
 }
 
 // Category class mappings
@@ -138,6 +208,16 @@ const ExternalLinkIcon = () => (
 const ChevronIcon = ({ expanded }) => (
   <svg className={`w-5 h-5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+// Brand Icon (California sun over wave)
+const BrandIcon = ({ className = "w-8 h-8" }) => (
+  <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="16" cy="11" r="5" fill="#f9cf45" />
+    <path d="M16 3v3M16 14v3M9 11H6M26 11h-3M10.5 5.5l2 2M19.5 7.5l2-2M10.5 16.5l2-2M19.5 14.5l2 2" stroke="#f9cf45" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M3 24c3-3 6-1 9 1s6 3 9 1 6-3 9-1" stroke="#3ba8a8" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M3 28c3-2 6-1 9 1s6 2 9 0 6-2 9 0" stroke="#6bc4c4" strokeWidth="2" strokeLinecap="round" opacity="0.6" />
   </svg>
 );
 
@@ -316,12 +396,12 @@ export default function App() {
           <h1 className="font-serif text-2xl font-semibold mb-3" style={{ color: 'var(--earth-800)' }}>
             Something went wrong
           </h1>
-          <p className="text-base mb-6" style={{ color: 'var(--earth-700)' }}>{error}</p>
+          <p className="text-base mb-6" style={{ color: 'var(--earth-700)' }}>Refresh to try again.</p>
           <button
             onClick={() => window.location.reload()}
             className="btn-primary"
           >
-            Try Again
+            Refresh
           </button>
         </div>
       </div>
@@ -336,7 +416,7 @@ export default function App() {
           {/* Top Bar */}
           <div className="flex items-center justify-between mb-12 md:mb-16">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🌴</span>
+              <BrandIcon className="w-9 h-9" />
               <span className="font-sans font-medium text-sm tracking-wide uppercase" style={{ color: 'var(--earth-700)', letterSpacing: '0.1em' }}>
                 Santa Barbara
               </span>
@@ -395,29 +475,31 @@ export default function App() {
 
           {/* Hero Content */}
           <div className="text-center max-w-3xl mx-auto">
-            <p className="font-sans text-sm font-medium uppercase tracking-widest mb-4" style={{ color: 'var(--terra-500)' }}>
-              Summer 2026
-            </p>
-            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-semibold leading-tight mb-6" style={{ color: 'var(--earth-800)' }}>
-              Find the Perfect Camp{' '}
-              <span className="text-gradient">Adventure</span>
-            </h1>
-            <p className="font-sans text-lg md:text-xl mb-10" style={{ color: 'var(--earth-700)', opacity: 0.85 }}>
+            <div className="hero-title">
+              <p className="font-sans text-sm font-medium uppercase tracking-widest mb-4" style={{ color: 'var(--terra-500)' }}>
+                Summer 2026
+              </p>
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-semibold leading-tight mb-6" style={{ color: 'var(--earth-800)' }}>
+                Your summer,{' '}
+                <span className="text-gradient">sorted.</span>
+              </h1>
+            </div>
+            <p className="hero-subtitle font-sans text-lg md:text-xl mb-10" style={{ color: 'var(--earth-700)', opacity: 0.85 }}>
               {stats ? (
-                <>Explore <strong>{stats.active}</strong> summer camps in Santa Barbara—from surf and art to science and nature.</>
+                <>Stop juggling spreadsheets. <strong>{stats.active}</strong> camps, one plan, zero scrambling.</>
               ) : (
-                <>Explore summer camps in Santa Barbara—from surf and art to science and nature.</>
+                <>Stop juggling spreadsheets. All your camps, one plan, zero scrambling.</>
               )}
             </p>
 
             {/* Search Bar */}
-            <div className="relative max-w-2xl mx-auto mb-8">
+            <div className="hero-search relative max-w-2xl mx-auto mb-8">
               <div className="absolute left-5 top-1/2 -translate-y-1/2" style={{ color: 'var(--sand-400)' }}>
                 <SearchIcon />
               </div>
               <input
                 type="text"
-                placeholder="Search camps, activities, locations..."
+                placeholder="Search camps..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="search-input"
@@ -426,10 +508,10 @@ export default function App() {
 
             {/* Quick Stats */}
             {stats && (
-              <div className="flex flex-wrap justify-center gap-6 text-sm" style={{ color: 'var(--earth-700)' }}>
+              <div className="hero-stats flex flex-wrap justify-center gap-6 text-sm" style={{ color: 'var(--earth-700)' }}>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ocean-400)' }}></span>
-                  <span>{camps.length} camps shown</span>
+                  <span>{camps.length} camps</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: 'var(--terra-400)' }}></span>
@@ -437,7 +519,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: 'var(--sun-400)' }}></span>
-                  <span>Ages 3–18</span>
+                  <span>Ages 3-18</span>
                 </div>
               </div>
             )}
@@ -455,6 +537,35 @@ export default function App() {
       {/* Filter Bar */}
       <section className="sticky top-0 z-40" style={{ background: 'var(--sand-50)', borderBottom: '1px solid var(--sand-200)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          {/* Quick Filters - Problem-oriented */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            <span className="text-xs font-medium uppercase tracking-wide self-center mr-1" style={{ color: 'var(--sand-400)' }}>Quick:</span>
+            <button
+              onClick={() => setMaxPrice(maxPrice === '300' ? '' : '300')}
+              className={`quick-filter-pill ${maxPrice === '300' ? 'active' : ''}`}
+            >
+              Under $300/wk
+            </button>
+            <button
+              onClick={() => setExtendedCare(!extendedCare)}
+              className={`quick-filter-pill ${extendedCare ? 'active' : ''}`}
+            >
+              Full-Day Coverage
+            </button>
+            <button
+              onClick={() => setFoodIncluded(!foodIncluded)}
+              className={`quick-filter-pill ${foodIncluded ? 'active' : ''}`}
+            >
+              Meals Included
+            </button>
+            <button
+              onClick={() => setHasTransport(!hasTransport)}
+              className={`quick-filter-pill ${hasTransport ? 'active' : ''}`}
+            >
+              Has Transport
+            </button>
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             {/* Filter Toggle */}
             <button
@@ -529,7 +640,7 @@ export default function App() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-serif text-xl font-semibold" style={{ color: 'var(--earth-800)' }}>
-                Refine Your Search
+                Filter
               </h3>
               {activeFilterCount > 0 && (
                 <button
@@ -537,7 +648,7 @@ export default function App() {
                   className="text-sm font-medium hover:underline"
                   style={{ color: 'var(--terra-500)' }}
                 >
-                  Clear all filters
+                  Clear all
                 </button>
               )}
             </div>
@@ -564,7 +675,7 @@ export default function App() {
               {/* Age */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Child's Age
+                  Age
                 </label>
                 <select
                   value={childAge}
@@ -582,7 +693,7 @@ export default function App() {
               {/* Price */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Max Price/Week
+                  Price
                 </label>
                 <select
                   value={maxPrice}
@@ -602,7 +713,7 @@ export default function App() {
               {/* Sort (mobile) */}
               <div className="md:hidden">
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Sort By
+                  Sort
                 </label>
                 <select
                   value={`${sortBy}-${sortDir}`}
@@ -683,17 +794,17 @@ export default function App() {
           <div className="text-center py-20">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sand-100)' }}>
               <svg className="w-12 h-12" style={{ color: 'var(--sand-400)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <h2 className="font-serif text-2xl font-semibold mb-3" style={{ color: 'var(--earth-800)' }}>
-              No camps found
+              No camps match all your filters
             </h2>
             <p className="text-base mb-6" style={{ color: 'var(--earth-700)' }}>
-              Try adjusting your filters to discover more options.
+              Try loosening one filter to see more options—or clear all and start fresh.
             </p>
             <button onClick={clearFilters} className="btn-primary">
-              Clear All Filters
+              Clear Filters
             </button>
           </div>
         ) : viewMode === 'grid' ? (
@@ -734,17 +845,14 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">🌴</span>
+              <BrandIcon className="w-7 h-7" />
               <span className="font-serif text-lg" style={{ color: 'var(--sand-100)' }}>
                 Santa Barbara Summer Camps
               </span>
             </div>
             <div className="text-center md:text-right">
               <p className="text-sm" style={{ color: 'var(--sand-300)' }}>
-                Data refreshed regularly. Prices and availability subject to change.
-              </p>
-              <p className="text-sm mt-1" style={{ color: 'var(--sand-400)' }}>
-                Always verify details directly with camps.
+                Prices and availability may change. Verify with camps directly.
               </p>
             </div>
           </div>
@@ -847,7 +955,7 @@ function FavoritesModal({ camps, onClose, onOpenPlanner }) {
                 No favorites yet
               </h3>
               <p style={{ color: 'var(--earth-700)' }}>
-                Click the heart icon on camps to save them here.
+                Heart camps to save them here.
               </p>
             </div>
           ) : (
@@ -929,6 +1037,7 @@ const HeartOutlineIcon = ({ className, style }) => (
 function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare }) {
   const categoryClass = categoryClasses[camp.category] || 'category-multi-activity';
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
+  const [imageError, setImageError] = useState(false);
 
   return (
     <div
@@ -936,8 +1045,20 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
       style={isComparing ? { ringColor: 'var(--ocean-500)' } : undefined}
       onClick={onToggle}
     >
-      {/* Category color bar */}
-      <div className="camp-card-header" style={{ background: categoryGradient }}></div>
+      {/* Camp Image or Category color bar */}
+      {camp.image_url && !imageError ? (
+        <div className="camp-card-image">
+          <img
+            src={camp.image_url}
+            alt={camp.camp_name}
+            loading="lazy"
+            onError={() => setImageError(true)}
+          />
+          <div className="camp-card-image-overlay" style={{ background: categoryGradient }}></div>
+        </div>
+      ) : (
+        <div className="camp-card-header" style={{ background: categoryGradient }}></div>
+      )}
 
       <div className="p-6">
         {/* Header */}
@@ -977,28 +1098,27 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
           {camp.description}
         </p>
 
-        {/* Quick Info Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-5">
-          <div>
-            <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--sand-400)' }}>Ages</p>
-            <p className="font-medium" style={{ color: 'var(--earth-800)' }}>{camp.ages}</p>
+        {/* Quick Info Row - Scannable */}
+        <div className="camp-quick-info">
+          <div className="camp-quick-info-item">
+            <p className="camp-quick-info-label">Ages</p>
+            <p className="camp-quick-info-value">{camp.ages || '—'}</p>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--sand-400)' }}>Price</p>
-            <p className="font-semibold" style={{ color: 'var(--terra-500)' }}>{formatPrice(camp)}</p>
+          <div className="camp-quick-info-item">
+            <p className="camp-quick-info-label">Price</p>
+            <p className="camp-quick-info-value price">{formatPrice(camp)}</p>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--sand-400)' }}>Hours</p>
-            <p className="font-medium text-sm" style={{ color: 'var(--earth-800)' }}>{camp.hours || 'TBD'}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--sand-400)' }}>Registration</p>
-            <p className="font-medium text-sm" style={{ color: 'var(--earth-800)' }}>{camp['2025_reg_date'] || 'TBD'}</p>
+          <div className="camp-quick-info-item">
+            <p className="camp-quick-info-label">Hours</p>
+            <p className="camp-quick-info-value">{camp.hours || 'TBD'}</p>
           </div>
         </div>
 
         {/* Feature Badges */}
         <div className="flex flex-wrap gap-2">
+          {camp.reg_date_2026 && camp.reg_date_2026 !== 'TBD' && camp.reg_date_2026 !== 'Unknown' && (
+            <span className="feature-badge feature-badge-reg">Reg: {camp.reg_date_2026}</span>
+          )}
           {camp.has_extended_care && (
             <span className="feature-badge feature-badge-extended">Extended Care</span>
           )}
@@ -1030,14 +1150,14 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
           {/* Food Information Section */}
           <div className="mt-5 p-4 rounded-xl" style={{ background: 'var(--ocean-50)', border: '1px solid var(--ocean-200)' }}>
             <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--ocean-600)' }}>
-              <span>🍽️</span> Food & Meals
+              <span>🍽️</span> Food
             </p>
             <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
               {camp.food_provided && camp.food_provided !== 'N/A' && camp.food_provided !== 'Unknown'
                 ? camp.food_provided
                 : camp.food_included
                   ? 'Meals included'
-                  : 'Bring your own lunch'}
+                  : 'Bring lunch'}
             </p>
           </div>
 
@@ -1045,7 +1165,7 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
           {camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A' && (
             <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--terra-50)', border: '1px solid var(--terra-200)' }}>
               <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--terra-600)' }}>
-                <span>📋</span> Cancellation Policy
+                <span>📋</span> Cancellation
               </p>
               <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
                 {camp.refund_policy}

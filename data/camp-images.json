@@ -1,0 +1,187 @@
+[
+  {
+    "id": "a-frame-surf-camp",
+    "camp_name": "A-Frame Surf Camp",
+    "image_url": "https://www.aframesurf.com/wp-content/uploads/2023/05/A-frame-Logo-Top.png"
+  },
+  {
+    "id": "anacapa-school-arts-exploration",
+    "camp_name": "Anacapa School Arts & Exploration",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/5e41ede9339f6f185ff5f495/1741038183578-QZKAHT83N2VZOIFF0DWP/unsplash-image-DqgMHzeio7g.jpg"
+  },
+  {
+    "id": "apples-to-zucchini-cooking-school",
+    "camp_name": "Apples to Zucchini Cooking School",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/5fe26c75e1b4c135fb012297/899552c8-d10f-400a-82e3-6b362f6aba08/asian+rolls003-banner.jpg"
+  },
+  {
+    "id": "art-explorers",
+    "camp_name": "Art Explorers",
+    "image_url": "https://terrificscientific.org/wp-content/uploads/2014/06/camps.png"
+  },
+  {
+    "id": "best-u-camp",
+    "camp_name": "Best U Camp",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/65d7fcb0a8f97e1e83797010/efcffaf2-5dd9-48cb-bd8e-e8f603f5e7ea/Hero-1.jpg"
+  },
+  {
+    "id": "boxtales-theatre-camp",
+    "camp_name": "Boxtales Theatre Camp",
+    "image_url": "https://boxtales.org/wp-content/uploads/strikingr/images/989_summer-960x500.jpg"
+  },
+  {
+    "id": "camp-elings",
+    "camp_name": "Camp Elings",
+    "image_url": "https://elingspark.org/wp-content/uploads/2021/09/camp-elings-1920x1080-1.jpg"
+  },
+  {
+    "id": "camp-haverim",
+    "camp_name": "Camp Haverim",
+    "image_url": "https://cdn.fedweb.org/cache/fed-136/2/red-team_678936_resize_1800__1_1.png?v=1748310075"
+  },
+  {
+    "id": "girls-inc-of-greater-santa-barbara",
+    "camp_name": "Girls Inc. of Greater Santa Barbara",
+    "image_url": "https://girlsincsb.org/wp-content/uploads/2024/04/Girls-Inc_4-18-24_0148-684x442.jpg"
+  },
+  {
+    "id": "gusd-summer-thrive",
+    "camp_name": "GUSD Summer Thrive",
+    "image_url": "https://lh3.googleusercontent.com/sitesv/AAzXCkdGdngqvXzvsCwHs9XOCDrcxFZXh8qXE28GjrFIG3T6gfQdpXHa1iXLTXQf3YNTySmmBfKqArkgZze6f1SZK5AlzElvkB9Us79r25LKrfB-BNAru9DRZlIMHMFxDB2DnffXB8A-j93FRza1GaMiN1x2o_cbehlY-t8qoKg4j8ZOi51MicLWYZV6M3Y=w16383"
+  },
+  {
+    "id": "ice-in-paradise",
+    "camp_name": "Ice in Paradise",
+    "image_url": "https://static.wixstatic.com/media/2bcb5a_c08977f49b18490a901188754d0ebcab~mv2.jpeg/v1/fill/w_1280,h_905,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/2bcb5a_c08977f49b18490a901188754d0ebcab~mv2.jpeg"
+  },
+  {
+    "id": "interact-theatre-school",
+    "camp_name": "InterAct Theatre School",
+    "image_url": "https://i0.wp.com/www.interacttheatreschool.com/wp-content/uploads/2023/08/summer-camps-2023.jpg?resize=900%2C445&ssl=1"
+  },
+  {
+    "id": "laguna-blanca-summer-programs",
+    "camp_name": "Laguna Blanca Summer Programs",
+    "image_url": "https://resources.finalsite.net/images/f_auto,q_auto/v1757462144/lagunablancaorg/qyhxobkgiytdxwjjldhd/HomepageAnimationLSgirl.jpg"
+  },
+  {
+    "id": "lobster-jo-s-beach-camp",
+    "camp_name": "Lobster Jo's Beach Camp",
+    "image_url": "https://static.wixstatic.com/media/29702b_e2f0f3e419854b848479080c62720166f000.jpg/v1/fill/w_1280,h_794,al_c,q_85,usm_0.33_1.00_0.00,enc_avif,quality_auto/29702b_e2f0f3e419854b848479080c62720166f000.jpg"
+  },
+  {
+    "id": "momentum-dance-company",
+    "camp_name": "Momentum Dance Company",
+    "image_url": "https://static.wixstatic.com/media/e10c4e_0f7946985f364e2f9297b8518f8d755b~mv2.jpg/v1/fill/w_1280,h_601,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e10c4e_0f7946985f364e2f9297b8518f8d755b~mv2.jpg"
+  },
+  {
+    "id": "moxi-museum-camp",
+    "camp_name": "MOXI Museum Camp",
+    "image_url": "https://moxi.org/wp-content/uploads/2025/10/Winter-Edition-XtruLink-1.png"
+  },
+  {
+    "id": "next-level-sports-camp",
+    "camp_name": "Next Level Sports Camp",
+    "image_url": "https://static.wixstatic.com/media/19baa4_2db04cd730e54f9b998ae296fa6c63d8~mv2.png/v1/crop/x_0,y_0,w_1000,h_353/fill/w_878,h_310,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Horzontal%20Logo.png"
+  },
+  {
+    "id": "nick-rail-summer-band-camp",
+    "camp_name": "Nick Rail Summer Band Camp",
+    "image_url": "https://sbefoundation.org/wp-content/uploads/2024/06/Nick-Rail-Summer-Band-Camp-600x403.jpg"
+  },
+  {
+    "id": "octobots-robotics-camp",
+    "camp_name": "Octobots Robotics Camp",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/685c91c9c5a09c7ad43dd56d/be51484c-3c81-47f7-a98b-7c65269a548a/9084.png?format=1500w"
+  },
+  {
+    "id": "page-youth-center",
+    "camp_name": "Page Youth Center",
+    "image_url": "https://static.wixstatic.com/media/c4d0ad_285474f9ba5a4903a740fb77ecdf2faa~mv2.png/v1/fill/w_1280,h_800,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/c4d0ad_285474f9ba5a4903a740fb77ecdf2faa~mv2.png"
+  },
+  {
+    "id": "peak2pacific",
+    "camp_name": "Peak2Pacific",
+    "image_url": "https://static.wixstatic.com/media/d2bbf5_c65fa293f1fc45b290d717d6e99e01ec~mv2_d_5970_3096_s_4_2.png/v1/fill/w_1280,h_800,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/d2bbf5_c65fa293f1fc45b290d717d6e99e01ec~mv2_d_5970_3096_s_4_2.png"
+  },
+  {
+    "id": "santa-barbara-dance-arts",
+    "camp_name": "Santa Barbara Dance Arts",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/595e880e579fb3d15cb7ab68/1504021544083-W50ULE0WXJBD9R0XVKCL/color+png.png?format=1500w"
+  },
+  {
+    "id": "santa-barbara-museum-of-art-camp",
+    "camp_name": "Santa Barbara Museum of Art Camp",
+    "image_url": "https://www.sbma.net/sites/default/files/2025-02/Jason-Class-edit-720w.jpg"
+  },
+  {
+    "id": "santa-barbara-soccer-club-camp",
+    "camp_name": "Santa Barbara Soccer Club Camp",
+    "image_url": "https://santabarbarasc.org/wp-content/uploads/2024/12/recreation-league-1024x1011.webp"
+  },
+  {
+    "id": "santa-barbara-zoo-camp",
+    "camp_name": "Santa Barbara Zoo Camp",
+    "image_url": "https://www.sbzoo.org/assets/2995/img_1651.jpg?w=1920"
+  },
+  {
+    "id": "sb-botanic-garden",
+    "camp_name": "SB Botanic Garden",
+    "image_url": "https://sbbotanicgarden.org/wp-content/uploads/2023/05/1-Elings-Park-Nature-Walk-waving-450x300.jpg"
+  },
+  {
+    "id": "sb-parks-recreation",
+    "camp_name": "SB Parks & Recreation",
+    "image_url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/styles/banner_desk/public/2024-02/Shoreline%20Park%20%20from%20SW%20DRONE%2002.jpg.webp?itok=QkjweWVe"
+  },
+  {
+    "id": "sea-league-excursion-camp",
+    "camp_name": "Sea League Excursion Camp",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/608c230bfa93455047d24f2c/e4567077-58a8-419f-a45a-d16b495d8532/SeaLeague_logo-HORIZ-2024-color-rev.png?format=1500w"
+  },
+  {
+    "id": "surf-happens",
+    "camp_name": "Surf Happens",
+    "image_url": "https://surfhappens.com/wp-content/uploads/2021/08/Santa-Barbara-Surf-Lessons-1.jpg"
+  },
+  {
+    "id": "terrific-scientific",
+    "camp_name": "Terrific Scientific",
+    "image_url": "https://terrificscientific.org/wp-content/uploads/2016/01/kinders-with-elephant.jpg"
+  },
+  {
+    "id": "twin-lakes-junior-golf",
+    "camp_name": "Twin Lakes Junior Golf",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/5e5ed83743ef8d742ac8911e/0775746a-260d-4a61-902a-896aaab036aa/22-02-08-Junior-Golf-10.jpg"
+  },
+  {
+    "id": "wilderness-youth-project",
+    "camp_name": "Wilderness Youth Project",
+    "image_url": "https://wyp.org/wp-content/uploads/2024/02/hero-home-scaled406.jpg"
+  },
+  {
+    "id": "ymca-summer-camp",
+    "camp_name": "YMCA Summer Camp",
+    "image_url": "https://www.ciymca.org/sites/default/files/styles/media_full/public/2022-12/2017-09-27_swim_4430.jpg.webp?itok=gRgkD0fD"
+  },
+  {
+    "id": "ucsb-day-camp",
+    "camp_name": "UCSB Day Camp",
+    "image_url": "https://recreation.ucsb.edu/sites/default/files/2024-01/M22_SummerDayCamp_184_cropped.png"
+  },
+  {
+    "id": "united-boys-girls-club",
+    "camp_name": "United Boys & Girls Club",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/65a5a2691190be74562ce8f2/1fdcb68b-6bd4-4ef9-bb50-284c3b96f99d/Westside+Boy_s+Club.jpg"
+  },
+  {
+    "id": "westmont-summer-sports-camps",
+    "camp_name": "Westmont Summer Sports Camps",
+    "image_url": "https://www.westmont.edu/sites/default/files/styles/16_9_1280w/public/image_123650291%20%284%29.JPG?itok=VQEU7oLc"
+  },
+  {
+    "id": "winshape-camps",
+    "camp_name": "WinShape Camps",
+    "image_url": "https://winshapecamps.wpenginepowered.com/wp-content/uploads/2023/02/9bfd538d-7ca8-56fa-b778-68e3529b22ea-scaled-e1695845360969.jpg"
+  }
+]
