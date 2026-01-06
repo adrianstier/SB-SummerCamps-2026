@@ -56,9 +56,9 @@ export function FavoriteButton({ campId, size = 'md', showLabel = false }) {
       disabled={loading}
       className={`
         ${sizeClasses[size]}
-        flex items-center justify-center gap-2 rounded-full transition-all duration-200
+        favorite-btn flex items-center justify-center gap-2 rounded-full
         ${loading ? 'opacity-50 cursor-wait' : 'cursor-pointer'}
-        ${animating ? 'scale-125' : 'scale-100'}
+        ${animating && isFav ? 'is-favorited' : ''}
       `}
       style={{
         background: isFav ? 'var(--terra-100)' : 'white',

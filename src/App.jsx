@@ -1,5 +1,41 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from './contexts/AuthContext';
+
+// Custom hook for scroll-triggered reveal animations
+function useScrollReveal(options = {}) {
+  const ref = useRef(null);
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      setIsRevealed(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsRevealed(true);
+          observer.unobserve(element); // Only animate once
+        }
+      },
+      {
+        threshold: options.threshold || 0.1,
+        rootMargin: options.rootMargin || '0px 0px -50px 0px'
+      }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [options.threshold, options.rootMargin]);
+
+  return [ref, isRevealed];
+}
 import { AuthButton } from './components/AuthButton';
 import { FavoriteButton } from './components/FavoriteButton';
 import { SchedulePlanner } from './components/SchedulePlanner';
@@ -506,20 +542,24 @@ export default function App() {
               />
             </div>
 
-            {/* Quick Stats */}
+            {/* Trust Signals - Quick Stats with Data Freshness */}
             {stats && (
               <div className="hero-stats flex flex-wrap justify-center gap-6 text-sm" style={{ color: 'var(--earth-700)' }}>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ocean-400)' }}></span>
-                  <span>{camps.length} camps</span>
+                  <span><strong>{camps.length}</strong> local camps</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: 'var(--terra-400)' }}></span>
-                  <span>{categories.length} categories</span>
+                  <span><strong>{categories.length}</strong> categories</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: 'var(--sun-400)' }}></span>
-                  <span>Ages 3-18</span>
+                  <span>Ages 3–18</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <VerifiedIcon />
+                  <span>Updated Jan 2026</span>
                 </div>
               </div>
             )}
@@ -840,7 +880,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
+      {/* Footer - Enhanced with trust signals */}
       <footer className="site-footer">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -851,8 +891,11 @@ export default function App() {
               </span>
             </div>
             <div className="text-center md:text-right">
-              <p className="text-sm" style={{ color: 'var(--sand-300)' }}>
-                Prices and availability may change. Verify with camps directly.
+              <p className="text-sm mb-1" style={{ color: 'var(--sand-200)' }}>
+                Data sourced directly from camp websites • Last updated January 2026
+              </p>
+              <p className="text-xs" style={{ color: 'var(--sand-400)' }}>
+                Prices and availability may change. Always verify with camps directly before enrolling.
               </p>
             </div>
           </div>
@@ -1033,15 +1076,24 @@ const HeartOutlineIcon = ({ className, style }) => (
   </svg>
 );
 
-// Camp Card Component
+// Verified/Shield Icon for trust signals
+const VerifiedIcon = () => (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--ocean-500)' }}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+  </svg>
+);
+
+// Camp Card Component with scroll-triggered reveal
 function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare }) {
   const categoryClass = categoryClasses[camp.category] || 'category-multi-activity';
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
   const [imageError, setImageError] = useState(false);
+  const [cardRef, isRevealed] = useScrollReveal();
 
   return (
     <div
-      className={`camp-card cursor-pointer animate-fade-in-up stagger-${(index % 6) + 1} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`}
+      ref={cardRef}
+      className={`camp-card cursor-pointer scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`}
       style={isComparing ? { ringColor: 'var(--ocean-500)' } : undefined}
       onClick={onToggle}
     >
