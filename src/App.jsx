@@ -169,6 +169,52 @@ function formatPrice(camp) {
   return `$${min}–${max}/wk`;
 }
 
+// Get registration urgency status
+function getRegUrgency(regDate) {
+  if (!regDate || regDate === 'TBD' || regDate === 'Unknown') return null;
+
+  const lower = regDate.toLowerCase();
+
+  // Check for "open now" type messages
+  if (lower.includes('open') || lower.includes('now') || lower.includes('rolling')) {
+    return { type: 'open', label: 'Open Now', icon: '✓' };
+  }
+
+  // Check for "filled" or "closed"
+  if (lower.includes('fill') || lower.includes('full') || lower.includes('closed') || lower.includes('waitlist')) {
+    return { type: 'full', label: 'Waitlist', icon: '⏳' };
+  }
+
+  // Try to parse a date
+  const monthMatch = regDate.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
+  if (monthMatch) {
+    const months = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+    const monthIdx = months[monthMatch[1].toLowerCase()];
+    const dayMatch = regDate.match(/\d+/);
+    const day = dayMatch ? parseInt(dayMatch[0]) : 1;
+
+    const now = new Date();
+    const regDateObj = new Date(now.getFullYear(), monthIdx, day);
+
+    // If the date has passed this year, assume next year
+    if (regDateObj < now) {
+      regDateObj.setFullYear(now.getFullYear() + 1);
+    }
+
+    const daysUntil = Math.ceil((regDateObj - now) / (1000 * 60 * 60 * 24));
+
+    if (daysUntil <= 0) {
+      return { type: 'open', label: 'Open Now', icon: '✓' };
+    } else if (daysUntil <= 7) {
+      return { type: 'soon', label: `Opens in ${daysUntil}d`, icon: '🔔' };
+    } else if (daysUntil <= 30) {
+      return { type: 'upcoming', label: `Opens ${regDate}`, icon: '📅' };
+    }
+  }
+
+  return null;
+}
+
 // Category class mappings
 const categoryClasses = {
   'Beach/Surf': 'category-beach-surf',
@@ -577,9 +623,60 @@ export default function App() {
       {/* Filter Bar */}
       <section className="sticky top-0 z-40" style={{ background: 'var(--sand-50)', borderBottom: '1px solid var(--sand-200)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          {/* Filter Presets - One-tap persona-based filters */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            <span className="text-xs font-medium uppercase tracking-wide self-center mr-2" style={{ color: 'var(--sand-400)' }}>I need:</span>
+            <button
+              onClick={() => {
+                clearFilters();
+                setExtendedCare(true);
+                setFoodIncluded(true);
+              }}
+              className={`preset-pill ${extendedCare && foodIncluded && !maxPrice ? 'active' : ''}`}
+            >
+              <span>👩‍💼</span> Working Parent
+            </button>
+            <button
+              onClick={() => {
+                clearFilters();
+                setMaxPrice('300');
+              }}
+              className={`preset-pill ${maxPrice === '300' && !extendedCare ? 'active' : ''}`}
+            >
+              <span>💰</span> Budget-Friendly
+            </button>
+            <button
+              onClick={() => {
+                clearFilters();
+                setSelectedCategory('Sports');
+              }}
+              className={`preset-pill ${selectedCategory === 'Sports' ? 'active' : ''}`}
+            >
+              <span>⚽</span> Active Kids
+            </button>
+            <button
+              onClick={() => {
+                clearFilters();
+                setSelectedCategory('Science/STEM');
+              }}
+              className={`preset-pill ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
+            >
+              <span>🔬</span> STEM Explorer
+            </button>
+            <button
+              onClick={() => {
+                clearFilters();
+                setSelectedCategory('Art');
+              }}
+              className={`preset-pill ${selectedCategory === 'Art' ? 'active' : ''}`}
+            >
+              <span>🎨</span> Creative
+            </button>
+          </div>
+
           {/* Quick Filters - Problem-oriented */}
           <div className="flex flex-wrap gap-2 mb-3">
-            <span className="text-xs font-medium uppercase tracking-wide self-center mr-1" style={{ color: 'var(--sand-400)' }}>Quick:</span>
+            <span className="text-xs font-medium uppercase tracking-wide self-center mr-1" style={{ color: 'var(--sand-400)' }}>Filter:</span>
             <button
               onClick={() => setMaxPrice(maxPrice === '300' ? '' : '300')}
               className={`quick-filter-pill ${maxPrice === '300' ? 'active' : ''}`}
@@ -957,6 +1054,52 @@ export default function App() {
           onClose={() => setShowAdmin(false)}
         />
       )}
+
+      {/* Sticky Compare Bar */}
+      {compareList.length > 0 && !showComparison && (
+        <div className="compare-bar">
+          <div className="compare-bar-content">
+            <div className="compare-bar-camps">
+              {compareList.map(campId => {
+                const camp = camps.find(c => c.id === campId);
+                if (!camp) return null;
+                return (
+                  <div key={campId} className="compare-bar-chip">
+                    <span className="compare-bar-chip-name">{camp.camp_name}</span>
+                    <button
+                      onClick={() => removeFromCompare(campId)}
+                      className="compare-bar-chip-remove"
+                      aria-label="Remove from compare"
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })}
+              {compareList.length < 4 && (
+                <span className="compare-bar-hint">+ Add up to {4 - compareList.length} more</span>
+              )}
+            </div>
+            <div className="compare-bar-actions">
+              <button
+                onClick={() => setCompareList([])}
+                className="compare-bar-clear"
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => setShowComparison(true)}
+                className="btn-primary compare-bar-button"
+              >
+                <CompareIcon />
+                Compare {compareList.length} Camps
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1166,11 +1309,20 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
           </div>
         </div>
 
+        {/* Registration Urgency Badge */}
+        {(() => {
+          const urgency = getRegUrgency(camp.reg_date_2026);
+          if (!urgency) return null;
+          return (
+            <div className={`urgency-badge urgency-${urgency.type} mb-3`}>
+              <span className="urgency-icon">{urgency.icon}</span>
+              <span className="urgency-label">{urgency.label}</span>
+            </div>
+          );
+        })()}
+
         {/* Feature Badges */}
         <div className="flex flex-wrap gap-2">
-          {camp.reg_date_2026 && camp.reg_date_2026 !== 'TBD' && camp.reg_date_2026 !== 'Unknown' && (
-            <span className="feature-badge feature-badge-reg">Reg: {camp.reg_date_2026}</span>
-          )}
           {camp.has_extended_care && (
             <span className="feature-badge feature-badge-extended">Extended Care</span>
           )}

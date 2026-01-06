@@ -577,6 +577,50 @@ body::before {
   box-shadow: 0 2px 8px -2px rgba(232, 179, 16, 0.4);
 }
 
+/* Preset filter pills - persona-based one-tap filters */
+.preset-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: white;
+  color: var(--earth-700);
+  border: 1.5px solid var(--sand-200);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.preset-pill span {
+  font-size: 1rem;
+}
+
+.preset-pill:hover {
+  background: var(--ocean-50);
+  border-color: var(--ocean-300);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -4px rgba(59, 168, 168, 0.25);
+}
+
+.preset-pill:active {
+  transform: translateY(0) scale(0.96);
+  transition: all 0.1s ease;
+}
+
+.preset-pill.active {
+  background: var(--ocean-500);
+  color: white;
+  border-color: var(--ocean-600);
+  box-shadow: 0 4px 12px -2px rgba(59, 168, 168, 0.4);
+}
+
+.preset-pill.active:hover {
+  background: var(--ocean-600);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    SEARCH INPUT
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -642,6 +686,231 @@ body::before {
 .feature-badge-food { background: #ffedd5; color: #9a3412; }
 .feature-badge-transport { background: #dbeafe; color: #1e40af; }
 .feature-badge-sibling { background: #f3e8ff; color: #7c3aed; }
+
+/* Registration Urgency Badges */
+.urgency-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  animation: urgencyPulse 2s ease-in-out infinite;
+}
+
+.urgency-icon {
+  font-size: 0.85rem;
+}
+
+.urgency-label {
+  text-transform: uppercase;
+}
+
+/* Open now - green, positive */
+.urgency-open {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+/* Opens soon - amber, attention-grabbing */
+.urgency-soon {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  animation: urgencyPulse 1.5s ease-in-out infinite;
+}
+
+/* Upcoming - blue, informational */
+.urgency-upcoming {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+  animation: none;
+}
+
+/* Full/Waitlist - gray with subtle urgency */
+.urgency-full {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  animation: none;
+}
+
+@keyframes urgencyPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+  }
+}
+
+.urgency-soon {
+  --pulse-color: rgba(245, 158, 11, 0.3);
+}
+
+@keyframes urgencySoonPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--pulse-color, rgba(245, 158, 11, 0.3));
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STICKY COMPARE BAR
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.compare-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--earth-800);
+  padding: 12px 16px;
+  z-index: 50;
+  box-shadow: 0 -4px 20px rgba(31, 26, 22, 0.2);
+  animation: compareBarSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes compareBarSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.compare-bar-content {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.compare-bar-camps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.compare-bar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--ocean-500);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  max-width: 150px;
+  animation: chipFadeIn 0.2s ease-out;
+}
+
+@keyframes chipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.compare-bar-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compare-bar-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.compare-bar-chip-remove:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.compare-bar-hint {
+  font-size: 0.75rem;
+  color: var(--sand-400);
+  font-style: italic;
+}
+
+.compare-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.compare-bar-clear {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--sand-300);
+  background: transparent;
+  border: 1px solid var(--sand-500);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.compare-bar-clear:hover {
+  background: var(--earth-900);
+  border-color: var(--sand-400);
+  color: var(--sand-200);
+}
+
+.compare-bar-button {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+}
+
+/* Mobile adjustments for compare bar */
+@media (max-width: 640px) {
+  .compare-bar-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .compare-bar-camps {
+    justify-content: center;
+  }
+
+  .compare-bar-actions {
+    justify-content: center;
+  }
+
+  .compare-bar-chip {
+    max-width: 120px;
+  }
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FAVORITE BUTTON ANIMATION
