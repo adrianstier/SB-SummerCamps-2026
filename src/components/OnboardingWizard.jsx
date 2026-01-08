@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { addChild, updateProfile, completeOnboarding } from '../lib/supabase';
+import { addChild, updateProfile, completeOnboarding, addScheduledCamp, supabase } from '../lib/supabase';
+import { generateSampleChildren, generateSampleSchedule } from '../lib/sampleData';
 
 const STEPS = [
   { id: 'welcome', title: 'Welcome' },
@@ -53,6 +54,9 @@ export function OnboardingWizard({ onComplete }) {
     zip_code: '',
     email_notifications: true
   });
+
+  // Tour choice state
+  const [tourChoice, setTourChoice] = useState(null); // 'tour' | 'skip'
 
   const goNext = () => {
     if (currentStep < STEPS.length - 1) {
@@ -107,24 +111,60 @@ export function OnboardingWizard({ onComplete }) {
     setError(null);
 
     try {
-      // Add all children to database
-      for (const child of children) {
-        const { id, ...childData } = child;
-        await addChild(childData);
-      }
+      if (tourChoice === 'tour') {
+        // Create sample children and camps for tour
+        const sampleChildren = generateSampleChildren();
+        const createdChildren = [];
 
-      // Update profile with preferences
-      await updateProfile({
-        preferred_categories: preferences.preferred_categories,
-        zip_code: preferences.zip_code || null,
-        email_notifications: preferences.email_notifications
-      });
+        // Add sample children to database
+        for (const child of sampleChildren) {
+          const addedChild = await addChild(child);
+          createdChildren.push(addedChild);
+        }
+
+        // Fetch camps for schedule generation
+        const { data: camps } = await supabase.from('camps').select('*').limit(100);
+
+        // Generate and add sample schedule
+        const sampleSchedule = generateSampleSchedule(createdChildren, camps || []);
+        for (const schedule of sampleSchedule) {
+          await addScheduledCamp(schedule);
+        }
+
+        // Mark tour as shown
+        await updateProfile({
+          preferred_categories: preferences.preferred_categories,
+          zip_code: preferences.zip_code || null,
+          email_notifications: preferences.email_notifications,
+          tour_shown: true
+        });
+      } else {
+        // Normal completion: Add real children
+        for (const child of children) {
+          const { id, ...childData } = child;
+          await addChild(childData);
+        }
+
+        // Update profile with preferences
+        await updateProfile({
+          preferred_categories: preferences.preferred_categories,
+          zip_code: preferences.zip_code || null,
+          email_notifications: preferences.email_notifications
+        });
+      }
 
       // Mark onboarding as complete
       await completeOnboarding();
 
       // Refresh children in context
       await refreshChildren();
+
+      // Open planner if tour was chosen
+      if (tourChoice === 'tour') {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('navigate', { detail: 'planner' }));
+        }, 500);
+      }
 
       // Call the onComplete callback
       onComplete?.();
@@ -160,7 +200,7 @@ export function OnboardingWizard({ onComplete }) {
           />
         );
       case 'complete':
-        return <CompleteStep children={children} preferences={preferences} />;
+        return <CompleteStep children={children} preferences={preferences} tourChoice={tourChoice} setTourChoice={setTourChoice} />;
       default:
         return null;
     }
@@ -170,6 +210,8 @@ export function OnboardingWizard({ onComplete }) {
     switch (STEPS[currentStep].id) {
       case 'children':
         return children.length > 0;
+      case 'complete':
+        return tourChoice !== null; // Must choose tour option
       default:
         return true;
     }
@@ -276,7 +318,7 @@ function WelcomeStep({ profile }) {
         Welcome{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
       </h2>
       <p className="text-lg mb-6" style={{ color: 'var(--earth-700)' }}>
-        Let's set up your family profile to find the perfect summer camps for your kids.
+        Set up your family profile.
       </p>
       <div className="flex flex-col gap-4 text-left max-w-md mx-auto p-6 rounded-2xl" style={{ background: 'var(--sand-50)' }}>
         <div className="flex items-start gap-3">
@@ -310,10 +352,10 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
     <div>
       <div className="text-center mb-8">
         <h2 className="font-serif text-2xl font-semibold mb-2" style={{ color: 'var(--earth-800)' }}>
-          Tell us about your children
+          Your children
         </h2>
         <p style={{ color: 'var(--earth-600)' }}>
-          We'll use their ages and interests to find the best camp matches.
+          Ages and interests help match camps.
         </p>
       </div>
 
@@ -553,7 +595,7 @@ function PreferencesStep({ preferences, setPreferences, toggleCategory }) {
   );
 }
 
-function CompleteStep({ children, preferences }) {
+function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
   return (
     <div className="text-center">
       <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center text-5xl" style={{ background: 'var(--sage-100)' }}>
@@ -562,9 +604,62 @@ function CompleteStep({ children, preferences }) {
       <h2 className="font-serif text-3xl font-semibold mb-4" style={{ color: 'var(--earth-800)' }}>
         You're all set!
       </h2>
-      <p className="text-lg mb-8" style={{ color: 'var(--earth-700)' }}>
-        Here's what we learned about your family:
-      </p>
+
+      {tourChoice === null ? (
+        <>
+          <p className="text-lg mb-8" style={{ color: 'var(--earth-700)' }}>
+            Want a quick tour to see how planning works?
+          </p>
+
+          <div className="max-w-md mx-auto space-y-3 mb-6">
+            <button
+              onClick={() => setTourChoice('tour')}
+              className="w-full p-6 rounded-2xl border-2 transition-all text-left hover:shadow-lg"
+              style={{
+                borderColor: 'var(--ocean-400)',
+                background: 'var(--ocean-50)'
+              }}
+            >
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">🗺️</span>
+                <div>
+                  <p className="font-semibold text-lg mb-1" style={{ color: 'var(--earth-800)' }}>
+                    Quick Tour with Sample Data <span style={{ color: 'var(--ocean-500)' }}>(Recommended)</span>
+                  </p>
+                  <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
+                    See how the planner works with example kids and camps. Clear it when ready.
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setTourChoice('skip')}
+              className="w-full p-6 rounded-2xl border-2 transition-all text-left hover:shadow-md"
+              style={{
+                borderColor: 'var(--sand-200)',
+                background: 'white'
+              }}
+            >
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">🚀</span>
+                <div>
+                  <p className="font-semibold text-lg mb-1" style={{ color: 'var(--earth-800)' }}>
+                    Skip Tour, Start Planning
+                  </p>
+                  <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
+                    Jump straight to your empty planner. Explore on your own.
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-lg mb-8" style={{ color: 'var(--earth-700)' }}>
+            Here's what we learned about your family:
+          </p>
 
       <div className="max-w-md mx-auto space-y-4 text-left">
         {/* Children summary */}
@@ -609,9 +704,11 @@ function CompleteStep({ children, preferences }) {
         )}
       </div>
 
-      <p className="text-sm mt-8" style={{ color: 'var(--sand-400)' }}>
-        Click "Start Exploring!" to see personalized camp recommendations
-      </p>
+          <p className="text-sm mt-8" style={{ color: 'var(--sand-400)' }}>
+            Click "Start Exploring!" to {tourChoice === 'tour' ? 'begin your guided tour' : 'see personalized camp recommendations'}
+          </p>
+        </>
+      )}
     </div>
   );
 }

@@ -21,7 +21,7 @@ export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: window.location.origin,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
@@ -712,4 +712,76 @@ export function getSummerWeeks2026() {
   }
 
   return weeks;
+}
+
+// ============================================================================
+// SAMPLE DATA HELPERS (for guided tour)
+// ============================================================================
+
+/**
+ * Clear all sample data (children and scheduled camps) for current user
+ * Used when user finishes guided tour
+ */
+export async function clearSampleData() {
+  if (!supabase) throw new Error('Supabase not configured');
+
+  try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    // Delete sample children (CASCADE will delete associated scheduled_camps)
+    const { error: childrenError } = await supabase
+      .from('children')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('is_sample', true);
+
+    if (childrenError) throw childrenError;
+
+    // Also delete any orphaned sample scheduled_camps (shouldn't exist due to CASCADE, but just in case)
+    const { error: campsError } = await supabase
+      .from('scheduled_camps')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('is_sample', true);
+
+    if (campsError) throw campsError;
+
+    // Mark tour as completed
+    await updateProfile({ tour_completed: true });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error clearing sample data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Check if user has any sample data
+ * @returns {Promise<boolean>} True if user has sample children or camps
+ */
+export async function hasSampleData() {
+  if (!supabase) return false;
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    // Check for sample children
+    const { data: sampleChildren, error: childrenError } = await supabase
+      .from('children')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_sample', true)
+      .limit(1);
+
+    if (childrenError) throw childrenError;
+
+    return sampleChildren && sampleChildren.length > 0;
+  } catch (error) {
+    console.error('Error checking sample data:', error);
+    return false;
+  }
 }

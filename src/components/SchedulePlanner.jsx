@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getSummerWeeks2026, addScheduledCamp, deleteScheduledCamp, updateScheduledCamp } from '../lib/supabase';
+import { getSummerWeeks2026, addScheduledCamp, deleteScheduledCamp, updateScheduledCamp, clearSampleData } from '../lib/supabase';
 import { createGoogleCalendarUrl, exportAllToICal, formatCampForCalendar } from '../lib/googleCalendar';
+import { GuidedTour } from './GuidedTour';
 
 const summerWeeks = getSummerWeeks2026();
 
@@ -13,13 +14,17 @@ export function SchedulePlanner({ camps, onClose }) {
     children,
     scheduledCamps,
     refreshSchedule,
+    refreshChildren,
     getTotalCost,
-    getCoverageGaps
+    getCoverageGaps,
+    profile
   } = useAuth();
 
   const [selectedChild, setSelectedChild] = useState(children[0]?.id || null);
   const [showAddCamp, setShowAddCamp] = useState(null); // { weekNum, childId }
   const [searchQuery, setSearchQuery] = useState('');
+  const [clearingSampleData, setClearingSampleData] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   // Filter camps for add modal
   const filteredCamps = useMemo(() => {
@@ -65,7 +70,7 @@ export function SchedulePlanner({ camps, onClose }) {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
         <div className="bg-white rounded-2xl p-8 max-w-md text-center">
           <h2 className="font-serif text-2xl font-semibold mb-4" style={{ color: 'var(--earth-800)' }}>
-            Schedule Planner Coming Soon
+            Supabase not configured
           </h2>
           <p className="mb-6" style={{ color: 'var(--earth-700)' }}>
             Connect to Supabase to enable the schedule planner with saved favorites, family profiles, and Google Calendar sync.
@@ -76,29 +81,6 @@ export function SchedulePlanner({ camps, onClose }) {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-        <div className="bg-white rounded-2xl p-8 max-w-md text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: 'var(--ocean-100)' }}>
-            <CalendarIcon className="w-8 h-8" style={{ color: 'var(--ocean-500)' }} />
-          </div>
-          <h2 className="font-serif text-2xl font-semibold mb-4" style={{ color: 'var(--earth-800)' }}>
-            Plan Your Summer
-          </h2>
-          <p className="mb-6" style={{ color: 'var(--earth-700)' }}>
-            Sign in to create your family's summer schedule, save favorites, and export to Google Calendar.
-          </p>
-          <button onClick={signIn} className="btn-primary w-full mb-3">
-            Sign in with Google
-          </button>
-          <button onClick={onClose} className="btn-secondary w-full">
-            Maybe Later
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   async function handleAddCamp(camp, weekNum) {
     const week = summerWeeks.find(w => w.weekNum === weekNum);
@@ -132,6 +114,34 @@ export function SchedulePlanner({ camps, onClose }) {
     await refreshSchedule();
   }
 
+  // Check for sample data
+  const hasSampleData = useMemo(() => {
+    return children.some(c => c.is_sample) || scheduledCamps.some(sc => sc.is_sample);
+  }, [children, scheduledCamps]);
+
+  // Check if should show tour
+  useMemo(() => {
+    const shouldShowTour = profile?.tour_shown && !profile?.tour_completed && hasSampleData;
+    setShowTour(shouldShowTour);
+  }, [profile, hasSampleData]);
+
+  // Clear sample data function
+  async function handleClearSampleData() {
+    if (!confirm('Clear sample data? Your real children and camps will remain.')) return;
+
+    setClearingSampleData(true);
+    try {
+      await clearSampleData();
+      await refreshChildren();
+      await refreshSchedule();
+    } catch (error) {
+      console.error('Error clearing sample data:', error);
+      alert('Failed to clear sample data. Please try again.');
+    } finally {
+      setClearingSampleData(false);
+    }
+  }
+
   const totalCost = getTotalCost();
   const gaps = selectedChild ? getCoverageGaps(selectedChild, summerWeeks) : [];
 
@@ -152,7 +162,7 @@ export function SchedulePlanner({ camps, onClose }) {
           <div className="flex items-center gap-4">
             {/* Child selector */}
             {children.length > 0 && (
-              <div className="flex items-center gap-2">
+              <div className="child-selector flex items-center gap-2">
                 {children.map(child => (
                   <button
                     key={child.id}
@@ -172,7 +182,7 @@ export function SchedulePlanner({ camps, onClose }) {
             )}
 
             {/* Stats */}
-            <div className="flex items-center gap-4 px-4 py-2 rounded-xl" style={{ background: 'var(--sand-50)' }}>
+            <div className="cost-tracker flex items-center gap-4 px-4 py-2 rounded-xl" style={{ background: 'var(--sand-50)' }}>
               <div className="text-center">
                 <p className="text-xs uppercase tracking-wide" style={{ color: 'var(--sand-400)' }}>Total</p>
                 <p className="font-semibold" style={{ color: 'var(--terra-500)' }}>
@@ -189,7 +199,7 @@ export function SchedulePlanner({ camps, onClose }) {
 
             {/* Export buttons */}
             {scheduledCamps.length > 0 && (
-              <div className="flex items-center gap-2">
+              <div className="export-buttons flex items-center gap-2">
                 <button
                   onClick={() => {
                     const child = children.find(c => c.id === selectedChild);
@@ -234,16 +244,36 @@ export function SchedulePlanner({ camps, onClose }) {
       {/* Calendar Grid */}
       <div className="p-6 overflow-auto" style={{ height: 'calc(100vh - 80px)' }}>
         <div className="max-w-7xl mx-auto">
+          {/* Sample Data Banner */}
+          {hasSampleData && (
+            <div className="mb-4 p-4 rounded-xl flex items-center justify-between"
+                 style={{ background: 'var(--sun-100)', border: '1px solid var(--sun-200)' }}>
+              <div>
+                <p className="font-semibold" style={{ color: 'var(--earth-800)' }}>Sample data</p>
+                <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
+                  Clear when ready to plan for real.
+                </p>
+              </div>
+              <button
+                onClick={handleClearSampleData}
+                disabled={clearingSampleData}
+                className="btn-secondary disabled:opacity-50"
+              >
+                {clearingSampleData ? 'Clearing...' : 'Clear Sample Data'}
+              </button>
+            </div>
+          )}
+
           {children.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sand-100)' }}>
                 <ChildIcon className="w-10 h-10" style={{ color: 'var(--sand-400)' }} />
               </div>
               <h2 className="font-serif text-xl font-semibold mb-3" style={{ color: 'var(--earth-800)' }}>
-                Add Your Children First
+                Add children to start planning
               </h2>
               <p className="mb-6" style={{ color: 'var(--earth-700)' }}>
-                Add your children to start building their summer schedules.
+                Add children to plan their summer.
               </p>
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }))}
@@ -253,7 +283,7 @@ export function SchedulePlanner({ camps, onClose }) {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-12 gap-2">
+            <div className="calendar-grid grid grid-cols-12 gap-2">
               {/* Week labels */}
               <div className="col-span-12 grid grid-cols-11 gap-2 mb-2">
                 {summerWeeks.map(week => (
@@ -299,9 +329,9 @@ export function SchedulePlanner({ camps, onClose }) {
                       return (
                         <div
                           key={week.weekNum}
-                          className={`
+                          className={`week-cell
                             min-h-[100px] rounded-xl p-2 transition-all cursor-pointer
-                            ${isGap ? 'border-2 border-dashed' : 'border'}
+                            ${isGap ? 'gap-cell border-2 border-dashed' : 'border'}
                           `}
                           style={{
                             background: weekCamps.length > 0 ? 'white' : 'var(--sand-50)',
@@ -433,6 +463,14 @@ export function SchedulePlanner({ camps, onClose }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Guided Tour */}
+      {showTour && (
+        <GuidedTour
+          onComplete={() => setShowTour(false)}
+          onSkip={() => setShowTour(false)}
+        />
       )}
     </div>
   );

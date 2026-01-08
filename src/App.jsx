@@ -251,6 +251,24 @@ const categoryGradients = {
   'Overnight': 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
 };
 
+// Category icons with emojis for browse grid
+const categoryIcons = [
+  { name: 'Beach/Surf', emoji: '🏄' },
+  { name: 'Sports', emoji: '⚽' },
+  { name: 'Art', emoji: '🎨' },
+  { name: 'Science/STEM', emoji: '🔬' },
+  { name: 'Nature/Outdoor', emoji: '🌲' },
+  { name: 'Theater', emoji: '🎭' },
+  { name: 'Dance', emoji: '💃' },
+  { name: 'Music', emoji: '🎵' },
+  { name: 'Cooking', emoji: '👨‍🍳' },
+  { name: 'Animals/Zoo', emoji: '🦁' },
+  { name: 'Multi-Activity', emoji: '🎯' },
+  { name: 'Education', emoji: '📚' },
+  { name: 'Faith-Based', emoji: '✨' },
+  { name: 'Overnight', emoji: '🏕️' },
+];
+
 // Search Icon
 const SearchIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -874,8 +892,82 @@ export default function App() {
         </section>
       )}
 
+      {/* Featured Section - Editor's Picks */}
+      {!loading && camps.length > 0 && activeFilterCount === 0 && (
+        <section className="featured-section">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="featured-header">
+              <h2 className="featured-title">Editor's Picks</h2>
+              <span className="featured-subtitle">Hand-picked for Santa Barbara families</span>
+            </div>
+            <div className="featured-grid">
+              {camps
+                .filter(c => c.image_url)
+                .slice(0, 3)
+                .map((camp, index) => (
+                  <FeaturedCard
+                    key={camp.id}
+                    camp={camp}
+                    badge={index === 0 ? 'Most Popular' : index === 1 ? 'Great Value' : 'New This Year'}
+                    onClick={() => setExpandedCamp(camp.id)}
+                  />
+                ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Category Browse Grid */}
+      {!loading && camps.length > 0 && activeFilterCount === 0 && (
+        <section className="category-browse">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <h2 className="category-browse-title">Browse by Interest</h2>
+            <div className="category-browse-grid">
+              {categoryIcons.map(({ name, icon, emoji }) => {
+                const count = stats?.categories?.[name] || 0;
+                if (count === 0) return null;
+                return (
+                  <button
+                    key={name}
+                    onClick={() => {
+                      clearFilters();
+                      setSelectedCategory(name);
+                    }}
+                    className={`category-browse-card ${selectedCategory === name ? 'active' : ''}`}
+                  >
+                    <span className="category-browse-icon">{emoji}</span>
+                    <span className="category-browse-name">{name}</span>
+                    <span className="category-browse-count">{count} camps</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Testimonial Banner */}
+      {!loading && camps.length > 0 && activeFilterCount === 0 && (
+        <section className="testimonial-banner">
+          <p className="testimonial-quote">
+            "Found the perfect STEM camp for my 10-year-old in under 5 minutes. This site is a lifesaver for busy parents."
+          </p>
+          <p className="testimonial-author">— Sarah M., Goleta Mom</p>
+        </section>
+      )}
+
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        {/* Results Count */}
+        {!loading && camps.length > 0 && (
+          <p className="results-count">
+            Showing <strong>{camps.length}</strong> {camps.length === 1 ? 'camp' : 'camps'}
+            {selectedCategory !== 'All' && <> in <strong>{selectedCategory}</strong></>}
+            {childAge && <> for age <strong>{childAge}</strong></>}
+            {maxPrice && <> under <strong>${maxPrice}</strong></>}
+          </p>
+        )}
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="loader mb-4"></div>
@@ -1181,6 +1273,46 @@ const VerifiedIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
   </svg>
 );
+
+// Featured Card Component for Editor's Picks section
+function FeaturedCard({ camp, badge, onClick }) {
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <div className="featured-card cursor-pointer" onClick={onClick}>
+      <div className="featured-card-image">
+        {camp.image_url && !imageError ? (
+          <img
+            src={camp.image_url}
+            alt={camp.camp_name}
+            loading="lazy"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{ background: categoryGradients[camp.category] || 'var(--sand-200)' }}
+          >
+            <span className="text-white text-4xl opacity-50">🏕️</span>
+          </div>
+        )}
+        <span className="featured-card-badge">{badge}</span>
+      </div>
+      <div className="featured-card-content">
+        <p className="featured-card-category">{camp.category}</p>
+        <h3 className="featured-card-title">{camp.camp_name}</h3>
+        <p className="featured-card-tagline line-clamp-2">
+          {camp.description?.slice(0, 100)}{camp.description?.length > 100 ? '...' : ''}
+        </p>
+        <div className="featured-card-meta">
+          <span>{camp.ages || 'All ages'}</span>
+          <span>•</span>
+          <span style={{ color: 'var(--terra-500)', fontWeight: 600 }}>{formatPrice(camp)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Camp Card Component with scroll-triggered reveal
 function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare }) {

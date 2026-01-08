@@ -84,7 +84,13 @@ export function AuthProvider({ children }) {
       setUnreadCount(unreadCountData);
 
       // Check if user needs onboarding
-      if (profileData && !profileData.onboarding_completed && childrenData.length === 0) {
+      // Only show for truly new users (created within last 10 minutes) to avoid re-triggering
+      const isNewUser = profileData &&
+        !profileData.onboarding_completed &&
+        childrenData.length === 0 &&
+        new Date(profileData.created_at) > new Date(Date.now() - 10 * 60 * 1000);
+
+      if (isNewUser) {
         setShowOnboarding(true);
       }
 

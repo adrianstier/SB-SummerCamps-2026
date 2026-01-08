@@ -1,0 +1,2681 @@
+[
+  {
+    "camp_name": "Lobster Jo's Beach Camp",
+    "description": "Beach day camp with surfing, boogie boarding, sandcastles, beach games, arts & crafts. Color-coded rash guards indicate swim levels.",
+    "ages": "5-13",
+    "min_age": "5",
+    "max_age": "13",
+    "price_week": "$360-450",
+    "price_min": "360",
+    "price_max": "450",
+    "hours": "9am-3pm",
+    "drop_off": "9:00am",
+    "pick_up": "3:00pm",
+    "indoor_outdoor": "Outdoor (East Beach)",
+    "food_provided": "No - bring lunch",
+    "extended_care": "Half-day add-on 12-3pm available",
+    "extended_care_cost": "$90 half-day",
+    "sibling_discount": "Unknown",
+    "multi-week_discount": "Unknown",
+    "swim_requirement": "Yes - swim test Mondays",
+    "transport": "No (escort from other camps available)",
+    "refund_policy": "SB Parks & Rec policy: 15+ days 90%, 5-14 days 50%, <5 days none",
+    "contact_phone": "(831) 594-9158",
+    "contact_email": "lobsterjos@gmail.com",
+    "address": "East Beach, Santa Barbara",
+    "website": "lobsterjosbeachcamp.com",
+    "2026_reg_date": "Rolling (fills fast)",
+    "reg_status": "Open",
+    "summer_dates": "June-August",
+    "weeks_available": "10+",
+    "staff_ratio": "1:7",
+    "scholarships_available": "Unknown",
+    "certifications": "CPR/First Aid",
+    "category": "Beach/Surf",
+    "notes": "Rash guards $25. Color-coded by swim level.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://lobsterjosbeachcamp.com",
+    "id": "lobster-jo-s-beach-camp",
+    "scrape_timestamp": "2026-01-04T14:12:45.850Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://lobsterjosbeachcamp.com",
+        "type": "main"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/about",
+        "type": "about",
+        "title": "Who We Are | Lobster Jo's Camps"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/schoolyearcamps",
+        "type": "camps",
+        "title": "School Year Camps | Lobster Jo's Camps"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/faqs",
+        "type": "faq",
+        "title": "FAQ's | Lobster Jo's Camps"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/contactus",
+        "type": "contact",
+        "title": "Contact Us | Lobster Jo's Camps"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/program",
+        "type": "programs",
+        "title": "All Programs | Lobster Jo's Camps"
+      }
+    ],
+    "pdf_links": [
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/_files/ugd/29702b_e5883b2b583543958fe3604584f8ba85.pdf",
+        "text": "Schedule",
+        "type": "schedule"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/_files/ugd/29702b_3eeee5bcf5484c04ad590960494870d9.pdf",
+        "text": "Schedule",
+        "type": "schedule"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/_files/ugd/29702b_3622b8ec9dfe49ed85bdc8ebf9568d67.pdf",
+        "text": "Schedule",
+        "type": "schedule"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/_files/ugd/29702b_7aa5fb31459d4826b56bfe49cfb20ee1.pdf",
+        "text": "Schedule",
+        "type": "schedule"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/_files/ugd/29702b_b2c28532a70d464e8682aeac6cd02b89.pdf",
+        "text": "Schedule",
+        "type": "schedule"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/_files/ugd/29702b_96d73951e44f484e91910c652fcc4983.pdf",
+        "text": "Schedule",
+        "type": "schedule"
+      },
+      {
+        "url": "https://www.lobsterjosbeachcamp.com/_files/ugd/29702b_522412a792644cf4a76bbc1ee5431bc6.pdf",
+        "text": "Schedule",
+        "type": "schedule"
+      }
+    ],
+    "social_media": {},
+    "page_title": "Lobster Jo's Camps | Santa Barbara's Best Summer Programs",
+    "structured_data": {
+      "jsonLd": [
+        {
+          "@context": "https://schema.org/",
+          "@type": "WebSite",
+          "name": "Lobster Jo's Camps",
+          "url": "https://www.lobsterjosbeachcamp.com"
+        }
+      ],
+      "tables": [],
+      "lists": [],
+      "metaData": {
+        "viewport": "width=device-width, initial-scale=1",
+        "generator": "Wix.com Website Builder",
+        "format-detection": "telephone=no",
+        "skype_toolbar": "skype_toolbar_parser_compatible",
+        "description": "Santa Barbara summer camps, after-school programs, and more! Lobster Jo's specializes in FUN on the beach, the studio, and the skatepark.",
+        "og:title": "Lobster Jo's Camps | Santa Barbara's Best Summer Programs",
+        "og:description": "Santa Barbara summer camps, after-school programs, and more! Lobster Jo's specializes in FUN on the beach, the studio, and the skatepark.",
+        "og:image": "https://static.wixstatic.com/media/29702b_2121ee16433e4d03989ddd2b87bc53cd~mv2.png/v1/fill/w_774,h_322,al_c/29702b_2121ee16433e4d03989ddd2b87bc53cd~mv2.png",
+        "og:image:width": "774",
+        "og:image:height": "322",
+        "og:url": "https://www.lobsterjosbeachcamp.com",
+        "og:site_name": "Lobster Jo's Camps",
+        "og:type": "website",
+        "google-site-verification": "zaO-Dz1UO1g2N0NigDC1aD_Oj4uTS0t-EM1Nb9ryTro",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Lobster Jo's Camps | Santa Barbara's Best Summer Programs",
+        "twitter:description": "Santa Barbara summer camps, after-school programs, and more! Lobster Jo's specializes in FUN on the beach, the studio, and the skatepark.",
+        "twitter:image": "https://static.wixstatic.com/media/29702b_2121ee16433e4d03989ddd2b87bc53cd~mv2.png/v1/fill/w_774,h_322,al_c/29702b_2121ee16433e4d03989ddd2b87bc53cd~mv2.png"
+      }
+    },
+    "image_detected": {
+      "activities": [
+        "beach activities"
+      ],
+      "facilities": []
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": null,
+        "regular": null,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": null,
+        "perSession": 50
+      },
+      "price_found": "$50/ Session",
+      "price_min": 50,
+      "price_max": 50,
+      "age_groups": null,
+      "hours_found": "9 A.M. - 4 P.M.",
+      "sessions": null,
+      "staff_ratio": null,
+      "cancellation_policy": null,
+      "food_info": {
+        "provided": null,
+        "details": null,
+        "cost": null
+      },
+      "email_found": "Lobsterjos@gmail.com",
+      "phone_found": "(831) 594-9158",
+      "activities": [
+        "surfing",
+        "art",
+        "painting",
+        "crafts",
+        "sports",
+        "beach activities"
+      ],
+      "availability": {
+        "isOpen": true,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": null
+      },
+      "testimonials": [
+        "Lobster Jo’s was wonderful. My 11 year old learned new skills, made friends and was never bored. Came home each day had a snack and a nap, which never happens. She loved it!!",
+        "Please continue this program the rest of the summer and bring it back next summer. The camp is incredibly well run, the counselors are excellent and my daughter has loved her time there.",
+        "s offers numerous programs around Santa Barbara County. Focusing on summer camps, we strive to provide unique experiences that are tailored to the best activities around town. From skating at the wate"
+      ],
+      "has_health_protocols": true,
+      "setting": "Outdoor"
+    },
+    "has_registration_open": true,
+    "has_pricing": true,
+    "has_2026": false,
+    "has_summer": true,
+    "total_text_length": 8625,
+    "content_hash": "4d15c6575da55cbfba617d8f188ea651"
+  },
+  {
+    "camp_name": "Peak2Pacific",
+    "description": "Outdoor adventure: hiking, bouldering, kayaking, surfing, sailing, marine biology, nature art. PACIFIC (beach) and PEAK (mountains) programs.",
+    "ages": "3-18",
+    "min_age": "3",
+    "max_age": "18",
+    "price_week": "$375-425",
+    "price_min": "375",
+    "price_max": "425",
+    "hours": "9am-3pm",
+    "drop_off": "9:00am",
+    "pick_up": "3:00pm",
+    "indoor_outdoor": "Both (Stevens Park & West Beach/Harbor)",
+    "food_provided": "No - bring lunch",
+    "extended_care": "Yes - Early Care 8am, After Care 4pm",
+    "extended_care_cost": "Unknown",
+    "sibling_discount": "Unknown",
+    "multi-week_discount": "Unknown",
+    "swim_requirement": "No (offers both land & water programs)",
+    "transport": "No",
+    "refund_policy": "Unknown",
+    "contact_phone": "(805) 689-8326",
+    "contact_email": "peak2pacific@gmail.com",
+    "address": "West Beach / SB Harbor",
+    "website": "peak2pacific.com",
+    "2026_reg_date": "Rolling",
+    "reg_status": "Open",
+    "summer_dates": "June-August",
+    "weeks_available": "11",
+    "staff_ratio": "Unknown",
+    "scholarships_available": "Unknown",
+    "certifications": "Unknown",
+    "category": "Outdoor/Adventure",
+    "notes": "LIT (13-14) and CIT (15-18) leadership programs available.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://peak2pacific.com",
+    "id": "peak2pacific",
+    "scrape_timestamp": "2026-01-04T14:12:57.280Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://peak2pacific.com",
+        "type": "main"
+      },
+      {
+        "url": "https://www.peak2pacific.com/p2p-about-karen-austin",
+        "type": "about",
+        "title": "Peak2Pacific, About Karen & Austin"
+      },
+      {
+        "url": "https://www.peak2pacific.com/p2p-camp-programs",
+        "type": "programs",
+        "title": "Peak2Pacific | Adventure Camp Programs | Santa Barbara"
+      },
+      {
+        "url": "https://www.peak2pacific.com/p2p-summer-camp-programs",
+        "type": "programs",
+        "title": "Summer | Peak2Pacific"
+      },
+      {
+        "url": "https://www.peak2pacific.com/fall-break-camps",
+        "type": "camps",
+        "title": "Fall | Peak2Pacific"
+      },
+      {
+        "url": "https://www.peak2pacific.com/p2p-winter-break-camp-programs",
+        "type": "programs",
+        "title": "Peak2Pacific Winter Break Camp"
+      }
+    ],
+    "pdf_links": [
+      {
+        "url": "https://www.peak2pacific.com/_files/ugd/d2bbf5_03aa2a5666c941f8bce2be1858bf5fd4.pdf",
+        "text": "",
+        "type": "other"
+      },
+      {
+        "url": "https://www.peak2pacific.com/_files/ugd/d2bbf5_b0c1bd8cd68546bfada681b625d04bb2.pdf",
+        "text": "CAMP SCHEDULE",
+        "type": "schedule"
+      },
+      {
+        "url": "https://www.peak2pacific.com/_files/ugd/d2bbf5_59efc2d326bf4b2c93fb1554c4a2402d.pdf",
+        "text": "PEAK2PACIFIC FAQs",
+        "type": "other"
+      }
+    ],
+    "social_media": {
+      "facebook": "https://www.facebook.com/Peak2Pacific/",
+      "instagram": "https://www.instagram.com/peak2pacific/",
+      "twitter": "https://twitter.com/peak2pacific?lang=en"
+    },
+    "page_title": "Peak2Pacific | Kids Camp | Santa Barbara",
+    "structured_data": {
+      "jsonLd": [
+        {
+          "@context": "https://schema.org/",
+          "@type": "WebSite",
+          "name": "Peak2Pacific",
+          "url": "https://www.peak2pacific.com"
+        }
+      ],
+      "tables": [],
+      "lists": [],
+      "metaData": {
+        "viewport": "width=device-width, initial-scale=1",
+        "generator": "Wix.com Website Builder",
+        "format-detection": "telephone=no",
+        "skype_toolbar": "skype_toolbar_parser_compatible",
+        "description": "Peak2Pacific is Santa Barbara’s premier outdoor adventure and environmental education company providing camps, events and sustainable services and learning for youth, teens, schools, families and community groups.",
+        "og:title": "Peak2Pacific | Kids Camp | Santa Barbara ",
+        "og:description": "Peak2Pacific is Santa Barbara’s premier outdoor adventure and environmental education company providing camps, events and sustainable services and learning for youth, teens, schools, families and community groups.",
+        "og:url": "https://www.peak2pacific.com",
+        "og:site_name": "Peak2Pacific",
+        "og:type": "website",
+        "fb_admins_meta_tag": "peak2pacific",
+        "google-site-verification": "tGODFwN7HklPqgFaWEocGuTnsv_FurwFfaIel6y8Gxs",
+        "keywords": "Adventures, Camps for Kids. P2P, Charter Tours, Outdoor Adventures, P2P Kids Camp, Peak2Pacific Camp, Sailing, Scuba, Surfing, Year Round Kids Camp",
+        "fb:admins": "peak2pacific",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Peak2Pacific | Kids Camp | Santa Barbara ",
+        "twitter:description": "Peak2Pacific is Santa Barbara’s premier outdoor adventure and environmental education company providing camps, events and sustainable services and learning for youth, teens, schools, families and community groups."
+      }
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": null,
+        "regular": null,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": null,
+        "perSession": null
+      },
+      "age_groups": null,
+      "registration_found": "Register Now",
+      "sessions": null,
+      "staff_ratio": null,
+      "cancellation_policy": null,
+      "food_info": {
+        "provided": null,
+        "details": null,
+        "cost": null
+      },
+      "email_found": "peak2pacific@gmail.com",
+      "phone_found": "805.689.8326",
+      "activities": [
+        "art",
+        "nature"
+      ],
+      "availability": {
+        "isOpen": true,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": null
+      },
+      "testimonials": [],
+      "setting": "Outdoor"
+    },
+    "has_registration_open": true,
+    "has_pricing": false,
+    "has_2026": false,
+    "has_summer": true,
+    "total_text_length": 3574,
+    "content_hash": "f823c53ef72b6f67af928faf17311e2a"
+  },
+  {
+    "camp_name": "Wilderness Youth Project",
+    "description": "Small-group nature mentoring in creeks, beaches, and open spaces. Builds confidence, problem-solving, nature connection. Van transport to wilderness.",
+    "ages": "6-12",
+    "min_age": "6",
+    "max_age": "12",
+    "price_week": "$425-650",
+    "price_min": "425",
+    "price_max": "650",
+    "hours": "9am-4pm",
+    "drop_off": "9:00am",
+    "pick_up": "4:00pm",
+    "indoor_outdoor": "Outdoor (various wilderness areas)",
+    "food_provided": "No - bring lunch",
+    "extended_care": "No",
+    "extended_care_cost": "N/A",
+    "sibling_discount": "No (but 76% receive scholarships, 6-tier sliding scale)",
+    "multi-week_discount": "No (max 3 weeks/child)",
+    "swim_requirement": "No",
+    "transport": "Yes - 8 or 15-passenger vans",
+    "refund_policy": "15+ days 90% minus $30 deposit; 7-14 days 50%; <7 days none",
+    "contact_phone": "(805) 964-8096",
+    "contact_email": "info@wyp.org",
+    "address": "5386 Hollister Ave Suite D, Goleta",
+    "website": "wyp.org",
+    "2026_reg_date": "Feb 12-19 (lottery)",
+    "reg_status": "Lottery Feb 12-19",
+    "summer_dates": "June-August",
+    "weeks_available": "Limited",
+    "staff_ratio": "Small group",
+    "scholarships_available": "Yes - 76% receive scholarships",
+    "certifications": "Unknown",
+    "category": "Nature/Outdoor",
+    "notes": "Weighted lottery prioritizes returning families & DEI. Results announced ~2.5 weeks after. Sliding scale pricing.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://wyp.org",
+    "id": "wilderness-youth-project",
+    "scrape_timestamp": "2026-01-04T14:13:08.284Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://wyp.org",
+        "type": "main"
+      }
+    ],
+    "pdf_links": [],
+    "social_media": {},
+    "page_title": "403 - Forbidden",
+    "structured_data": {
+      "jsonLd": [],
+      "tables": [],
+      "lists": [],
+      "metaData": {
+        "viewport": "width=device-width, initial-scale=1.0",
+        "robots": "noindex"
+      }
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": null,
+        "regular": null,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": null,
+        "perSession": null
+      },
+      "age_groups": null,
+      "sessions": null,
+      "staff_ratio": null,
+      "cancellation_policy": null,
+      "food_info": {
+        "provided": null,
+        "details": null,
+        "cost": null
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": null
+      },
+      "testimonials": []
+    },
+    "has_registration_open": false,
+    "has_pricing": false,
+    "has_2026": false,
+    "has_summer": false,
+    "total_text_length": 50,
+    "content_hash": "eb2c993c18662c94be75334d92fa1de0"
+  },
+  {
+    "camp_name": "Santa Barbara Zoo Camp",
+    "description": "Animal-focused camp with behind-the-scenes visits, animal encounters, hands-on science, crafts, songs, skits. Half and full day options.",
+    "ages": "3-12",
+    "min_age": "3",
+    "max_age": "12",
+    "price_week": "$300-400",
+    "price_min": "300",
+    "price_max": "400",
+    "hours": "Half: 9am-12pm; Full: 9am-3pm",
+    "drop_off": "9:00am",
+    "pick_up": "12pm or 3pm",
+    "indoor_outdoor": "Outdoor (Zoo grounds)",
+    "food_provided": "Snacks - bring lunch for full day",
+    "extended_care": "No",
+    "extended_care_cost": "N/A",
+    "sibling_discount": "Unknown",
+    "multi-week_discount": "Unknown",
+    "swim_requirement": "No",
+    "transport": "No",
+    "refund_policy": "Must cancel in writing; 15+ days 90%; 7-14 days 50%; <7 days none",
+    "contact_phone": "(805) 962-5339",
+    "contact_email": "education@sbzoo.org",
+    "address": "500 Niños Dr, Santa Barbara",
+    "website": "sbzoo.org/zoo-camp",
+    "2026_reg_date": "Jan 12 at 10am",
+    "reg_status": "Opens Jan 12 2026",
+    "summer_dates": "June 15 - Aug 21 2026",
+    "weeks_available": "10",
+    "staff_ratio": "1:10",
+    "scholarships_available": "Yes - via PAL",
+    "certifications": "Unknown",
+    "category": "Animals/Zoo",
+    "notes": "Member pricing: $300-350. Non-member: $350-400. Spring, Winter, Fall sessions also available.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://sbzoo.org/zoo-camp",
+    "id": "santa-barbara-zoo-camp",
+    "scrape_timestamp": "2026-01-04T14:13:10.547Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://sbzoo.org/zoo-camp",
+        "type": "main"
+      },
+      {
+        "url": "https://reservations.sbzoo.org/Info.aspx?EventID=3",
+        "type": "info",
+        "title": "Santa Barbara Zoo - Reservations - Admissions"
+      },
+      {
+        "url": "https://www.sbzoo.org/events-calendar",
+        "type": "calendar",
+        "title": "Events Calendar"
+      },
+      {
+        "url": "https://reservations.sbzoo.org/Info.aspx?EventID=8",
+        "type": "register",
+        "title": "Santa Barbara Zoo - Reservations - Zoo Camp"
+      },
+      {
+        "url": "https://www.sbzoo.org/about",
+        "type": "about",
+        "title": "About | Santa Barbara Zoo"
+      },
+      {
+        "url": "https://www.sbzoo.org/newsletter-signup",
+        "type": "signup",
+        "title": "Newsletter Signup"
+      }
+    ],
+    "pdf_links": [
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/2025_reciprocal_membership_list_09-25.pdf",
+        "text": "Reciprocal List",
+        "type": "packing-list"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/2025_reciprocal_membership_list_09-25.pdf",
+        "text": "Reciprocal List",
+        "type": "packing-list"
+      },
+      {
+        "url": "http://www.sbzoo.org/wp-content/uploads/2014/10/reciprocal-list2014.pdf",
+        "text": "Reciprocal List",
+        "type": "packing-list"
+      },
+      {
+        "url": "https://www.sbzoo.org/assets/2995/2024_zoo_annual_snapshot.pdf",
+        "text": "Annual Report 2024",
+        "type": "other"
+      },
+      {
+        "url": "https://www.sbzoo.org/assets/2995/2023_annual_report_snapshot.pdf",
+        "text": "Annual Report 2023",
+        "type": "other"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/2022_Annual_Report_insert-%C6%92.pdf",
+        "text": "Annual Report 2022",
+        "type": "other"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/2021_Annual_Report_snapshot_%C6%92.pdf",
+        "text": "Annual Report 2021",
+        "type": "other"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/2020_Annual_Report_insert-FIN.pdf",
+        "text": "Annual Report 2020",
+        "type": "other"
+      },
+      {
+        "url": "https://www.sbzoo.org/assets/2995/santa_barbara_zoo_990_tax_return_2023.pdf",
+        "text": "Form 990 2023",
+        "type": "registration"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/Form-990-2022-SB-Zoo.pdf",
+        "text": "Form 990 2022",
+        "type": "registration"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/SB-Zoo-2021-990-for-Public.pdf",
+        "text": "Form 990 2021",
+        "type": "registration"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/SB-Zoo-2020-Form-990-Public-Disclosure-Copy-NS.pdf",
+        "text": "Form 990 2020",
+        "type": "registration"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/Santa-Barbara-Zoo-2018-Form-990-Public-Disclosure-NS.pdf",
+        "text": "Form 990 2019",
+        "type": "registration"
+      },
+      {
+        "url": "https://www.sbzoo.org/assets/2995/sb_zoo_december_2023_audited_financial_statements.pdf",
+        "text": "Audit 2023",
+        "type": "other"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/Audit-2022-SB-Zoo-Financial-Statements.pdf",
+        "text": "Audit 2022",
+        "type": "other"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/SB-Zoo-2021-Financial-Statements.pdf",
+        "text": "Audit 2021",
+        "type": "other"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/SB-Zoo-2020-Financial-Statements.pdf",
+        "text": "Audit 2020",
+        "type": "other"
+      },
+      {
+        "url": "https://assets.speakcdn.com/assets/2995/2019-Santa-Barbara-Zoo-Financial-Statements.pdf",
+        "text": "Audit 2019",
+        "type": "other"
+      }
+    ],
+    "social_media": {
+      "facebook": "https://www.facebook.com/santabarbarazoo",
+      "twitter": "https://twitter.com/SantaBarbaraZoo",
+      "instagram": "https://instagram.com/santabarbarazoo/",
+      "youtube": "https://www.youtube.com/channel/UCoxRjeMzEPYbM8qTMtkQx4A"
+    },
+    "page_title": "Zoo Camp | Santa Barbara Zoo",
+    "structured_data": {
+      "jsonLd": [],
+      "tables": [
+        {
+          "headers": [],
+          "rows": [
+            [
+              "Santa Barbara Zoo\n\n\n\n\n\n\n    \n      Visit \n    \n    \n      Animals \n    \n    \n      Learn \n    \n    \n                        \n                        \t\n                            Support\n                            \n                        \n \n    \n      More \n    \n           Conservation \n           Donate \n        \n               Annual Appeal \n        \n        \n           Membership \n        \n               Reciprocal List \n        \n        \n           Private Events \n        \n               Birthday Parties \n               Weddings \n        \n        \n           About \n           Employment & Volunteer \n        \n               Employment Opportunities \n               Volunteer Opportunities \n        \n        \n           Zoo Blog \n    \n    \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n       Visit \n       Animals \n       Learn \n    \n                        \n                        \t\n                            Support\n                            \n                        \n \n       More \n    \n           Conservation \n           Donate \n        \n               Annual Appeal \n        \n         \n           Membership \n        \n               Reciprocal List \n        \n         \n           Private Events \n        \n               Birthday Parties \n               Weddings \n        \n         \n           About \n           Employment & Volunteer \n        \n               Employment Opportunities \n               Volunteer Opportunities \n        \n         \n           Zoo Blog \n    \n     \n    \n\n\n\n\n\n\nAdmissions\n\n\n\n\n    Login\n     Basket (0)"
+            ],
+            [
+              ""
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "Admissions"
+            ],
+            [
+              "Attractions"
+            ],
+            [
+              "Events"
+            ],
+            [
+              "Membership"
+            ],
+            [
+              "Zoo Camp"
+            ],
+            [
+              "Safari Sleepovers"
+            ],
+            [
+              "Outdoor Education"
+            ],
+            [
+              "Rentals"
+            ],
+            [
+              "Wildlife Experiences"
+            ],
+            [
+              "After School Enrichment Program"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "Quick Navigation\n\n\n    About\n    Employment & Volunteer\n    Event Calendar\n    Press Room\n    Zoo Store\n\n\n\n\n\n \n \n \n \n\n\n\n\n\nProud Affiliations\n\n\n  \n\n\n\n\n\nFind Us\n\nSanta Barbara Zoo\n500 Ninos Drive\nSanta Barbara, CA 93103\n(805) 962-5339\nzooinfo@sbzoo.org\n\n\n\n\n\n\nFollow Us!\n \n\n\n\n\n    \n    \n    \n    \n    \n\n\n\n\n\n\n\n\n\n\n\tif (jQuery(\"#ctl00_ContentPlaceHolder1_lblAct\").length > 0){\n\t\tvar pagetitle = jQuery('#ctl00_ContentPlaceHolder1_lblAct').text();\n\t\tjQuery('.page_title').show();\n\t\tjQuery('.page_title').text(pagetitle);\n\t}\n\t\n\tif (jQuery(\"#ctl00_ContentPlaceHolder1_lblAct1\").length > 0){\n\t\tvar pagetitle = jQuery('#ctl00_ContentPlaceHolder1_lblAct1').text();\n\t\tjQuery('.page_title').show();\n\t\tjQuery('.page_title').text(pagetitle);\n\t}\n\t\n\tif (jQuery(\"#ctl00_ContentPlaceHolder1_lblGiftCertificate > h1\").length > 0){\n\t\tvar pagetitle = jQuery('#ctl00_ContentPlaceHolder1_lblGiftCertificate > h1').text();\n\t\tjQuery('.page_title').show();\n\t\tjQuery('.page_title').text(pagetitle);\n\t}\n\t\n\tif (jQuery(\"#ctl00_ContentPlaceHolder1_lblDonation\").length > 0){\n\t\tvar pagetitle = jQuery('#ctl00_ContentPlaceHolder1_lblDonation').text();\n\t\tvar spaceChar = pagetitle.indexOf(\" \");\n\t\tvar reqstr = pagetitle.substring(0,spaceChar);\n\t\tjQuery('.page_title').show();\n\t\tjQuery('.page_title').text(reqstr);\n\t}"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "Santa Barbara Zoo\n\n\n\n\n\n\n    \n      Visit \n    \n    \n      Animals \n    \n    \n      Learn \n    \n    \n                        \n                        \t\n                            Support\n                            \n                        \n \n    \n      More \n    \n           Conservation \n           Donate \n        \n               Annual Appeal \n        \n        \n           Membership \n        \n               Reciprocal List \n        \n        \n           Private Events \n        \n               Birthday Parties \n               Weddings \n        \n        \n           About \n           Employment & Volunteer \n        \n               Employment Opportunities \n               Volunteer Opportunities \n        \n        \n           Zoo Blog \n    \n    \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n       Visit \n       Animals \n       Learn \n    \n                        \n                        \t\n                            Support\n                            \n                        \n \n       More \n    \n           Conservation \n           Donate \n        \n               Annual Appeal \n        \n         \n           Membership \n        \n               Reciprocal List \n        \n         \n           Private Events \n        \n               Birthday Parties \n               Weddings \n        \n         \n           About \n           Employment & Volunteer \n        \n               Employment Opportunities \n               Volunteer Opportunities \n        \n         \n           Zoo Blog \n    \n     \n    \n\n\n\n\n\n\nZoo Camp\n\n\n\n\n    Login\n     Basket (0)"
+            ],
+            [
+              ""
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "Admissions"
+            ],
+            [
+              "Attractions"
+            ],
+            [
+              "Events"
+            ],
+            [
+              "Membership"
+            ],
+            [
+              "Zoo Camp"
+            ],
+            [
+              "Safari Sleepovers"
+            ],
+            [
+              "Outdoor Education"
+            ],
+            [
+              "Rentals"
+            ],
+            [
+              "Wildlife Experiences"
+            ],
+            [
+              "After School Enrichment Program"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "Quick Navigation\n\n\n    About\n    Employment & Volunteer\n    Event Calendar\n    Press Room\n    Zoo Store\n\n\n\n\n\n \n \n \n \n\n\n\n\n\nProud Affiliations\n\n\n  \n\n\n\n\n\nFind Us\n\nSanta Barbara Zoo\n500 Ninos Drive\nSanta Barbara, CA 93103\n(805) 962-5339\nzooinfo@sbzoo.org\n\n\n\n\n\n\nFollow Us!\n \n\n\n\n\n    \n    \n    \n    \n    \n\n\n\n\n\n\n\n\n\n\n\tif (jQuery(\"#ctl00_ContentPlaceHolder1_lblAct\").length > 0){\n\t\tvar pagetitle = jQuery('#ctl00_ContentPlaceHolder1_lblAct').text();\n\t\tjQuery('.page_title').show();\n\t\tjQuery('.page_title').text(pagetitle);\n\t}\n\t\n\tif (jQuery(\"#ctl00_ContentPlaceHolder1_lblAct1\").length > 0){\n\t\tvar pagetitle = jQuery('#ctl00_ContentPlaceHolder1_lblAct1').text();\n\t\tjQuery('.page_title').show();\n\t\tjQuery('.page_title').text(pagetitle);\n\t}\n\t\n\tif (jQuery(\"#ctl00_ContentPlaceHolder1_lblGiftCertificate > h1\").length > 0){\n\t\tvar pagetitle = jQuery('#ctl00_ContentPlaceHolder1_lblGiftCertificate > h1').text();\n\t\tjQuery('.page_title').show();\n\t\tjQuery('.page_title').text(pagetitle);\n\t}\n\t\n\tif (jQuery(\"#ctl00_ContentPlaceHolder1_lblDonation\").length > 0){\n\t\tvar pagetitle = jQuery('#ctl00_ContentPlaceHolder1_lblDonation').text();\n\t\tvar spaceChar = pagetitle.indexOf(\" \");\n\t\tvar reqstr = pagetitle.substring(0,spaceChar);\n\t\tjQuery('.page_title').show();\n\t\tjQuery('.page_title').text(reqstr);\n\t}"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "metaData": {
+        "sid": "2995",
+        "description": "Zoo Camp is for ages 3–12 and offers kids the opportunity to be outside and learn all about animals and the world around us.",
+        "pid": "211786",
+        "swtmpl": "default.liquid",
+        "swdomain": "http://www.sbzoo.org",
+        "viewport": "width=device-width, initial-scale=1",
+        "msapplication-TileColor": "#da532c",
+        "msapplication-config": "https://prod.speakcdn.com/sitefiles/2995/images/favicon/browserconfig.xml",
+        "theme-color": "#ffffff",
+        "google-site-verification": "Kp1NzKKtHi_A1EEuJyiTZBVuN7wvMZgYiPw0vmEEcMo"
+      }
+    },
+    "image_detected": {
+      "activities": [
+        "arts & crafts"
+      ],
+      "facilities": []
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": null,
+        "regular": null,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": 400,
+        "perSession": null
+      },
+      "price_found": "$400/week",
+      "price_min": 400,
+      "price_max": 400,
+      "age_groups": [
+        {
+          "name": "is for",
+          "minAge": 3,
+          "maxAge": 12
+        },
+        {
+          "name": "For ages",
+          "minAge": 3,
+          "maxAge": 12
+        },
+        {
+          "name": "Cancellations received",
+          "minAge": 7,
+          "maxAge": 14
+        },
+        {
+          "name": "for kids",
+          "minAge": 2,
+          "maxAge": 12
+        },
+        {
+          "name": "MORE Viewing",
+          "minAge": 1,
+          "maxAge": 12
+        },
+        {
+          "name": "offer children",
+          "minAge": 3,
+          "maxAge": 12
+        },
+        {
+          "name": "Members Ages",
+          "minAge": 3,
+          "maxAge": 12
+        },
+        {
+          "name": "Members  Ages",
+          "minAge": 3,
+          "maxAge": 12
+        }
+      ],
+      "ages_found": "ages 3–12",
+      "min_age": 3,
+      "max_age": 12,
+      "hours_found": "9:30 AM - 3:30 PM",
+      "registration_found": "open daily 9",
+      "sessions": null,
+      "staff_ratio": null,
+      "cancellation_policy": null,
+      "food_info": {
+        "provided": true,
+        "details": "LUNCH MENU \nMonday: Chicken nuggets, french fries, fruit\nTuesday: Mini corn dogs, french fries, frui",
+        "cost": "$48"
+      },
+      "has_extended_care": true,
+      "has_scholarships": true,
+      "email_found": "zooinfo@sbzoo.org",
+      "phone_found": "(805) 962-5339",
+      "activities": [
+        "art",
+        "crafts",
+        "science",
+        "nature",
+        "wildlife",
+        "horseback",
+        "arts & crafts"
+      ],
+      "special_needs_friendly": true,
+      "availability": {
+        "isOpen": true,
+        "hasWaitlist": false,
+        "soldOutSessions": [
+          "Session 1",
+          "Session 2",
+          "Session 1",
+          "Session 2"
+        ],
+        "availableSessions": [],
+        "openingDate": "daily 9"
+      },
+      "testimonials": [
+        "s Day, January 1\n9 AM – 3 PM: $400/week, $350/week for SB Zoo Members\n\nTraditional Zoo Camp offers hands-on science activities, a guided Zoo tour, crafts, and up-close animal encounters. For ages 3–12"
+      ],
+      "setting": "Outdoor"
+    },
+    "has_registration_open": true,
+    "has_pricing": true,
+    "has_2026": true,
+    "has_summer": true,
+    "total_text_length": 22664,
+    "content_hash": "defb6151bc1885364676d9de5a46755f"
+  },
+  {
+    "camp_name": "YMCA Summer Camp",
+    "description": "Traditional day camp with art, STEM, sports, outdoor recreation, field trips. Weekly themes. ACA accredited.",
+    "ages": "2.5-18",
+    "min_age": "3",
+    "max_age": "18",
+    "price_week": "Varies by location",
+    "price_min": "200",
+    "price_max": "400",
+    "hours": "8:30am-5pm",
+    "drop_off": "8:30am",
+    "pick_up": "5:00pm",
+    "indoor_outdoor": "Both",
+    "food_provided": "No - bring lunch",
+    "extended_care": "Yes - drop-off 8:30am, pick-up 4:30-5:30pm",
+    "extended_care_cost": "Included",
+    "sibling_discount": "Unknown (financial assistance available)",
+    "multi-week_discount": "Unknown",
+    "swim_requirement": "No",
+    "transport": "No",
+    "refund_policy": "Unknown",
+    "contact_phone": "(805) 687-7727 (SB); (805) 969-3288 (Montecito)",
+    "contact_email": "info@ciymca.org",
+    "address": "36 Hitchcock Way (SB); 591 Santa Rosa Ln (Montecito)",
+    "website": "ciymca.org/summer-camp",
+    "2026_reg_date": "Feb 1",
+    "reg_status": "Opens Feb 1",
+    "summer_dates": "June-August",
+    "weeks_available": "10+",
+    "staff_ratio": "Unknown",
+    "scholarships_available": "Yes - financial assistance",
+    "certifications": "ACA Accredited",
+    "category": "Multi-Activity",
+    "notes": "Multiple locations: SB, Montecito. Financial assistance available.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://ciymca.org/summer-camp",
+    "id": "ymca-summer-camp",
+    "scrape_timestamp": "2026-01-04T14:13:36.987Z",
+    "scrape_status": "error",
+    "pages_scraped": [],
+    "pdf_links": [],
+    "social_media": {},
+    "scrape_error": "page.goto: net::ERR_ADDRESS_UNREACHABLE at https://ciymca.org/summer-camp\nCall log:\n  - navigating to \"https://ciymca.org/summer-camp\", waiting until \"domcontentloaded\"\n"
+  },
+  {
+    "camp_name": "Girls Inc. of Greater Santa Barbara",
+    "description": "Pro-girl summer camp with STEM, art, sports, theater, cooking, woodshop themes. Separate elementary and teen programs.",
+    "ages": "5-17",
+    "min_age": "5",
+    "max_age": "17",
+    "price_week": "$200-345",
+    "price_min": "200",
+    "price_max": "345",
+    "hours": "Unknown",
+    "drop_off": "Unknown",
+    "pick_up": "Unknown",
+    "indoor_outdoor": "Both",
+    "food_provided": "Unknown",
+    "extended_care": "Unknown",
+    "extended_care_cost": "Unknown",
+    "sibling_discount": "No (gymnastics); financial aid for CAMP IGNITE",
+    "multi-week_discount": "Unknown",
+    "swim_requirement": "No",
+    "transport": "No",
+    "refund_policy": "Unknown",
+    "contact_phone": "(805) 963-4757 x2 (elem); (805) 730-0508 (teens)",
+    "contact_email": "info@girlsincsb.org",
+    "address": "4973 Hollister Ave, Goleta",
+    "website": "girlsincsb.org/programs/elementary",
+    "2026_reg_date": "Contact for date",
+    "reg_status": "Contact for info",
+    "summer_dates": "June-August",
+    "weeks_available": "Unknown",
+    "staff_ratio": "Unknown",
+    "scholarships_available": "Yes - financial aid",
+    "certifications": "Unknown",
+    "category": "Multi-Activity",
+    "notes": "TK-6 $280/week, Teen $200/week, Gymnastics $345/week. Girls only.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://girlsincsb.org/programs/elementary",
+    "id": "girls-inc-of-greater-santa-barbara",
+    "scrape_timestamp": "2026-01-04T14:13:56.974Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://girlsincsb.org/programs/elementary",
+        "type": "main"
+      },
+      {
+        "url": "https://girlsincsb.org/programs",
+        "type": "programs",
+        "title": "Programs | Girls Inc. of Greater Santa Barbara"
+      },
+      {
+        "url": "https://girlsincsb.org/programs/gymnastics",
+        "type": "programs",
+        "title": "Gymnastics | Girls Inc. of Greater Santa Barbara"
+      },
+      {
+        "url": "https://girlsincsb.org/programs/elementary",
+        "type": "programs",
+        "title": "Elementary | Girls Inc. of Greater Santa Barbara"
+      },
+      {
+        "url": "https://girlsincsb.org/programs/teens",
+        "type": "programs",
+        "title": "Teens | Girls Inc. of Greater Santa Barbara"
+      },
+      {
+        "url": "https://girlsincsb.org/contact-us",
+        "type": "contact",
+        "title": "Contact us | Girls Inc. of Greater Santa Barbara"
+      }
+    ],
+    "pdf_links": [
+      {
+        "url": "https://girlsincsb.org/wp-content/uploads/2025/07/Financial-Assistance-Application-MODIFIABLE.pdf",
+        "text": "Financial Assistance Application",
+        "type": "registration"
+      },
+      {
+        "url": "https://girlsincsb.org/wp-content/uploads/2025/12/Winter-Spring-Gym-classes-2026-4.pdf",
+        "text": "2026 Winter - Spring Schedule",
+        "type": "schedule"
+      }
+    ],
+    "social_media": {
+      "instagram": "https://www.instagram.com/girlsincsb/",
+      "youtube": "https://www.youtube.com/channel/UCvc6t1L1R_wTZhGZM3QEavQ"
+    },
+    "page_title": "Elementary | Girls Inc. of Greater Santa Barbara",
+    "structured_data": {
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://girlsincsb.org/programs/elementary",
+              "url": "https://girlsincsb.org/programs/elementary",
+              "name": "Elementary | Girls Inc. of Greater Santa Barbara",
+              "isPartOf": {
+                "@id": "https://girlsincsb.org/#website"
+              },
+              "datePublished": "2024-05-10T21:03:53+00:00",
+              "dateModified": "2025-12-16T18:12:55+00:00",
+              "description": "Elementary programs at Girls Inc. Santa Barbara: engaging after-school and camp enrichment for TK-6 girls to nurture confidence, leadership, STEM, and emotional learning in a pro-girl environment.",
+              "breadcrumb": {
+                "@id": "https://girlsincsb.org/programs/elementary#breadcrumb"
+              },
+              "inLanguage": "en-US",
+              "potentialAction": [
+                {
+                  "@type": "ReadAction",
+                  "target": [
+                    "https://girlsincsb.org/programs/elementary"
+                  ]
+                }
+              ]
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://girlsincsb.org/programs/elementary#breadcrumb",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home",
+                  "item": "https://girlsincsb.org/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Programs",
+                  "item": "https://girlsincsb.org/programs"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "Elementary"
+                }
+              ]
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://girlsincsb.org/#website",
+              "url": "https://girlsincsb.org/",
+              "name": "Girls Inc. of Greater Santa Barbara",
+              "description": "Inspiring All Girls to be Strong, Smart &amp; Bold",
+              "publisher": {
+                "@id": "https://girlsincsb.org/#organization"
+              },
+              "potentialAction": [
+                {
+                  "@type": "SearchAction",
+                  "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": "https://girlsincsb.org/?s={search_term_string}"
+                  },
+                  "query-input": {
+                    "@type": "PropertyValueSpecification",
+                    "valueRequired": true,
+                    "valueName": "search_term_string"
+                  }
+                }
+              ],
+              "inLanguage": "en-US"
+            },
+            {
+              "@type": "Organization",
+              "@id": "https://girlsincsb.org/#organization",
+              "name": "Girls Inc. of Greater Santa Barbara",
+              "url": "https://girlsincsb.org/",
+              "logo": {
+                "@type": "ImageObject",
+                "inLanguage": "en-US",
+                "@id": "https://girlsincsb.org/#/schema/logo/image/",
+                "url": "https://girlsincsb.org/wp-content/uploads/2025/01/GI-Logo-Red-on-White.jpg",
+                "contentUrl": "https://girlsincsb.org/wp-content/uploads/2025/01/GI-Logo-Red-on-White.jpg",
+                "width": 500,
+                "height": 500,
+                "caption": "Girls Inc. of Greater Santa Barbara"
+              },
+              "image": {
+                "@id": "https://girlsincsb.org/#/schema/logo/image/"
+              },
+              "sameAs": [
+                "https://www.facebook.com/GirlsInc/",
+                "https://x.com/girls_inc",
+                "https://www.instagram.com/girlsinc/",
+                "https://www.linkedin.com/company/girls-incorporated/",
+                "https://www.youtube.com/user/GirlsIncorporated"
+              ]
+            }
+          ]
+        }
+      ],
+      "tables": [],
+      "lists": [],
+      "metaData": {
+        "viewport": "width=device-width, initial-scale=1.0",
+        "msapplication-TileColor": "#ffffff",
+        "msapplication-config": "/wp-content/themes/ninetwentytwentythree/assets/favicon/browserconfig.xml",
+        "theme-color": "#ffffff",
+        "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+        "description": "Elementary programs at Girls Inc. Santa Barbara: engaging after-school and camp enrichment for TK-6 girls to nurture confidence, leadership, STEM, and emotional learning in a pro-girl environment.",
+        "og:locale": "en_US",
+        "og:type": "article",
+        "og:title": "Elementary | Girls Inc. of Greater Santa Barbara",
+        "og:description": "Elementary programs at Girls Inc. Santa Barbara: engaging after-school and camp enrichment for TK-6 girls to nurture confidence, leadership, STEM, and emotional learning in a pro-girl environment.",
+        "og:url": "https://girlsincsb.org/programs/elementary",
+        "og:site_name": "Girls Inc. of Greater Santa Barbara",
+        "article:publisher": "https://www.facebook.com/GirlsInc/",
+        "article:modified_time": "2025-12-16T18:12:55+00:00",
+        "og:image": "https://girlsincsb.org/wp-content/uploads/2025/12/GI_4-9-25_0105.jpg",
+        "og:image:width": "1229",
+        "og:image:height": "820",
+        "og:image:type": "image/jpeg",
+        "twitter:card": "summary_large_image",
+        "twitter:site": "@girls_inc",
+        "generator": "WP Rocket 3.20.2",
+        "msapplication-TileImage": "https://girlsincsb.org/wp-content/uploads/2024/04/cropped-image-1-270x270.png"
+      }
+    },
+    "image_detected": {
+      "activities": [
+        "arts & crafts"
+      ],
+      "facilities": []
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": null,
+        "regular": null,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": null,
+        "perSession": null
+      },
+      "age_groups": [
+        {
+          "name": "and girls",
+          "minAge": 5,
+          "maxAge": 12
+        },
+        {
+          "name": "in grades",
+          "minAge": 7,
+          "maxAge": 12
+        }
+      ],
+      "ages_found": "ages 5-12",
+      "min_age": 5,
+      "max_age": 12,
+      "registration_found": "Sign Up Now",
+      "sessions": null,
+      "staff_ratio": "14:1",
+      "cancellation_policy": null,
+      "food_info": {
+        "provided": true,
+        "details": "snack provided?\nYes! Snack time is from 3:00–3:45 PM",
+        "cost": null
+      },
+      "has_sibling_discount": true,
+      "has_scholarships": true,
+      "email_found": "info@girlsincsb.org",
+      "phone_found": "(805) 963-4757",
+      "activities": [
+        "art",
+        "STEM",
+        "theater",
+        "dance",
+        "arts & crafts"
+      ],
+      "availability": {
+        "isOpen": true,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": null
+      },
+      "testimonials": []
+    },
+    "has_registration_open": true,
+    "has_pricing": true,
+    "has_2026": true,
+    "has_summer": true,
+    "total_text_length": 28122,
+    "content_hash": "8379ae791b18dd64c371954d79dec812"
+  },
+  {
+    "camp_name": "MOXI Museum Camp",
+    "description": "STEM/STEAM day camps at interactive science museum. Hands-on activities in science, technology, engineering, arts, and math.",
+    "ages": "5-12",
+    "min_age": "5",
+    "max_age": "12",
+    "price_week": "$325-375",
+    "price_min": "325",
+    "price_max": "375",
+    "hours": "9am-3pm (extended to 5pm)",
+    "drop_off": "9:00am",
+    "pick_up": "3:00pm or 5:00pm",
+    "indoor_outdoor": "Indoor (museum)",
+    "food_provided": "Snacks provided; lunch at nearby parks",
+    "extended_care": "Yes - Extended day to 5pm",
+    "extended_care_cost": "$100/week",
+    "sibling_discount": "Unknown (members get discounts)",
+    "multi-week_discount": "Unknown",
+    "swim_requirement": "No",
+    "transport": "No",
+    "refund_policy": "1+ month 90%, 2-4 weeks 50%, <2 weeks none",
+    "contact_phone": "(805) 770-5000",
+    "contact_email": "camps@moxi.org",
+    "address": "125 State Street, Santa Barbara",
+    "website": "moxi.org/programs/for-families/camps/",
+    "2026_reg_date": "Rolling",
+    "reg_status": "Open",
+    "summer_dates": "June-August",
+    "weeks_available": "8+",
+    "staff_ratio": "16 campers max",
+    "scholarships_available": "Unknown",
+    "certifications": "CPR certified",
+    "category": "Science/STEM",
+    "notes": "Member discounts available. 16 campers per session max.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://moxi.org/programs/for-families/camps/",
+    "id": "moxi-museum-camp",
+    "scrape_timestamp": "2026-01-04T14:14:08.438Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://moxi.org/programs/for-families/camps/",
+        "type": "main"
+      },
+      {
+        "url": "https://moxi.org/visit/faq/",
+        "type": "faq",
+        "title": "FAQ - Visit - MOXI, The Wolf Museum of Exploration + Innovation"
+      },
+      {
+        "url": "https://moxi.org/programs/",
+        "type": "programs",
+        "title": "Programs - Visit - MOXI, The Wolf Museum of Exploration + Innovation"
+      },
+      {
+        "url": "https://moxi.org/programs/for-families/",
+        "type": "programs",
+        "title": "For Families - Visit - MOXI, The Wolf Museum of Exploration + Innovation"
+      },
+      {
+        "url": "https://moxi.org/programs/for-adults/",
+        "type": "programs",
+        "title": "For Adults - Visit - MOXI, The Wolf Museum of Exploration + Innovation"
+      },
+      {
+        "url": "https://moxi.org/programs/for-teachers/",
+        "type": "programs",
+        "title": "For Teachers - Visit - MOXI, The Wolf Museum of Exploration + Innovation"
+      }
+    ],
+    "pdf_links": [],
+    "social_media": {
+      "facebook": "https://www.facebook.com/MOXIsb",
+      "instagram": "https://www.instagram.com/moxisb/",
+      "tiktok": "https://www.tiktok.com/@moxi_sb"
+    },
+    "page_title": "Camps - Visit - MOXI, The Wolf Museum of Exploration + Innovation",
+    "structured_data": {
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://moxi.org/programs/for-families/camps/",
+              "url": "https://moxi.org/programs/for-families/camps/",
+              "name": "Camps - Visit - MOXI, The Wolf Museum of Exploration + Innovation",
+              "isPartOf": {
+                "@id": "https://moxi.org/#website"
+              },
+              "primaryImageOfPage": {
+                "@id": "https://moxi.org/programs/for-families/camps/#primaryimage"
+              },
+              "image": {
+                "@id": "https://moxi.org/programs/for-families/camps/#primaryimage"
+              },
+              "thumbnailUrl": "https://moxi.org/wp-content/uploads/2022/05/MOXI_Camp-3922_newsletter-edit.jpg",
+              "datePublished": "2022-05-09T20:16:30+00:00",
+              "dateModified": "2025-10-07T19:18:17+00:00",
+              "description": "Camps at MOXI are fun, playful, empowering, and are designed to engage campers in the practices of scientists and engineers.",
+              "breadcrumb": {
+                "@id": "https://moxi.org/programs/for-families/camps/#breadcrumb"
+              },
+              "inLanguage": "en-US",
+              "potentialAction": [
+                {
+                  "@type": "ReadAction",
+                  "target": [
+                    "https://moxi.org/programs/for-families/camps/"
+                  ]
+                }
+              ]
+            },
+            {
+              "@type": "ImageObject",
+              "inLanguage": "en-US",
+              "@id": "https://moxi.org/programs/for-families/camps/#primaryimage",
+              "url": "https://moxi.org/wp-content/uploads/2022/05/MOXI_Camp-3922_newsletter-edit.jpg",
+              "contentUrl": "https://moxi.org/wp-content/uploads/2022/05/MOXI_Camp-3922_newsletter-edit.jpg",
+              "width": 600,
+              "height": 350
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://moxi.org/programs/for-families/camps/#breadcrumb",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home",
+                  "item": "https://moxi.org/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Programs",
+                  "item": "https://moxi.org/programs/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "For Families",
+                  "item": "https://moxi.org/programs/for-families/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 4,
+                  "name": "Camps"
+                }
+              ]
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://moxi.org/#website",
+              "url": "https://moxi.org/",
+              "name": "Visit - MOXI, The Wolf Museum of Exploration + Innovation",
+              "description": "The Wolf Museum of Exploration + Innovation",
+              "publisher": {
+                "@id": "https://moxi.org/#organization"
+              },
+              "potentialAction": [
+                {
+                  "@type": "SearchAction",
+                  "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": "https://moxi.org/?s={search_term_string}"
+                  },
+                  "query-input": {
+                    "@type": "PropertyValueSpecification",
+                    "valueRequired": true,
+                    "valueName": "search_term_string"
+                  }
+                }
+              ],
+              "inLanguage": "en-US"
+            },
+            {
+              "@type": "Organization",
+              "@id": "https://moxi.org/#organization",
+              "name": "Visit - MOXI, The Wolf Museum of Exploration + Innovation",
+              "url": "https://moxi.org/",
+              "logo": {
+                "@type": "ImageObject",
+                "inLanguage": "en-US",
+                "@id": "https://moxi.org/#/schema/logo/image/",
+                "url": "https://moxi.org/wp-content/uploads/2022/03/MOXI_Logo_ColorGrey_RGB.png",
+                "contentUrl": "https://moxi.org/wp-content/uploads/2022/03/MOXI_Logo_ColorGrey_RGB.png",
+                "width": 2560,
+                "height": 1048,
+                "caption": "Visit - MOXI, The Wolf Museum of Exploration + Innovation"
+              },
+              "image": {
+                "@id": "https://moxi.org/#/schema/logo/image/"
+              },
+              "sameAs": [
+                "https://www.facebook.com/MOXIsb",
+                "https://x.com/moxisb",
+                "https://vimeo.com/moxisb",
+                "https://www.instagram.com/moxisb/"
+              ]
+            }
+          ]
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "Museum",
+          "name": "MOXI, The Wolf Museum of Exploration + Innovation",
+          "image": "https://moxi.org/wp-content/uploads/2022/05/Light-Patterns-Sideshot-close-up-of-2-girls-800x800.jpg",
+          "logo": "https://moxi.org/wp-content/uploads/2022/03/MOXI_Logo_ColorGrey_RGB.png",
+          "description": "Contemporary museum devoted to science, technology & the arts, with a focus on interactive exhibits.",
+          "telephone": "805-770-5000",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "125 State St",
+            "addressLocality": "Santa Barbara",
+            "addressRegion": "CA",
+            "postalCode": "93101",
+            "addressCountry": "US"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 34.4134863,
+            "longitude": -119.6942317
+          },
+          "hasMap": "https://maps.app.goo.gl/dhoeqnqZQZ9JJZ8m8",
+          "url": "https://moxi.org/",
+          "sameAs": [
+            "https://www.facebook.com/MOXIsb/",
+            "https://www.instagram.com/moxisb",
+            "https://www.tiktok.com/@moxi_sb"
+          ],
+          "openingHours": "Mo–Su 10:00–17:00"
+        }
+      ],
+      "tables": [],
+      "lists": [],
+      "metaData": {
+        "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
+        "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+        "description": "Camps at MOXI are fun, playful, empowering, and are designed to engage campers in the practices of scientists and engineers.",
+        "og:locale": "en_US",
+        "og:type": "article",
+        "og:title": "Camps - Visit - MOXI, The Wolf Museum of Exploration + Innovation",
+        "og:description": "Camps at MOXI are fun, playful, empowering, and are designed to engage campers in the practices of scientists and engineers.",
+        "og:url": "https://moxi.org/programs/for-families/camps/",
+        "og:site_name": "Visit - MOXI, The Wolf Museum of Exploration + Innovation",
+        "article:publisher": "https://www.facebook.com/MOXIsb",
+        "article:modified_time": "2025-10-07T19:18:17+00:00",
+        "og:image": "https://moxi.org/wp-content/uploads/2022/05/MOXI_Camp-3922_newsletter-edit.jpg",
+        "og:image:width": "600",
+        "og:image:height": "350",
+        "og:image:type": "image/jpeg",
+        "twitter:card": "summary_large_image",
+        "twitter:site": "@moxisb",
+        "twitter:label1": "Est. reading time",
+        "twitter:data1": "2 minutes",
+        "facebook-domain-verification": "imewdzbo8eb5g1z2plsg3p9lhc5l17",
+        "google-site-verification": "BQ81JQXzD2S8RlrJfWVk0gDbBhvigoOCdTceow7zs-o",
+        "generator": "WP Rocket 3.20.2",
+        "msapplication-TileImage": "https://moxi.org/wp-content/uploads/2022/06/cropped-moxi-favicon-270x270.png"
+      }
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": null,
+        "regular": null,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": null,
+        "perSession": null
+      },
+      "age_groups": [
+        {
+          "name": "Grades",
+          "minAge": 1,
+          "maxAge": 3
+        }
+      ],
+      "ages_found": "Grades 1-3",
+      "min_age": 1,
+      "max_age": 3,
+      "hours_found": "10:00 AM — 5:00 PM",
+      "registration_found": "Open Daily 10",
+      "sessions": null,
+      "staff_ratio": "1:6",
+      "cancellation_policy": "2 weeks before the camp start date will receive a 50% refund; 2 weeks before the camp start date are not eligible for a refund",
+      "food_info": {
+        "provided": null,
+        "details": null,
+        "cost": null
+      },
+      "certifications": [
+        "First Aid Certified"
+      ],
+      "email_found": "camps@moxi.org",
+      "phone_found": "(805) 770-5010",
+      "activities": [
+        "art",
+        "science",
+        "engineering",
+        "music"
+      ],
+      "special_needs_friendly": true,
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": true,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "Daily 10"
+      },
+      "testimonials": [],
+      "setting": "Outdoor"
+    },
+    "has_registration_open": true,
+    "has_pricing": true,
+    "has_2026": true,
+    "has_summer": false,
+    "total_text_length": 28638,
+    "content_hash": "9884c07b4cf71a9bd5a4d9ad794d6d76"
+  },
+  {
+    "camp_name": "SB Parks & Recreation",
+    "description": "City-run camps: Jr Lifeguards, LEGO, Basketball, Art, Ocean Explorers, Nature Camp, Theater, Pickleball, Volleyball, Skate Camp. 15+ options.",
+    "ages": "5-17",
+    "min_age": "5",
+    "max_age": "17",
+    "price_week": "$195-420",
+    "price_min": "195",
+    "price_max": "420",
+    "hours": "Varies by camp",
+    "drop_off": "Varies",
+    "pick_up": "Varies",
+    "indoor_outdoor": "Varies by camp",
+    "food_provided": "No - bring lunch",
+    "extended_care": "Yes - some camps; aftercare $25/day",
+    "extended_care_cost": "$25/day",
+    "sibling_discount": "No",
+    "multi-week_discount": "No",
+    "swim_requirement": "Varies (Jr Lifeguards requires swim)",
+    "transport": "No",
+    "refund_policy": "15+ days 90%, 5-14 days 50%, <5 days none; medical 90%",
+    "contact_phone": "(805) 564-5418",
+    "contact_email": "Camps@SantaBarbaraCA.gov",
+    "address": "620 Laguna Street, Santa Barbara",
+    "website": "sbparksandrec.santabarbaraca.gov",
+    "2026_reg_date": "Feb 3 at 9am",
+    "reg_status": "Opens Feb 3",
+    "summer_dates": "June-August",
+    "weeks_available": "10+",
+    "staff_ratio": "Varies",
+    "scholarships_available": "Yes - PARC Foundation",
+    "certifications": "Varies",
+    "category": "Multi-Activity",
+    "notes": "Fills quickly - set up account early. Multiple camp types available.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://sbparksandrec.santabarbaraca.gov",
+    "id": "sb-parks-recreation",
+    "scrape_timestamp": "2026-01-04T14:12:45.880Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov",
+        "type": "main"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/meetings-events",
+        "type": "calendar",
+        "title": "Meetings & Events | Parks and Recreation"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/activities/community-events/sunset-sessions-band-shell",
+        "type": "sessions",
+        "title": "Sunset Sessions at The Band Shell | Parks and Recreation"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/activities/youth/school-year-camps",
+        "type": "camps",
+        "title": "School Year Camps | Parks and Recreation"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/activities/youth/summer-camps",
+        "type": "camps",
+        "title": "Summer Camps | Parks and Recreation"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/activities/summer-programs/summer-fun-recreation-program",
+        "type": "programs",
+        "title": "Summer Fun Recreation Program | Parks and Recreation"
+      }
+    ],
+    "pdf_links": [
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2025-01/2025%20Summer%20Camps%20by%20Session.pdf",
+        "text": "view camps by session",
+        "type": "other"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2024-06/How%20to%20update%20your%20emergency%20contacts%20%282%29.pdf",
+        "text": "Instructions",
+        "type": "other"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2025-02/2025%20Summer%20Fun%20Junior%20Counselor%20Recommendation%20Form.pdf",
+        "text": "2025 JC Recommendation Form",
+        "type": "registration"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2025-02/2025%20Manual%20Para%20Padres%20-%20Summer%20Fun.pdf",
+        "text": "2025 Summer Fun Parent Handbook in Spanish",
+        "type": "handbook"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2025-02/2025%20Parent%20Handbook%20-%20Summer%20Fun.pdf",
+        "text": "2025 Summer Fun Parent Handbook",
+        "type": "handbook"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2025-02/2025%20Summer%20FUN%20JC%20Program.pdf",
+        "text": "2025 Summer Fun JC Flyer",
+        "type": "other"
+      },
+      {
+        "url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2025-02/2025%20Summer%20Fun%20Junior%20Counselor%20Recommendation%20Form_1.pdf",
+        "text": "2025 Summer Fun JC Recommendation Form",
+        "type": "registration"
+      }
+    ],
+    "social_media": {
+      "facebook": "https://www.facebook.com/sbparksandrec",
+      "instagram": "https://www.instagram.com/sbparksandrec/",
+      "twitter": "https://twitter.com/sbparksandrec"
+    },
+    "page_title": "Parks and Recreation",
+    "structured_data": {
+      "jsonLd": [],
+      "tables": [
+        {
+          "headers": [],
+          "rows": [
+            [
+              "×",
+              "",
+              "×",
+              "search",
+              ""
+            ],
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              ""
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "×",
+              "",
+              "×",
+              "search",
+              ""
+            ],
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              ""
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "×",
+              "",
+              "×",
+              "search",
+              ""
+            ],
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              ""
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "×",
+              "",
+              "×",
+              "search",
+              ""
+            ],
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              ""
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "×",
+              "",
+              "×",
+              "search",
+              ""
+            ],
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              ""
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "×",
+              "",
+              "×",
+              "search",
+              ""
+            ],
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              "×"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "",
+              ""
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "metaData": {
+        "geo.region": "US-MN",
+        "robots": "index, follow",
+        "generator": "Drupal 10 (http://drupal.org)",
+        "og:site_name": "Parks and Recreation",
+        "og:type": "Website",
+        "og:url": "https://sbparksandrec.santabarbaraca.gov/",
+        "og:title": "Parks and Recreation",
+        "og:image": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2024-02/Shoreline%20Park%20%20from%20SW%20DRONE%2002.jpg",
+        "og:updated_time": "2025-12-18T16:51:31-08:00",
+        "og:country_name": "US",
+        "article:published_time": "2021-11-10T13:53:01-08:00",
+        "article:modified_time": "2025-12-18T16:51:31-08:00",
+        "twitter:card": "summary",
+        "twitter:title": "Parks and Recreation",
+        "twitter:image:alt": ":alt",
+        "twitter:image": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2024-02/Shoreline%20Park%20%20from%20SW%20DRONE%2002.jpg",
+        "Generator": "Drupal 11 (https://www.drupal.org)",
+        "MobileOptimized": "width",
+        "HandheldFriendly": "true",
+        "viewport": "width=device-width, initial-scale=1.0",
+        "author": "Parks & Rec",
+        "msapplication-TileColor": "#da532c",
+        "msapplication-config": "/themes/citizen_dart/favi/browserconfig.xml",
+        "theme-color": "#ffffff"
+      }
+    },
+    "image_detected": {
+      "activities": [
+        "arts & crafts",
+        "sports",
+        "campfire"
+      ],
+      "facilities": [
+        "playground",
+        "sports field"
+      ]
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": null,
+        "regular": null,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": null,
+        "perSession": null
+      },
+      "age_groups": [
+        {
+          "name": "Age",
+          "minAge": 8,
+          "maxAge": 14
+        },
+        {
+          "name": "kids ages",
+          "minAge": 5,
+          "maxAge": 17
+        },
+        {
+          "name": "has between",
+          "minAge": 8,
+          "maxAge": 11
+        }
+      ],
+      "ages_found": "ages 5-17",
+      "min_age": 5,
+      "max_age": 17,
+      "hours_found": "9:00 a.m. to 12:00 p.m.",
+      "registration_found": "REGISTER TODAY",
+      "sessions": null,
+      "staff_ratio": null,
+      "cancellation_policy": null,
+      "food_info": {
+        "provided": null,
+        "details": null,
+        "cost": null
+      },
+      "has_scholarships": true,
+      "email_found": "Camps@SantaBarbaraCA.gov",
+      "phone_found": "(805) 564-5418",
+      "activities": [
+        "art",
+        "crafts",
+        "STEM",
+        "engineering",
+        "sports",
+        "soccer",
+        "basketball",
+        "tennis",
+        "theater",
+        "dance",
+        "nature",
+        "arts & crafts",
+        "campfire"
+      ],
+      "special_needs_friendly": true,
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": true,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": null
+      },
+      "testimonials": [],
+      "setting": "Outdoor"
+    },
+    "has_registration_open": true,
+    "has_pricing": true,
+    "has_2026": true,
+    "has_summer": true,
+    "total_text_length": 18071,
+    "content_hash": "ef3e7b2784ad026a2cd878f47c217acc"
+  },
+  {
+    "camp_name": "UCSB Day Camp",
+    "description": "University-run camp with swimming, gymnastics, adventure ropes course, arts & crafts, games, movies. Uses UCSB campus facilities. Themed weeks.",
+    "ages": "5-14",
+    "min_age": "5",
+    "max_age": "14",
+    "price_week": "$305-335",
+    "price_min": "305",
+    "price_max": "335",
+    "hours": "8:15am-5:15pm",
+    "drop_off": "8:15am",
+    "pick_up": "5:15pm",
+    "indoor_outdoor": "Both (UCSB campus)",
+    "food_provided": "No - bring lunch",
+    "extended_care": "Yes - included in price",
+    "extended_care_cost": "Included",
+    "sibling_discount": "$15 off per additional sibling (same session, full-day only)",
+    "multi-week_discount": "Unknown",
+    "swim_requirement": "No (pool time included)",
+    "transport": "No",
+    "refund_policy": "90% if 3+ months prior; illness $25/day refund with doctor note",
+    "contact_phone": "(805) 893-3913",
+    "contact_email": "camps@recreation.ucsb.edu",
+    "address": "UCSB Campus, Santa Barbara",
+    "website": "recreation.ucsb.edu/youth-programs/summer-day-camp",
+    "2026_reg_date": "Now Open",
+    "reg_status": "Open - Early bird available",
+    "summer_dates": "June 16 - Aug 15 2025",
+    "weeks_available": "9",
+    "staff_ratio": "Varies",
+    "scholarships_available": "Unknown",
+    "certifications": "CPR/First Aid",
+    "category": "Multi-Activity",
+    "notes": "Early registration $305/week, Regular $335/week. Beach 'n Surf combo available ages 9-15. Jr Counselor program available.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://recreation.ucsb.edu/youth-programs/summer-day-camp",
+    "id": "ucsb-day-camp",
+    "scrape_timestamp": "2026-01-04T14:12:45.883Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://recreation.ucsb.edu/youth-programs/summer-day-camp",
+        "type": "main"
+      },
+      {
+        "url": "https://register.recreation.ucsb.edu/",
+        "type": "register",
+        "title": "UCSB Recreation"
+      },
+      {
+        "url": "https://recreation.ucsb.edu/about",
+        "type": "about",
+        "title": "About UCSB Recreation | Department of Recreation"
+      },
+      {
+        "url": "https://recreation.ucsb.edu/about/hours",
+        "type": "about",
+        "title": "Hours | Department of Recreation"
+      },
+      {
+        "url": "https://recreation.ucsb.edu/about/news",
+        "type": "about",
+        "title": "News | Department of Recreation"
+      },
+      {
+        "url": "https://recreation.ucsb.edu/home/registration-cashier%27s-office",
+        "type": "registration",
+        "title": "Customer Service Center | Department of Recreation"
+      }
+    ],
+    "pdf_links": [
+      {
+        "url": "https://recreation.ucsb.edu/sites/default/files/2025-04/JuniorCounselor%20-%20Parent%20Information%20Packet.docx.pdf",
+        "text": "Jr Counselor Parent Information Packet",
+        "type": "handbook"
+      },
+      {
+        "url": "https://recreation.ucsb.edu/sites/default/files/2025-02/Parent%20Information%20Packet.pdf",
+        "text": "Parent Info Packet",
+        "type": "handbook"
+      },
+      {
+        "url": "https://recreation.ucsb.edu/sites/default/files/2025-01/Annual%20Calendar%202025.pdf",
+        "text": "2025 Annual Calendar",
+        "type": "schedule"
+      },
+      {
+        "url": "https://recreation.ucsb.edu/sites/default/files/2025-11/Annual%20Calendar%202026.pdf",
+        "text": "2026 Annual Calendar",
+        "type": "schedule"
+      }
+    ],
+    "social_media": {
+      "facebook": "https://www.facebook.com/UCSBRecreation",
+      "youtube": "https://www.youtube.com/channel/UCu-dta8MqxlWc2PHIVgN6eQ",
+      "instagram": "https://www.instagram.com/ucsb_recreation/",
+      "twitter": "https://twitter.com/ucsb_recreation?lang=en"
+    },
+    "page_title": "UCSB Summer Day Camp | Department of Recreation",
+    "structured_data": {
+      "jsonLd": [],
+      "tables": [
+        {
+          "headers": [],
+          "rows": [
+            [
+              "\"We are thankful for this full-day camp as full-time working parents, the energy of the counselors, the safe environment, variety of activities and access to UCSB campus and resources. The staff are very helpful, hard-working and do a great job getting to know the campers and families! We appreciate this program very much and will continue to participate for several\n\t\t\tmore years to come!\"",
+              "\"My kids have always loved this camp! They love the variety of activities and the chance to swim and jump off the high dive. The weekly themes are great and the carnival is always a big hit. Also, the camp counselors are great with the kids. The hours of the camp are fantastic as well and are super parent-friendly!\""
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "Session 1",
+              "June 16 - 20*",
+              "Camp Olympics\n\t\t\tOn your marks, get set, GO! This week, campers will show off their Olympic skills as they learn about different ways of getting active and having fun! Be prepared to run, skip, and leap as we explore different sports.\n\t\t\tFriday Dress Up: Rock your Sportswear!",
+              "",
+              ""
+            ],
+            [
+              "Session 2",
+              "June 23 - 27",
+              "Superheroes\n\t\t\tMy Spidey Senses are tingling! This week campers will embody their favorite superheroes while participating in games and crafts! \n\t\t\tFriday Dress Up: Dress as your favorite Superhero!",
+              "",
+              ""
+            ],
+            [
+              "Session 3",
+              "June 30 - July 3*",
+              "Party in the USA\n\t\t\tHappy Fourth Of July! This week we will join together in celebration of the independence of our great nation!\n\t\t\tFriday Dress Up: Red, White, & Blue / Stars!",
+              "",
+              ""
+            ],
+            [
+              "Session 4",
+              "July 7 - 11",
+              "The Great Outdoors\n\t\t\t\"Camper\" takes on a whole new meaning this week. Children enrolled in camp this week will get to explore the great outdoors and see all of the exciting surprises that nature and Campus has to offer!",
+              "",
+              ""
+            ],
+            [
+              "Session 5",
+              "July 14 - 18",
+              "Carnival\n\t\t\tCarnival week is one of our favorites and is jam packed with exciting activities! Join us for the fun this week where we bring out our Rock Wall, Bounce Houses, Carnival games and so much more!",
+              "",
+              ""
+            ],
+            [
+              "Session 6",
+              "July 21 - 25",
+              "Magical World of Camp\n\t\t\tThis week, campers will be surrounded by the magic of the Happiest Place on Earth! They will get to enjoy themed games and crafts about all of their favorite characters.\n\t\t\tFriday Dress Up: Disney Merch!",
+              "",
+              ""
+            ],
+            [
+              "Session 7",
+              "July 28 - August 1",
+              "Young Einsteins \n\t\t\tGet ready to challenge those brains! This week our campers will dust off their lab coats as they explore the wonders of science and put their imaginations and creations to the test this week with some exciting science experiments! \n\t\t\tFriday Dress Up: Favorite Science or Scientist!",
+              "",
+              ""
+            ],
+            [
+              "Session 8",
+              "August 4 - 8",
+              "Camps Got Talent\n\t\t\tFor this week, our campers will show off their creative skills and talent as they paint, craft, and create. Campers will end their week with a talent show, with the option to either participate or watch, so be sure to start preparing your act now!",
+              "",
+              ""
+            ],
+            [
+              "Session 9",
+              "August 11 - 15",
+              "Summer Send Off!\n\t\t\tCampers will end their summer the right way with our week-long counselor games and an epic music festival to send them back to school. Campers will dance, play, run, and jump their way back into school!"
+            ]
+          ]
+        },
+        {
+          "headers": [],
+          "rows": [
+            [
+              "Session",
+              "2025 Dates",
+              "Early - $305",
+              "",
+              "Regular - $335"
+            ],
+            [
+              "",
+              "",
+              "If Paid By",
+              "",
+              "If Paid on or after"
+            ],
+            [
+              "1",
+              "June 16 - 20*",
+              "May 19",
+              "",
+              "May 20"
+            ],
+            [
+              "2",
+              "June 23 - 27",
+              "May 26",
+              "",
+              "May 27"
+            ],
+            [
+              "3",
+              "June 30 - July 3*",
+              "June 2",
+              "",
+              "June 3"
+            ],
+            [
+              "4",
+              "July 7 - 11",
+              "June 9",
+              "",
+              "June 10"
+            ],
+            [
+              "5",
+              "July 14 - 18",
+              "June 16",
+              "",
+              "June 17"
+            ],
+            [
+              "6",
+              "July 21 - 25",
+              "June 23",
+              "",
+              "June 24"
+            ],
+            [
+              "7",
+              "July 28 - August 1",
+              "June 30",
+              "",
+              "July 1"
+            ],
+            [
+              "8",
+              "August 4 - 8",
+              "July 7",
+              "",
+              "July 8"
+            ],
+            [
+              "9",
+              "August 11 - 15",
+              "July 14",
+              "",
+              "July 15"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              ""
+            ],
+            [
+              "*Session 1 and 3 are prorated as follows due to the Juneteenth and Independence Day holidays (No camp on June 19 or July 4)",
+              "$244",
+              "",
+              "$268"
+            ],
+            [
+              ""
+            ],
+            [
+              "Payments must be received by the above dates to qualify for promotional price. Postmarks will NOT be accepted. Price increases take effect online at midnight on dates indicated. In person payments must be made by 5pm on dates indicated."
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "metaData": {
+        "Generator": "Drupal 10 (https://www.drupal.org)",
+        "MobileOptimized": "width",
+        "HandheldFriendly": "true",
+        "viewport": "width=device-width, initial-scale=1.0"
+      }
+    },
+    "image_detected": {
+      "activities": [
+        "camping"
+      ],
+      "facilities": []
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": 305,
+        "regular": 335,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": 305,
+        "perSession": null
+      },
+      "price_found": "$305 per week",
+      "price_min": 305,
+      "price_max": 305,
+      "age_groups": [
+        {
+          "name": "all children",
+          "minAge": 5,
+          "maxAge": 14
+        },
+        {
+          "name": "Blue Crew",
+          "minAge": 5,
+          "maxAge": 6
+        }
+      ],
+      "ages_found": "ages 5-14",
+      "min_age": 5,
+      "max_age": 14,
+      "hours_found": "8:15am - 5:15pm",
+      "pick_up_window": "pick-up 4:30pm ",
+      "registration_found": "begins at 10",
+      "sessions": [
+        {
+          "raw": "Session 1\n\n\n\n \n\n\t\n\nJune 16 - 20",
+          "parsed": true
+        },
+        {
+          "raw": "Session 2\n\n\n\n \n\n\t\n\n\nJune 23 - 27\n\n\n\n \n\n\t\n\nSuperheroes",
+          "parsed": true
+        },
+        {
+          "raw": "Session 3\n\n\n\n \n\n\t\n\nJune 30 - July 3",
+          "parsed": true
+        },
+        {
+          "raw": "Session 4\n \n\n\n \n\n\t\n\nJuly 7 - 11\n\n\n\n \n\n\t\n\nThe Great Outdoors",
+          "parsed": true
+        },
+        {
+          "raw": "Session 5\n\n\n\n \n\n\t\n\nJuly 14 - 18\n\n\n\n \n\n\t\n\nCarnival",
+          "parsed": true
+        },
+        {
+          "raw": "Session 6\n\n\n\n\n \n\n\t\n\nJuly 21 - 25 \n \n\n\n\n \n\n\t\n\nMagical World of Camp",
+          "parsed": true
+        },
+        {
+          "raw": "Session 7\n\n\n\n \n\n\t\n\nJuly 28 - August 1\n\n\n\n \n\n\t\n\nYoung Einsteins ",
+          "parsed": true
+        },
+        {
+          "raw": "Session 8\n\n\n\n \n\n\t\n\nAugust 4 - 8\n\n\n\n \n\n\t\n\nCamps Got Talent",
+          "parsed": true
+        },
+        {
+          "raw": "Session 9\n\n\n \n\n\t\n\nAugust 11 - 15\n\n\n \n\n\t\n\nSummer Send Off!",
+          "parsed": true
+        },
+        {
+          "raw": "JUNE 16 - AUGUST 15, 2025",
+          "parsed": true
+        },
+        {
+          "raw": "June 16 - 20",
+          "parsed": true
+        },
+        {
+          "raw": "June 23 - 27",
+          "parsed": true
+        },
+        {
+          "raw": "June 30 - July 3",
+          "parsed": true
+        },
+        {
+          "raw": "July 7 - 11",
+          "parsed": true
+        },
+        {
+          "raw": "July 14 - 18",
+          "parsed": true
+        },
+        {
+          "raw": "July 21 - 25",
+          "parsed": true
+        },
+        {
+          "raw": "July 28 - August 1",
+          "parsed": true
+        },
+        {
+          "raw": "August 4 - 8",
+          "parsed": true
+        },
+        {
+          "raw": "August 11 - 15",
+          "parsed": true
+        },
+        {
+          "raw": "June 16 - 20",
+          "parsed": true
+        }
+      ],
+      "staff_ratio": null,
+      "cancellation_policy": "4+ weeks before your session begins",
+      "food_info": {
+        "provided": null,
+        "details": null,
+        "cost": null
+      },
+      "has_sibling_discount": true,
+      "has_scholarships": true,
+      "certifications": [
+        "First Aid Certified"
+      ],
+      "email_found": "camps@recreation.ucsb.edu",
+      "phone_found": "(805) 893-3737",
+      "activities": [
+        "swimming",
+        "kayaking",
+        "art",
+        "pottery",
+        "crafts",
+        "science",
+        "STEM",
+        "sports",
+        "soccer",
+        "tennis",
+        "drama",
+        "music",
+        "dance",
+        "nature",
+        "climbing",
+        "ropes course",
+        "camping"
+      ],
+      "special_needs_friendly": true,
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "at 10"
+      },
+      "testimonials": [
+        "n Surf Camp, Jr Lifeguards, the Summer Day camp and Beach"
+      ],
+      "has_health_protocols": true,
+      "setting": "Outdoor"
+    },
+    "has_registration_open": true,
+    "has_pricing": true,
+    "has_2026": true,
+    "has_summer": true,
+    "total_text_length": 25955,
+    "content_hash": "f56d5e0e1b6932924886d3f106c17888"
+  },
+  {
+    "camp_name": "SB Botanic Garden",
+    "description": "Nature-based camps exploring 78-acre garden. Age-specific themes, nature science, outdoor exploration. Two camp shirts provided.",
+    "ages": "5-12",
+    "min_age": "5",
+    "max_age": "12",
+    "price_week": "$370",
+    "price_min": "370",
+    "price_max": "370",
+    "hours": "9am-3pm",
+    "drop_off": "9:00am",
+    "pick_up": "3:00pm",
+    "indoor_outdoor": "Outdoor (78-acre garden)",
+    "food_provided": "Snacks provided",
+    "extended_care": "Yes - Extended day 3-5pm",
+    "extended_care_cost": "$100/week",
+    "sibling_discount": "No",
+    "multi-week_discount": "No",
+    "swim_requirement": "No",
+    "transport": "No",
+    "refund_policy": "15+ days refund minus 10% admin; illness prorated up to 2 days",
+    "contact_phone": "(805) 682-4726 x161",
+    "contact_email": "camp@sbbotanicgarden.org",
+    "address": "1212 Mission Canyon Road, Santa Barbara",
+    "website": "sbbotanicgarden.org",
+    "2026_reg_date": "Members Mar 4; Public Mar 18",
+    "reg_status": "Members early access",
+    "summer_dates": "June-August",
+    "weeks_available": "8+",
+    "staff_ratio": "1:8",
+    "scholarships_available": "Unknown",
+    "certifications": "Unknown",
+    "category": "Nature/Outdoor",
+    "notes": "Member early access Mar 4. Public Mar 18. Two camp shirts included.",
+    "last_updated": "2026-01-03",
+    "website_url": "https://sbbotanicgarden.org",
+    "id": "sb-botanic-garden",
+    "scrape_timestamp": "2026-01-04T14:14:23.714Z",
+    "scrape_status": "success",
+    "pages_scraped": [
+      {
+        "url": "https://sbbotanicgarden.org",
+        "type": "main"
+      },
+      {
+        "url": "https://sbbotanicgarden.org/calendar/",
+        "type": "calendar",
+        "title": "Things to Do in Santa Barbara Today, This Week & Upcoming | Calendar of Events - Santa Barbara Botanic Garden"
+      },
+      {
+        "url": "https://sbbotanicgarden.org/visit/youth-programs/",
+        "type": "programs",
+        "title": "Book a Group Excursion or Classroom Field Trip at Santa Barbara Botanic Garden - Santa Barbara Botanic Garden"
+      },
+      {
+        "url": "https://sbbotanicgarden.org/about/",
+        "type": "about",
+        "title": "About - Santa Barbara Botanic Garden"
+      },
+      {
+        "url": "https://sbbotanicgarden.org/about/mission-vision/",
+        "type": "about",
+        "title": "Mission & Vision - Santa Barbara Botanic Garden"
+      },
+      {
+        "url": "https://sbbotanicgarden.org/about/history/",
+        "type": "about",
+        "title": "History - Santa Barbara Botanic Garden"
+      }
+    ],
+    "pdf_links": [
+      {
+        "url": "https://sbbotanicgarden.org/wp-content/uploads/2025/09/Guided-School-Visit-FAQ-1.pdf",
+        "text": "Guided School Tour FAQ",
+        "type": "handbook"
+      },
+      {
+        "url": "https://sbbotanicgarden.org/wp-content/uploads/2025/09/Self-Guided-School-Visit-FAQ-1.pdf",
+        "text": "Self-Guided School Visit FAQ",
+        "type": "handbook"
+      },
+      {
+        "url": "https://sbbotanicgarden.org/wp-content/uploads/2024/12/Self-Guided-Activities-Packet-1.pdf",
+        "text": "Self-Guided Materials Packet",
+        "type": "handbook"
+      },
+      {
+        "url": "https://sbbotanicgarden.org/wp-content/uploads/2022/06/Noticias_web_120458.pdf",
+        "text": "",
+        "type": "other"
+      }
+    ],
+    "social_media": {
+      "instagram": "https://instagram.com/sbbotanicgarden/",
+      "facebook": "https://www.facebook.com/sbbotanicgarden/"
+    },
+    "page_title": "Home - Santa Barbara Botanic Garden",
+    "structured_data": {
+      "jsonLd": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://sbbotanicgarden.org/",
+              "url": "https://sbbotanicgarden.org/",
+              "name": "Home - Santa Barbara Botanic Garden",
+              "isPartOf": {
+                "@id": "https://sbbotanicgarden.org/#website"
+              },
+              "primaryImageOfPage": {
+                "@id": "https://sbbotanicgarden.org/#primaryimage"
+              },
+              "image": {
+                "@id": "https://sbbotanicgarden.org/#primaryimage"
+              },
+              "thumbnailUrl": "https://sbbotanicgarden.org/wp-content/uploads/2022/03/plant-with-purpose-1024x767.jpg",
+              "datePublished": "2022-03-30T16:13:51+00:00",
+              "dateModified": "2025-10-13T18:59:19+00:00",
+              "description": "Santa Barbara Botanic Garden showcases California's native plants and habitat. Reservations required. Open daily- 10 a.m. to 5 p.m. 1212 Mission Canyon Road, Santa Barbara, CA.",
+              "breadcrumb": {
+                "@id": "https://sbbotanicgarden.org/#breadcrumb"
+              },
+              "inLanguage": "en-US",
+              "potentialAction": [
+                {
+                  "@type": "ReadAction",
+                  "target": [
+                    "https://sbbotanicgarden.org/"
+                  ]
+                }
+              ]
+            },
+            {
+              "@type": "ImageObject",
+              "inLanguage": "en-US",
+              "@id": "https://sbbotanicgarden.org/#primaryimage",
+              "url": "https://sbbotanicgarden.org/wp-content/uploads/2022/03/plant-with-purpose.jpg",
+              "contentUrl": "https://sbbotanicgarden.org/wp-content/uploads/2022/03/plant-with-purpose.jpg",
+              "width": 1600,
+              "height": 1198,
+              "caption": "Large Chalk Dudleya in a garden of California native plants and flowers."
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://sbbotanicgarden.org/#breadcrumb",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home"
+                }
+              ]
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://sbbotanicgarden.org/#website",
+              "url": "https://sbbotanicgarden.org/",
+              "name": "Santa Barbara Botanic Garden",
+              "description": "Conserving California Native Plants - Events, Hours, Tickets &amp; More",
+              "potentialAction": [
+                {
+                  "@type": "SearchAction",
+                  "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": "https://sbbotanicgarden.org/?s={search_term_string}"
+                  },
+                  "query-input": {
+                    "@type": "PropertyValueSpecification",
+                    "valueRequired": true,
+                    "valueName": "search_term_string"
+                  }
+                }
+              ],
+              "inLanguage": "en-US"
+            }
+          ]
+        }
+      ],
+      "tables": [],
+      "lists": [],
+      "metaData": {
+        "viewport": "width=device-width",
+        "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+        "description": "Santa Barbara Botanic Garden showcases California's native plants and habitat. Reservations required. Open daily- 10 a.m. to 5 p.m. 1212 Mission Canyon Road, Santa Barbara, CA.",
+        "og:locale": "en_US",
+        "og:type": "website",
+        "og:title": "Home - Santa Barbara Botanic Garden",
+        "og:description": "Santa Barbara Botanic Garden showcases California's native plants and habitat. Reservations required. Open daily- 10 a.m. to 5 p.m. 1212 Mission Canyon Road, Santa Barbara, CA.",
+        "og:url": "https://sbbotanicgarden.org/",
+        "og:site_name": "Santa Barbara Botanic Garden",
+        "article:publisher": "https://www.facebook.com/sbbotanicgarden/",
+        "article:modified_time": "2025-10-13T18:59:19+00:00",
+        "og:image": "https://sbbotanicgarden.org/wp-content/uploads/2022/03/plant-with-purpose-1024x767.jpg",
+        "twitter:card": "summary_large_image",
+        "google-site-verification": "sOIbPsOWvnYc0cCUmRQjOyiK__6QUP2isrc3yLmoX00",
+        "generator": "Powered by Slider Revolution 6.6.15 - responsive, Mobile-Friendly Slider Plugin for WordPress with comfortable drag and drop interface.",
+        "msapplication-TileImage": "https://sbbotanicgarden.org/wp-content/uploads/2022/04/favicon.png"
+      }
+    },
+    "image_detected": {
+      "activities": [
+        "hiking"
+      ],
+      "facilities": []
+    },
+    "extracted": {
+      "pricing_tiers": {
+        "earlyBird": null,
+        "regular": null,
+        "late": null,
+        "halfDay": null,
+        "fullDay": null,
+        "weekly": null,
+        "perSession": null
+      },
+      "age_groups": [
+        {
+          "name": "to spend",
+          "minAge": 1,
+          "maxAge": 2
+        }
+      ],
+      "ages_found": "ages 8 to 13",
+      "min_age": 8,
+      "max_age": 13,
+      "sessions": null,
+      "staff_ratio": "Small groups",
+      "cancellation_policy": null,
+      "food_info": {
+        "provided": null,
+        "details": null,
+        "cost": null
+      },
+      "phone_found": "(805) 682-4726",
+      "activities": [
+        "art",
+        "crafts",
+        "science",
+        "STEM",
+        "nature",
+        "hiking"
+      ],
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": null
+      },
+      "testimonials": [],
+      "setting": "Outdoor"
+    },
+    "has_registration_open": true,
+    "has_pricing": false,
+    "has_2026": true,
+    "has_summer": true,
+    "total_text_length": 21203,
+    "content_hash": "62d9ffd0d91f9325bd2784557343c990"
+  }
+]
