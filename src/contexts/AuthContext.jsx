@@ -35,8 +35,21 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    // Check for OAuth errors in URL
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const errorDescription = hashParams.get('error_description');
+    const error = hashParams.get('error');
+    if (error || errorDescription) {
+      console.error('OAuth error:', error, errorDescription);
+      alert(`Sign in failed: ${errorDescription || error}`);
+    }
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+      }
+      console.log('Initial session:', session ? 'User logged in' : 'No session');
       setUser(session?.user ?? null);
       if (session?.user) {
         loadUserData(session.user.id);
@@ -47,6 +60,7 @@ export function AuthProvider({ children }) {
 
     // Listen for auth changes
     const { data: { subscription } } = onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session ? 'User present' : 'No user');
       setUser(session?.user ?? null);
       if (session?.user) {
         loadUserData(session.user.id);

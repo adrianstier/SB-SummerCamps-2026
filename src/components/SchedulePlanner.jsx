@@ -241,30 +241,84 @@ export function SchedulePlanner({ camps, onClose }) {
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="p-6 overflow-auto" style={{ height: 'calc(100vh - 80px)' }}>
-        <div className="max-w-7xl mx-auto">
-          {/* Sample Data Banner */}
-          {hasSampleData && (
-            <div className="mb-4 p-4 rounded-xl flex items-center justify-between"
-                 style={{ background: 'var(--sun-100)', border: '1px solid var(--sun-200)' }}>
-              <div>
-                <p className="font-semibold" style={{ color: 'var(--earth-800)' }}>Sample data</p>
-                <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
-                  Clear when ready to plan for real.
-                </p>
-              </div>
-              <button
-                onClick={handleClearSampleData}
-                disabled={clearingSampleData}
-                className="btn-secondary disabled:opacity-50"
-              >
-                {clearingSampleData ? 'Clearing...' : 'Clear Sample Data'}
-              </button>
-            </div>
-          )}
+      {/* Main Content - Two Column Layout */}
+      <div className="flex" style={{ height: 'calc(100vh - 80px)' }}>
+        {/* Left Sidebar - Camp Library */}
+        <div className="w-80 flex-shrink-0 border-r overflow-y-auto" style={{ borderColor: 'var(--sand-200)', background: 'var(--sand-50)' }}>
+          <div className="p-4 sticky top-0 z-10" style={{ background: 'var(--sand-50)', borderBottom: '1px solid var(--sand-200)' }}>
+            <h3 className="font-serif text-lg font-semibold mb-3" style={{ color: 'var(--earth-800)' }}>
+              Camp Library
+            </h3>
+            <input
+              type="text"
+              placeholder="Search camps..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm"
+              style={{ border: '1px solid var(--sand-300)' }}
+            />
+          </div>
 
-          {children.length === 0 ? (
+          <div className="p-3 space-y-2">
+            {filteredCamps.map(camp => (
+              <div
+                key={camp.id}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('campId', camp.id);
+                  e.dataTransfer.effectAllowed = 'copy';
+                }}
+                className="flex items-center gap-3 p-2 rounded-lg cursor-move transition-all hover:shadow-md"
+                style={{ background: 'white', border: '1px solid var(--sand-200)' }}
+              >
+                {camp.image_url ? (
+                  <img
+                    src={camp.image_url}
+                    alt=""
+                    className="w-12 h-12 rounded object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded flex items-center justify-center text-xl flex-shrink-0" style={{ background: 'var(--sand-100)' }}>
+                    🏕️
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: 'var(--earth-800)' }}>
+                    {camp.camp_name}
+                  </p>
+                  <p className="text-xs truncate" style={{ color: 'var(--sand-500)' }}>
+                    {camp.category} • {camp.ages}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Side - Calendar Grid */}
+        <div className="flex-1 p-6 overflow-auto">
+          <div className="max-w-6xl mx-auto">
+            {/* Sample Data Banner */}
+            {hasSampleData && (
+              <div className="mb-4 p-4 rounded-xl flex items-center justify-between"
+                   style={{ background: 'var(--sun-100)', border: '1px solid var(--sun-200)' }}>
+                <div>
+                  <p className="font-semibold" style={{ color: 'var(--earth-800)' }}>Sample data</p>
+                  <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
+                    Clear when ready to plan for real.
+                  </p>
+                </div>
+                <button
+                  onClick={handleClearSampleData}
+                  disabled={clearingSampleData}
+                  className="btn-secondary disabled:opacity-50"
+                >
+                  {clearingSampleData ? 'Clearing...' : 'Clear Sample Data'}
+                </button>
+              </div>
+            )}
+
+            {children.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sand-100)' }}>
                 <ChildIcon className="w-10 h-10" style={{ color: 'var(--sand-400)' }} />
@@ -343,6 +397,28 @@ export function SchedulePlanner({ camps, onClose }) {
                               setShowAddCamp({ weekNum: week.weekNum, childId: child.id });
                             }
                           }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.style.background = 'var(--ocean-50)';
+                            e.currentTarget.style.borderColor = 'var(--ocean-400)';
+                          }}
+                          onDragLeave={(e) => {
+                            e.currentTarget.style.background = weekCamps.length > 0 ? 'white' : 'var(--sand-50)';
+                            e.currentTarget.style.borderColor = isGap ? 'var(--terra-300)' : 'var(--sand-200)';
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const campId = e.dataTransfer.getData('campId');
+                            if (campId) {
+                              const camp = camps.find(c => c.id === campId);
+                              if (camp) {
+                                handleAddCamp(camp, week.weekNum);
+                                setSelectedChild(child.id);
+                              }
+                            }
+                            e.currentTarget.style.background = 'white';
+                            e.currentTarget.style.borderColor = 'var(--sand-200)';
+                          }}
                         >
                           {weekCamps.length > 0 ? (
                             weekCamps.map(sc => {
@@ -401,6 +477,7 @@ export function SchedulePlanner({ camps, onClose }) {
               ))}
             </div>
           )}
+          </div>
         </div>
       </div>
 

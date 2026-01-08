@@ -18,13 +18,16 @@ export const supabase = supabaseUrl && supabaseAnonKey
 export async function signInWithGoogle() {
   if (!supabase) return { error: { message: 'Supabase not configured' } };
 
+  // Use the current URL as redirect, this ensures proper OAuth callback
+  const redirectTo = `${window.location.origin}/`;
+
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin,
+      redirectTo,
       queryParams: {
         access_type: 'offline',
-        prompt: 'consent',
+        prompt: 'select_account', // Changed from 'consent' to allow easier sign-in
       },
     },
   });

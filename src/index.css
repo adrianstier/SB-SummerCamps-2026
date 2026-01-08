@@ -499,7 +499,7 @@ body::before {
 
 .filter-presets-label {
   font-family: 'Fraunces', Georgia, serif;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 500;
   font-style: italic;
   color: var(--sand-400);
@@ -515,12 +515,12 @@ body::before {
 
 .filter-preset-link {
   font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.9375rem; /* 15px - accessibility improvement */
   font-weight: 400;
   color: var(--earth-700);
   background: none;
   border: none;
-  padding: 6px 12px;
+  padding: 8px 14px;
   cursor: pointer;
   position: relative;
   transition: color 0.2s ease;
@@ -571,9 +571,9 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 10px 16px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.9375rem; /* 15px - accessibility improvement */
   font-weight: 500;
   color: var(--earth-700);
   background: var(--sand-50);
@@ -618,9 +618,9 @@ body::before {
 }
 
 .filter-sort-select {
-  padding: 8px 28px 8px 12px;
+  padding: 10px 32px 10px 14px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.9375rem; /* 15px - accessibility improvement */
   font-weight: 500;
   color: var(--earth-700);
   background: var(--sand-50);
@@ -630,8 +630,8 @@ body::before {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234a3f35' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 9l4-4 4 4m0 6l-4 4-4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 14px;
+  background-position: right 10px center;
+  background-size: 16px;
   transition: all 0.2s ease;
 }
 
@@ -647,9 +647,9 @@ body::before {
 }
 
 .filter-clear-btn {
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.9375rem; /* 15px - accessibility improvement */
   font-weight: 500;
   color: var(--terra-500);
   background: none;
@@ -699,15 +699,113 @@ body::before {
   }
 }
 
+/* Active Filters Bar - shows applied filters with easy remove */
+.active-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--sand-100);
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.active-filters-label {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--sand-400);
+  flex-shrink: 0;
+}
+
+.active-filters-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+.active-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--terra-100);
+  color: var(--terra-700);
+  border: 1px solid var(--terra-200);
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.active-filter-chip:hover {
+  background: var(--terra-200);
+  border-color: var(--terra-300);
+}
+
+.active-filter-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--terra-500);
+  color: white;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  margin-left: 2px;
+}
+
+.active-filter-chip:hover .active-filter-remove {
+  background: var(--terra-600);
+}
+
+.active-filters-clear {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--terra-500);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  flex-shrink: 0;
+}
+
+.active-filters-clear:hover {
+  color: var(--terra-600);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .active-filters-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .active-filters-label {
+    width: 100%;
+  }
+
+  .active-filters-chips {
+    width: 100%;
+  }
+}
+
 /* Legacy pill styles (keep for expanded filters panel) */
 .filter-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 12px 20px;
   border-radius: 100px;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 0.9375rem; /* 15px - accessibility improvement */
   background: white;
   color: var(--earth-700);
   border: 2px solid var(--sand-200);
@@ -779,9 +877,9 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 6px;
-  font-size: 0.7rem;
+  font-size: 0.75rem; /* 12px - slightly larger for readability */
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -1684,7 +1782,7 @@ body::before {
 
 .category-browse-name {
   font-family: 'Outfit', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.9375rem; /* 15px - accessibility improvement */
   font-weight: 600;
   color: var(--earth-800);
   margin-bottom: 0.25rem;
@@ -1692,7 +1790,7 @@ body::before {
 
 .category-browse-count {
   font-family: 'Outfit', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.8125rem; /* 13px - slightly larger */
   color: var(--sand-400);
 }
 
@@ -1715,7 +1813,7 @@ body::before {
 
 .testimonial-author {
   font-family: 'Outfit', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.9375rem; /* 15px - accessibility improvement */
   color: var(--ocean-100);
 }
 
@@ -1864,5 +1962,963 @@ body::before {
 
   .testimonial-quote {
     font-size: 1.25rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CAMP DETAIL MODAL - Editorial Magazine Style
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.camp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 26, 22, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: modalOverlayFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.camp-modal {
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 32px 64px -16px rgba(31, 26, 22, 0.4),
+    0 16px 32px -8px rgba(31, 26, 22, 0.2);
+  animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Hero Section */
+.camp-modal-hero {
+  position: relative;
+  height: 320px;
+  min-height: 320px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--sand-200) 0%, var(--sand-100) 100%);
+}
+
+.camp-modal-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  animation: heroImageReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+@keyframes heroImageReveal {
+  from {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.camp-modal-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(31, 26, 22, 0.85) 0%,
+    rgba(31, 26, 22, 0.4) 40%,
+    rgba(31, 26, 22, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+/* Floating Actions on Hero */
+.camp-modal-hero-actions {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.camp-modal-close-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(31, 26, 22, 0.15);
+}
+
+.camp-modal-close-btn:hover {
+  background: white;
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(31, 26, 22, 0.2);
+}
+
+.camp-modal-favorite-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(31, 26, 22, 0.15);
+}
+
+.camp-modal-favorite-btn:hover {
+  background: white;
+  transform: scale(1.08);
+}
+
+.camp-modal-favorite-btn.is-favorited {
+  background: var(--terra-500);
+  color: white;
+}
+
+/* Title Overlay on Hero */
+.camp-modal-hero-title {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  z-index: 5;
+}
+
+.camp-modal-category {
+  display: inline-block;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--sun-300);
+  margin-bottom: 0.75rem;
+  animation: titleFadeIn 0.5s ease 0.2s both;
+}
+
+@keyframes titleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.camp-modal-name {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 600;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 16px rgba(31, 26, 22, 0.3);
+  animation: titleFadeIn 0.5s ease 0.25s both;
+}
+
+.camp-modal-tagline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  color: var(--sand-200);
+  font-style: italic;
+  opacity: 0.9;
+  animation: titleFadeIn 0.5s ease 0.3s both;
+}
+
+.camp-modal-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  animation: titleFadeIn 0.5s ease 0.35s both;
+}
+
+.camp-modal-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  color: var(--sand-300);
+}
+
+.camp-modal-meta-item svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+/* Content Section */
+.camp-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Quick Stats Bar */
+.camp-modal-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1px;
+  background: var(--sand-100);
+  border-bottom: 1px solid var(--sand-200);
+}
+
+.camp-modal-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1rem;
+  background: white;
+  text-align: center;
+}
+
+.camp-modal-stat-icon {
+  font-size: 1.25rem;
+  margin-bottom: 0.375rem;
+}
+
+.camp-modal-stat-value {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--earth-800);
+}
+
+.camp-modal-stat-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sand-400);
+  margin-top: 0.125rem;
+}
+
+/* Main Content Body */
+.camp-modal-body {
+  padding: 2rem;
+}
+
+/* Details Grid */
+.camp-modal-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  .camp-modal-details-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.camp-modal-detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.camp-modal-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--sand-100);
+}
+
+.camp-modal-detail-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sand-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.camp-modal-detail-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--earth-800);
+  text-align: right;
+  max-width: 60%;
+}
+
+/* Info Cards */
+.camp-modal-info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.camp-modal-info-card {
+  background: var(--sand-50);
+  border-radius: 16px;
+  padding: 1.25rem;
+  border: 1px solid var(--sand-100);
+}
+
+.camp-modal-info-card-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.camp-modal-info-card-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  margin-bottom: 0.375rem;
+}
+
+.camp-modal-info-card-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  color: var(--earth-700);
+  line-height: 1.5;
+}
+
+/* Quote/Testimonial Section */
+.camp-modal-quote {
+  position: relative;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--ocean-50) 0%, var(--sand-50) 100%);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  border-left: 4px solid var(--ocean-400);
+}
+
+.camp-modal-quote-text {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--earth-700);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.camp-modal-quote-author {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  color: var(--sand-500);
+}
+
+/* Action Buttons */
+.camp-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sand-200);
+}
+
+.camp-modal-btn-primary {
+  flex: 1;
+  min-width: 180px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: var(--terra-500);
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 16px -4px rgba(232, 90, 53, 0.4);
+}
+
+.camp-modal-btn-primary:hover {
+  background: var(--terra-600);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(232, 90, 53, 0.5);
+}
+
+.camp-modal-btn-secondary {
+  flex: 1;
+  min-width: 180px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--earth-700);
+  background: white;
+  border: 2px solid var(--sand-300);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.camp-modal-btn-secondary:hover {
+  border-color: var(--earth-700);
+  background: var(--sand-50);
+  transform: translateY(-1px);
+}
+
+/* Social Links */
+.camp-modal-social {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.camp-modal-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--sand-100);
+  color: var(--earth-700);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.camp-modal-social-link:hover {
+  background: var(--ocean-500);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .camp-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .camp-modal {
+    max-height: 95vh;
+    border-radius: 24px 24px 0 0;
+    animation: modalSlideUpMobile 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes modalSlideUpMobile {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .camp-modal-hero {
+    height: 240px;
+    min-height: 240px;
+  }
+
+  .camp-modal-hero-title {
+    padding: 1.25rem;
+  }
+
+  .camp-modal-name {
+    font-size: 1.5rem;
+  }
+
+  .camp-modal-body {
+    padding: 1.25rem;
+  }
+
+  .camp-modal-actions {
+    flex-direction: column;
+  }
+
+  .camp-modal-btn-primary,
+  .camp-modal-btn-secondary {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* Body scroll lock when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Additional Modal Classes for CampDetailModal Component */
+.camp-modal-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 20;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(31, 26, 22, 0.15);
+  color: var(--earth-700);
+}
+
+.camp-modal-close:hover {
+  background: white;
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(31, 26, 22, 0.2);
+}
+
+.camp-modal-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  animation: heroImageReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.camp-modal-hero-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camp-modal-hero-emoji {
+  font-size: 4rem;
+  opacity: 0.5;
+}
+
+.camp-modal-action-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(31, 26, 22, 0.15);
+  color: var(--earth-700);
+}
+
+.camp-modal-action-btn:hover {
+  background: white;
+  transform: scale(1.08);
+}
+
+.camp-modal-action-btn.active {
+  background: var(--terra-500);
+  color: white;
+}
+
+.camp-modal-hero-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  z-index: 5;
+}
+
+.camp-modal-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 600;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 16px rgba(31, 26, 22, 0.3);
+  animation: titleFadeIn 0.5s ease 0.25s both;
+}
+
+.camp-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9375rem;
+  color: var(--sand-300);
+  animation: titleFadeIn 0.5s ease 0.35s both;
+}
+
+.camp-modal-meta-dot {
+  opacity: 0.5;
+}
+
+.camp-modal-price {
+  color: var(--sun-300);
+  font-weight: 600;
+}
+
+.camp-modal-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1.25rem 2rem;
+  background: var(--sand-50);
+  border-bottom: 1px solid var(--sand-200);
+}
+
+.camp-modal-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--earth-700);
+  border: 1px solid var(--sand-200);
+}
+
+.camp-modal-stat.urgency-open {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #166534;
+  border-color: #86efac;
+}
+
+.camp-modal-stat.urgency-soon {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.camp-modal-stat.urgency-upcoming {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.camp-modal-section {
+  padding: 0 2rem 1.5rem;
+}
+
+.camp-modal-section:first-child {
+  padding-top: 1.5rem;
+}
+
+.camp-modal-description {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--earth-700);
+}
+
+.camp-modal-section-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  margin-bottom: 1rem;
+}
+
+.camp-modal-detail-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.camp-modal-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.camp-modal-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.camp-modal-detail-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.camp-modal-detail-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sand-500);
+  margin-bottom: 0.125rem;
+}
+
+.camp-modal-detail-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9375rem;
+  color: var(--earth-800);
+}
+
+.camp-modal-link {
+  color: var(--ocean-500);
+  text-decoration: none;
+}
+
+.camp-modal-link:hover {
+  text-decoration: underline;
+}
+
+.camp-modal-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  margin: 0 2rem 1.5rem;
+  background: var(--card-bg, var(--sand-50));
+  border: 1px solid var(--card-border, var(--sand-200));
+  border-radius: 16px;
+}
+
+.camp-modal-info-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.camp-modal-info-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  margin-bottom: 0.25rem;
+}
+
+.camp-modal-info-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  color: var(--earth-700);
+  line-height: 1.5;
+}
+
+.camp-modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.camp-modal-tag {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  background: var(--ocean-100);
+  color: var(--ocean-600);
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.camp-modal-testimonial {
+  position: relative;
+  padding: 1.5rem 2rem 1.5rem 3.5rem;
+  margin: 0 2rem 1.5rem;
+  background: linear-gradient(135deg, var(--ocean-50) 0%, var(--sand-50) 100%);
+  border-radius: 16px;
+  border-left: 4px solid var(--ocean-400);
+}
+
+.camp-modal-quote-mark {
+  position: absolute;
+  left: 1rem;
+  top: 0.75rem;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--ocean-300);
+}
+
+.camp-modal-quote-text {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.0625rem;
+  font-style: italic;
+  color: var(--earth-700);
+  line-height: 1.6;
+}
+
+.camp-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--sand-200);
+  margin-top: 1rem;
+}
+
+.camp-modal-btn {
+  flex: 1;
+  min-width: 160px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.camp-modal-btn-primary {
+  color: white;
+  background: var(--terra-500);
+  border: none;
+  box-shadow: 0 4px 16px -4px rgba(232, 90, 53, 0.4);
+}
+
+.camp-modal-btn-primary:hover {
+  background: var(--terra-600);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(232, 90, 53, 0.5);
+}
+
+.camp-modal-btn-secondary {
+  color: var(--earth-700);
+  background: white;
+  border: 2px solid var(--sand-300);
+}
+
+.camp-modal-btn-secondary:hover {
+  border-color: var(--earth-700);
+  background: var(--sand-50);
+  transform: translateY(-1px);
+}
+
+.camp-modal-social {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem 2rem;
+}
+
+.camp-modal-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--sand-100);
+  color: var(--earth-700);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.camp-modal-social-link:hover {
+  background: var(--ocean-500);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.camp-modal-social-link.facebook:hover {
+  background: #1877f2;
+}
+
+.camp-modal-social-link.instagram:hover {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+
+.camp-modal-social-link.youtube:hover {
+  background: #ff0000;
+}
+
+/* Mobile Responsive for CampDetailModal */
+@media (max-width: 640px) {
+  .camp-modal-hero-content {
+    padding: 1.25rem;
+  }
+
+  .camp-modal-title {
+    font-size: 1.5rem;
+  }
+
+  .camp-modal-stats {
+    padding: 1rem;
+  }
+
+  .camp-modal-section {
+    padding: 0 1rem 1.25rem;
+  }
+
+  .camp-modal-info-card {
+    margin: 0 1rem 1.25rem;
+    padding: 1rem;
+  }
+
+  .camp-modal-testimonial {
+    margin: 0 1rem 1.25rem;
+    padding: 1.25rem 1.25rem 1.25rem 3rem;
+  }
+
+  .camp-modal-actions {
+    padding: 1.25rem 1rem;
+    flex-direction: column;
+  }
+
+  .camp-modal-btn {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .camp-modal-social {
+    padding: 1rem 1rem 1.5rem;
   }
 }

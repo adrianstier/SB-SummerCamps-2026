@@ -356,9 +356,20 @@ export default function App() {
   const [showComparison, setShowComparison] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [compareList, setCompareList] = useState([]);
+  const [modalCamp, setModalCamp] = useState(null); // Camp detail modal
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   // Auth context
   const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user } = useAuth();
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Listen for navigation events from auth menu
   useEffect(() => {
@@ -743,6 +754,90 @@ export default function App() {
             </div>
           </div>
         </div>
+
+        {/* Active Filters Display - shows applied filters with remove buttons */}
+        {activeFilterCount > 0 && (
+          <div className="active-filters-bar">
+            <span className="active-filters-label">Active:</span>
+            <div className="active-filters-chips">
+              {selectedCategory !== 'All' && (
+                <button
+                  onClick={() => setSelectedCategory('All')}
+                  className="active-filter-chip"
+                >
+                  {selectedCategory}
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {childAge && (
+                <button
+                  onClick={() => setChildAge('')}
+                  className="active-filter-chip"
+                >
+                  Age {childAge}
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {maxPrice && (
+                <button
+                  onClick={() => setMaxPrice('')}
+                  className="active-filter-chip"
+                >
+                  Under ${maxPrice}
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {extendedCare && (
+                <button
+                  onClick={() => setExtendedCare(false)}
+                  className="active-filter-chip"
+                >
+                  Extended Care
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {foodIncluded && (
+                <button
+                  onClick={() => setFoodIncluded(false)}
+                  className="active-filter-chip"
+                >
+                  Food Included
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {hasTransport && (
+                <button
+                  onClick={() => setHasTransport(false)}
+                  className="active-filter-chip"
+                >
+                  Transportation
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {siblingDiscount && (
+                <button
+                  onClick={() => setSiblingDiscount(false)}
+                  className="active-filter-chip"
+                >
+                  Sibling Discount
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="active-filter-chip"
+                >
+                  "{search}"
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+            </div>
+            <button onClick={clearFilters} className="active-filters-clear">
+              Clear all
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Expanded Filters Panel */}
@@ -909,7 +1004,11 @@ export default function App() {
                     key={camp.id}
                     camp={camp}
                     badge={index === 0 ? 'Most Popular' : index === 1 ? 'Great Value' : 'New This Year'}
-                    onClick={() => setExpandedCamp(camp.id)}
+                    onClick={() => {
+                      // Open the camp detail modal
+                      setModalCamp(camp);
+                      document.body.classList.add('modal-open');
+                    }}
                   />
                 ))}
             </div>
@@ -999,7 +1098,16 @@ export default function App() {
                 key={camp.id}
                 camp={camp}
                 expanded={expandedCamp === camp.id}
-                onToggle={() => setExpandedCamp(expandedCamp === camp.id ? null : camp.id)}
+                onToggle={() => {
+                  if (isMobile) {
+                    // Mobile: inline expand
+                    setExpandedCamp(expandedCamp === camp.id ? null : camp.id);
+                  } else {
+                    // Desktop: open modal
+                    setModalCamp(camp);
+                    document.body.classList.add('modal-open');
+                  }
+                }}
                 index={index}
                 isComparing={compareList.includes(camp.id)}
                 onToggleCompare={() => toggleCompare(camp.id)}
@@ -1077,7 +1185,14 @@ export default function App() {
           }}
           onSelectCamp={(camp) => {
             setShowDashboard(false);
-            setExpandedCamp(camp.id);
+            if (isMobile) {
+              // Mobile: inline expand
+              setExpandedCamp(camp.id);
+            } else {
+              // Desktop: open modal
+              setModalCamp(camp);
+              document.body.classList.add('modal-open');
+            }
           }}
         />
       )}
@@ -1147,6 +1262,26 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Camp Detail Modal */}
+      {modalCamp && (
+        <CampDetailModal
+          camp={modalCamp}
+          onClose={() => {
+            setModalCamp(null);
+            document.body.classList.remove('modal-open');
+          }}
+          onAddToSchedule={() => {
+            setModalCamp(null);
+            document.body.classList.remove('modal-open');
+            setShowPlanner(true);
+          }}
+          onToggleFavorite={() => {
+            // Favorite toggle is handled by the FavoriteButton inside the modal
+          }}
+          isFavorite={favorites.some(f => f.camp_id === modalCamp.id)}
+        />
       )}
     </div>
   );
@@ -1323,6 +1458,7 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
 
   return (
     <div
+      id={`camp-${camp.id}`}
       ref={cardRef}
       className={`camp-card cursor-pointer scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`}
       style={isComparing ? { ringColor: 'var(--ocean-500)' } : undefined}
@@ -1616,6 +1752,280 @@ function DetailRow({ label, value }) {
     <div>
       <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--sand-400)' }}>{label}</p>
       <p className="font-medium" style={{ color: 'var(--earth-800)' }}>{value}</p>
+    </div>
+  );
+}
+
+// Camp Detail Modal - Editorial Magazine Style
+function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isFavorite }) {
+  const [imageError, setImageError] = useState(false);
+  const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
+
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  const urgency = getRegUrgency(camp.reg_date_2026);
+
+  return (
+    <div className="camp-modal-overlay" onClick={onClose}>
+      <div className="camp-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Close Button */}
+        <button className="camp-modal-close" onClick={onClose}>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Hero Image Section */}
+        <div className="camp-modal-hero">
+          {camp.image_url && !imageError ? (
+            <img
+              src={camp.image_url}
+              alt={camp.camp_name}
+              className="camp-modal-hero-img"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="camp-modal-hero-fallback" style={{ background: categoryGradient }}>
+              <span className="camp-modal-hero-emoji">🏕️</span>
+            </div>
+          )}
+          <div className="camp-modal-hero-overlay" />
+
+          {/* Floating Actions on Hero */}
+          <div className="camp-modal-hero-actions">
+            <button
+              className={`camp-modal-action-btn ${isFavorite ? 'active' : ''}`}
+              onClick={onToggleFavorite}
+              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <svg className="w-5 h-5" fill={isFavorite ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Title Overlay on Hero */}
+          <div className="camp-modal-hero-content">
+            <span className="camp-modal-category">{camp.category}</span>
+            <h1 className="camp-modal-title">{camp.camp_name}</h1>
+            <div className="camp-modal-meta">
+              <span>{camp.ages || 'All ages'}</span>
+              <span className="camp-modal-meta-dot">•</span>
+              <span className="camp-modal-price">{formatPrice(camp)}</span>
+              <span className="camp-modal-meta-dot">•</span>
+              <span>{camp.hours || 'Hours TBD'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="camp-modal-content">
+          {/* Quick Stats Bar */}
+          <div className="camp-modal-stats">
+            {urgency && (
+              <div className={`camp-modal-stat urgency-${urgency.type}`}>
+                <span className="camp-modal-stat-icon">{urgency.icon}</span>
+                <span className="camp-modal-stat-label">{urgency.label}</span>
+              </div>
+            )}
+            {camp.has_extended_care && (
+              <div className="camp-modal-stat">
+                <span className="camp-modal-stat-icon">⏰</span>
+                <span className="camp-modal-stat-label">Extended Care</span>
+              </div>
+            )}
+            {camp.food_included && (
+              <div className="camp-modal-stat">
+                <span className="camp-modal-stat-icon">🍽️</span>
+                <span className="camp-modal-stat-label">Meals</span>
+              </div>
+            )}
+            {camp.has_transport && (
+              <div className="camp-modal-stat">
+                <span className="camp-modal-stat-icon">🚌</span>
+                <span className="camp-modal-stat-label">Transport</span>
+              </div>
+            )}
+            {camp.has_sibling_discount && (
+              <div className="camp-modal-stat">
+                <span className="camp-modal-stat-icon">👨‍👩‍👧‍👦</span>
+                <span className="camp-modal-stat-label">Sibling Discount</span>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {camp.description && (
+            <div className="camp-modal-section">
+              <p className="camp-modal-description">{camp.description}</p>
+            </div>
+          )}
+
+          {/* Two Column Details */}
+          <div className="camp-modal-details-grid">
+            <div className="camp-modal-detail-col">
+              <h3 className="camp-modal-section-title">Location & Schedule</h3>
+              <div className="camp-modal-detail-list">
+                {camp.address && <DetailRowModal icon="📍" label="Location" value={camp.address} />}
+                {camp.indoor_outdoor && <DetailRowModal icon="🏠" label="Setting" value={camp.indoor_outdoor} />}
+                {camp.hours && <DetailRowModal icon="🕐" label="Hours" value={camp.hours} />}
+                {camp.extended_care && <DetailRowModal icon="⏰" label="Extended Care" value={camp.extended_care} />}
+                {camp.extended_care_cost && <DetailRowModal icon="💵" label="Extended Cost" value={camp.extended_care_cost} />}
+              </div>
+            </div>
+
+            <div className="camp-modal-detail-col">
+              <h3 className="camp-modal-section-title">Contact & Pricing</h3>
+              <div className="camp-modal-detail-list">
+                {camp.contact_phone && <DetailRowModal icon="📞" label="Phone" value={camp.contact_phone} />}
+                {camp.contact_email && <DetailRowModal icon="✉️" label="Email" value={camp.contact_email} isEmail />}
+                {camp.sibling_discount && <DetailRowModal icon="👨‍👩‍👧‍👦" label="Sibling Discount" value={camp.sibling_discount} />}
+                {camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A' && (
+                  <DetailRowModal icon="📋" label="Cancellation" value={camp.refund_policy} />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Food Section */}
+          {(camp.food_provided || camp.food_included) && (
+            <div className="camp-modal-info-card" style={{ '--card-bg': 'var(--ocean-50)', '--card-border': 'var(--ocean-200)' }}>
+              <span className="camp-modal-info-icon">🍽️</span>
+              <div>
+                <p className="camp-modal-info-title">Food</p>
+                <p className="camp-modal-info-text">
+                  {camp.food_provided && camp.food_provided !== 'N/A' && camp.food_provided !== 'Unknown'
+                    ? camp.food_provided
+                    : camp.food_included ? 'Meals included' : 'Bring lunch'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Activities */}
+          {camp.extracted?.activities && camp.extracted.activities.length > 0 && (
+            <div className="camp-modal-section">
+              <h3 className="camp-modal-section-title">🎯 Activities</h3>
+              <div className="camp-modal-tags">
+                {camp.extracted.activities.map((activity, i) => (
+                  <span key={i} className="camp-modal-tag">{activity}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Staff & Safety */}
+          {(camp.extracted?.staff_ratio || camp.extracted?.certifications?.length > 0) && (
+            <div className="camp-modal-info-card" style={{ '--card-bg': 'var(--sage-50)', '--card-border': 'var(--sage-200)' }}>
+              <span className="camp-modal-info-icon">👥</span>
+              <div>
+                <p className="camp-modal-info-title">Staff & Safety</p>
+                {camp.extracted?.staff_ratio && (
+                  <p className="camp-modal-info-text">Staff ratio: {camp.extracted.staff_ratio}</p>
+                )}
+                {camp.extracted?.certifications?.length > 0 && (
+                  <p className="camp-modal-info-text">Certifications: {camp.extracted.certifications.join(', ')}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Testimonial */}
+          {camp.extracted?.testimonials && camp.extracted.testimonials.length > 0 && (
+            <div className="camp-modal-testimonial">
+              <span className="camp-modal-quote-mark">"</span>
+              <p className="camp-modal-quote-text">{camp.extracted.testimonials[0]}</p>
+            </div>
+          )}
+
+          {/* Notes */}
+          {camp.notes && (
+            <div className="camp-modal-info-card" style={{ '--card-bg': 'var(--sun-50)', '--card-border': 'var(--sun-200)' }}>
+              <span className="camp-modal-info-icon">📝</span>
+              <div>
+                <p className="camp-modal-info-title">Notes</p>
+                <p className="camp-modal-info-text">{camp.notes}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="camp-modal-actions">
+            {camp.website_url && (
+              <a
+                href={camp.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="camp-modal-btn camp-modal-btn-primary"
+              >
+                Visit Website
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            )}
+            <button
+              onClick={onAddToSchedule}
+              className="camp-modal-btn camp-modal-btn-secondary"
+            >
+              Add to Schedule
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Social Media */}
+          {camp.social_media && Object.keys(camp.social_media).length > 0 && (
+            <div className="camp-modal-social">
+              {camp.social_media.facebook && (
+                <a href={camp.social_media.facebook} target="_blank" rel="noopener noreferrer" className="camp-modal-social-link facebook">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+              )}
+              {camp.social_media.instagram && (
+                <a href={camp.social_media.instagram} target="_blank" rel="noopener noreferrer" className="camp-modal-social-link instagram">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                </a>
+              )}
+              {camp.social_media.youtube && (
+                <a href={camp.social_media.youtube} target="_blank" rel="noopener noreferrer" className="camp-modal-social-link youtube">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal Detail Row
+function DetailRowModal({ icon, label, value, isEmail }) {
+  if (!value || value === 'Unknown' || value === 'N/A') return null;
+  return (
+    <div className="camp-modal-detail-row">
+      <span className="camp-modal-detail-icon">{icon}</span>
+      <div>
+        <p className="camp-modal-detail-label">{label}</p>
+        {isEmail ? (
+          <a href={`mailto:${value}`} className="camp-modal-detail-value camp-modal-link">{value}</a>
+        ) : (
+          <p className="camp-modal-detail-value">{value}</p>
+        )}
+      </div>
     </div>
   );
 }
