@@ -718,6 +718,382 @@ export function getSummerWeeks2026() {
 }
 
 // ============================================================================
+// SQUADS HELPERS
+// ============================================================================
+
+export async function getSquads() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('squads')
+    .select(`
+      *,
+      squad_members(
+        id,
+        user_id,
+        role,
+        reveal_identity,
+        share_schedule,
+        joined_at,
+        profiles(id, full_name, avatar_url)
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching squads:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function createSquad(name, revealIdentity = false) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // Create the squad
+  const { data: squad, error: squadError } = await supabase
+    .from('squads')
+    .insert({ name, created_by: user.id })
+    .select()
+    .single();
+
+  if (squadError) return { error: squadError };
+
+  // Add creator as owner member
+  const { error: memberError } = await supabase
+    .from('squad_members')
+    .insert({
+      squad_id: squad.id,
+      user_id: user.id,
+      role: 'owner',
+      reveal_identity: revealIdentity,
+      share_schedule: true
+    });
+
+  if (memberError) return { error: memberError };
+
+  return { data: squad };
+}
+
+export async function updateSquad(id, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('squads')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+}
+
+export async function deleteSquad(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('squads')
+    .delete()
+    .eq('id', id);
+}
+
+export async function regenerateInviteCode(squadId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  // Generate a new random code
+  const newCode = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  return supabase
+    .from('squads')
+    .update({ invite_code: newCode })
+    .eq('id', squadId)
+    .select()
+    .single();
+}
+
+export async function getSquadByInviteCode(code) {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .rpc('get_squad_by_invite_code', { code });
+
+  if (error) {
+    console.error('Error fetching squad by invite code:', error);
+    return null;
+  }
+  return data?.[0] || null;
+}
+
+export async function joinSquad(squadId, revealIdentity = false, shareSchedule = true) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('squad_members')
+    .insert({
+      squad_id: squadId,
+      user_id: user.id,
+      role: 'member',
+      reveal_identity: revealIdentity,
+      share_schedule: shareSchedule
+    })
+    .select()
+    .single();
+}
+
+export async function leaveSquad(squadId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('squad_members')
+    .delete()
+    .eq('squad_id', squadId)
+    .eq('user_id', user.id);
+}
+
+export async function updateSquadMembership(squadId, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('squad_members')
+    .update(updates)
+    .eq('squad_id', squadId)
+    .eq('user_id', user.id)
+    .select()
+    .single();
+}
+
+export async function removeSquadMember(squadId, memberId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('squad_members')
+    .delete()
+    .eq('squad_id', squadId)
+    .eq('user_id', memberId);
+}
+
+// ============================================================================
+// CAMP INTERESTS HELPERS
+// ============================================================================
+
+export async function getCampInterests() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('camp_interests')
+    .select(`
+      *,
+      children(name, color)
+    `)
+    .order('week_number');
+
+  if (error) {
+    console.error('Error fetching camp interests:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function getSquadCampInterests(squadId) {
+  if (!supabase) return [];
+
+  // Get all members of the squad who share their schedule
+  const { data: members, error: membersError } = await supabase
+    .from('squad_members')
+    .select('user_id, reveal_identity, profiles(id, full_name)')
+    .eq('squad_id', squadId)
+    .eq('share_schedule', true);
+
+  if (membersError) {
+    console.error('Error fetching squad members:', membersError);
+    return [];
+  }
+
+  const memberIds = members.map(m => m.user_id);
+
+  // Get all camp interests for those members
+  const { data: interests, error: interestsError } = await supabase
+    .from('camp_interests')
+    .select(`
+      *,
+      children(name, color)
+    `)
+    .in('user_id', memberIds)
+    .order('week_number');
+
+  if (interestsError) {
+    console.error('Error fetching squad interests:', interestsError);
+    return [];
+  }
+
+  // Merge member info with interests
+  return interests.map(interest => {
+    const member = members.find(m => m.user_id === interest.user_id);
+    return {
+      ...interest,
+      reveal_identity: member?.reveal_identity || false,
+      member_name: member?.profiles?.full_name || 'A friend'
+    };
+  });
+}
+
+export async function updateCampInterest(id, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('camp_interests')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+}
+
+export async function toggleLookingForFriends(campId, childId, weekNumber, lookingForFriends) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // Upsert the camp interest
+  return supabase
+    .from('camp_interests')
+    .upsert({
+      user_id: user.id,
+      child_id: childId,
+      camp_id: campId,
+      week_number: weekNumber,
+      looking_for_friends: lookingForFriends,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id,child_id,camp_id,week_number'
+    })
+    .select()
+    .single();
+}
+
+// Get friend interest counts for camp cards
+export async function getFriendInterestCounts() {
+  if (!supabase) return {};
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return {};
+
+  // Get squads the user is in
+  const { data: squadMemberships } = await supabase
+    .from('squad_members')
+    .select('squad_id')
+    .eq('user_id', user.id);
+
+  if (!squadMemberships?.length) return {};
+
+  const squadIds = squadMemberships.map(m => m.squad_id);
+
+  // Get all members of those squads (excluding current user)
+  const { data: squadMembers } = await supabase
+    .from('squad_members')
+    .select('user_id')
+    .in('squad_id', squadIds)
+    .eq('share_schedule', true)
+    .neq('user_id', user.id);
+
+  if (!squadMembers?.length) return {};
+
+  const memberIds = squadMembers.map(m => m.user_id);
+
+  // Get interests grouped by camp_id and week
+  const { data: interests } = await supabase
+    .from('camp_interests')
+    .select('camp_id, week_number')
+    .in('user_id', memberIds);
+
+  if (!interests?.length) return {};
+
+  // Count by camp_id
+  const counts = {};
+  interests.forEach(i => {
+    const key = `${i.camp_id}-${i.week_number}`;
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  return counts;
+}
+
+// ============================================================================
+// SQUAD NOTIFICATIONS HELPERS
+// ============================================================================
+
+export async function getSquadNotifications(unreadOnly = false) {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from('squad_notifications')
+    .select(`
+      *,
+      squads(name)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (unreadOnly) {
+    query = query.eq('read', false);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching squad notifications:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function markSquadNotificationRead(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('squad_notifications')
+    .update({ read: true })
+    .eq('id', id);
+}
+
+export async function markAllSquadNotificationsRead() {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('squad_notifications')
+    .update({ read: true })
+    .eq('user_id', user.id)
+    .eq('read', false);
+}
+
+export async function getUnreadSquadNotificationCount() {
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from('squad_notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('read', false);
+
+  if (error) return 0;
+  return count || 0;
+}
+
+// ============================================================================
 // SAMPLE DATA HELPERS (for guided tour)
 // ============================================================================
 

@@ -10,7 +10,12 @@ import {
   getScheduledCamps,
   getNotifications,
   getUnreadNotificationCount,
-  updateProfile
+  updateProfile,
+  getSquads,
+  getSquadNotifications,
+  getUnreadSquadNotificationCount,
+  getCampInterests,
+  getFriendInterestCounts
 } from '../lib/supabase';
 
 const AuthContext = createContext(null);
@@ -25,6 +30,13 @@ export function AuthProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Squads state
+  const [squads, setSquads] = useState([]);
+  const [squadNotifications, setSquadNotifications] = useState([]);
+  const [squadUnreadCount, setSquadUnreadCount] = useState(0);
+  const [campInterests, setCampInterests] = useState([]);
+  const [friendInterestCounts, setFriendInterestCounts] = useState({});
 
   // Check if Supabase is configured
   const isConfigured = !!supabase;
@@ -71,6 +83,11 @@ export function AuthProvider({ children }) {
         setScheduledCamps([]);
         setNotifications([]);
         setUnreadCount(0);
+        setSquads([]);
+        setSquadNotifications([]);
+        setSquadUnreadCount(0);
+        setCampInterests([]);
+        setFriendInterestCounts({});
         setShowOnboarding(false);
         setLoading(false);
       }
@@ -81,13 +98,30 @@ export function AuthProvider({ children }) {
 
   async function loadUserData(userId) {
     try {
-      const [profileData, childrenData, favoritesData, scheduledData, notificationsData, unreadCountData] = await Promise.all([
+      const [
+        profileData,
+        childrenData,
+        favoritesData,
+        scheduledData,
+        notificationsData,
+        unreadCountData,
+        squadsData,
+        squadNotificationsData,
+        squadUnreadCountData,
+        campInterestsData,
+        friendInterestCountsData
+      ] = await Promise.all([
         getProfile(userId),
         getChildren(),
         getFavorites(),
         getScheduledCamps(),
         getNotifications(),
-        getUnreadNotificationCount()
+        getUnreadNotificationCount(),
+        getSquads(),
+        getSquadNotifications(),
+        getUnreadSquadNotificationCount(),
+        getCampInterests(),
+        getFriendInterestCounts()
       ]);
 
       setProfile(profileData);
@@ -96,6 +130,11 @@ export function AuthProvider({ children }) {
       setScheduledCamps(scheduledData);
       setNotifications(notificationsData);
       setUnreadCount(unreadCountData);
+      setSquads(squadsData);
+      setSquadNotifications(squadNotificationsData);
+      setSquadUnreadCount(squadUnreadCountData);
+      setCampInterests(campInterestsData);
+      setFriendInterestCounts(friendInterestCountsData);
 
       // Check if user needs onboarding
       // Only show for truly new users (created within last 10 minutes) to avoid re-triggering
@@ -148,6 +187,29 @@ export function AuthProvider({ children }) {
     setUnreadCount(unreadCountData);
   }
 
+  async function refreshSquads() {
+    const data = await getSquads();
+    setSquads(data);
+  }
+
+  async function refreshSquadNotifications() {
+    const [notificationsData, unreadCountData] = await Promise.all([
+      getSquadNotifications(),
+      getUnreadSquadNotificationCount()
+    ]);
+    setSquadNotifications(notificationsData);
+    setSquadUnreadCount(unreadCountData);
+  }
+
+  async function refreshCampInterests() {
+    const [interestsData, countsData] = await Promise.all([
+      getCampInterests(),
+      getFriendInterestCounts()
+    ]);
+    setCampInterests(interestsData);
+    setFriendInterestCounts(countsData);
+  }
+
   async function signIn() {
     return signInWithGoogle();
   }
@@ -161,6 +223,11 @@ export function AuthProvider({ children }) {
     setScheduledCamps([]);
     setNotifications([]);
     setUnreadCount(0);
+    setSquads([]);
+    setSquadNotifications([]);
+    setSquadUnreadCount(0);
+    setCampInterests([]);
+    setFriendInterestCounts({});
     setShowOnboarding(false);
   }
 
@@ -303,6 +370,15 @@ export function AuthProvider({ children }) {
     notifications,
     unreadCount,
     refreshNotifications,
+    // Squads
+    squads,
+    squadNotifications,
+    squadUnreadCount,
+    campInterests,
+    friendInterestCounts,
+    refreshSquads,
+    refreshSquadNotifications,
+    refreshCampInterests,
     // Recommendations
     getRecommendationScores,
     getDashboardStats

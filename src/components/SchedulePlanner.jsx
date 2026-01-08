@@ -1,8 +1,10 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getSummerWeeks2026, addScheduledCamp, deleteScheduledCamp, updateScheduledCamp, clearSampleData } from '../lib/supabase';
+import { getSummerWeeks2026, addScheduledCamp, deleteScheduledCamp, updateScheduledCamp, clearSampleData, toggleLookingForFriends } from '../lib/supabase';
 import { createGoogleCalendarUrl, exportAllToICal, formatCampForCalendar } from '../lib/googleCalendar';
 import { GuidedTour } from './GuidedTour';
+import SquadsPanel from './SquadsPanel';
+import SquadNotificationBell from './SquadNotificationBell';
 
 const summerWeeks = getSummerWeeks2026();
 
@@ -23,7 +25,10 @@ export function SchedulePlanner({ camps, onClose }) {
     refreshChildren,
     getTotalCost,
     getCoverageGaps,
-    profile
+    profile,
+    campInterests,
+    refreshCampInterests,
+    squads
   } = useAuth();
 
   const [selectedChild, setSelectedChild] = useState(children[0]?.id || null);
@@ -36,6 +41,10 @@ export function SchedulePlanner({ camps, onClose }) {
   const [dragOverWeek, setDragOverWeek] = useState(null);
   const [showBlockMenu, setShowBlockMenu] = useState(null); // { weekNum }
   const [blockedWeeks, setBlockedWeeks] = useState({}); // { [childId]: { [weekNum]: { type, label, note } } }
+  const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' or 'squads'
+  const [draggedCamp, setDraggedCamp] = useState(null);
+  const [sidebarSearch, setSidebarSearch] = useState('');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const weekScrollRef = useRef(null);
 
   // Filter camps for add modal
@@ -47,6 +56,19 @@ export function SchedulePlanner({ camps, onClose }) {
       c.category?.toLowerCase().includes(query)
     ).slice(0, 30);
   }, [camps, searchQuery]);
+
+  // Filter camps for sidebar
+  const sidebarCamps = useMemo(() => {
+    let filtered = camps;
+    if (sidebarSearch) {
+      const query = sidebarSearch.toLowerCase();
+      filtered = camps.filter(c =>
+        c.camp_name.toLowerCase().includes(query) ||
+        c.category?.toLowerCase().includes(query)
+      );
+    }
+    return filtered.slice(0, 50);
+  }, [camps, sidebarSearch]);
 
   // Group scheduled camps by child and week
   const scheduleByChildAndWeek = useMemo(() => {
@@ -221,6 +243,23 @@ export function SchedulePlanner({ camps, onClose }) {
   const gaps = selectedChild ? getCoverageGaps(selectedChild, summerWeeks) : [];
   const selectedChildData = children.find(c => c.id === selectedChild);
 
+  // Check if a camp is marked as "looking for friends"
+  function isLookingForFriends(campId, childId, weekNum) {
+    return campInterests.some(
+      ci => ci.camp_id === campId && ci.child_id === childId && ci.week_number === weekNum && ci.looking_for_friends
+    );
+  }
+
+  // Toggle looking for friends
+  async function handleToggleLookingForFriends(campId, childId, weekNum) {
+    const currentlyLooking = isLookingForFriends(campId, childId, weekNum);
+    await toggleLookingForFriends(campId, childId, weekNum, !currentlyLooking);
+    await refreshCampInterests();
+  }
+
+  // Check if user has any squads (to show the toggle)
+  const hasSquads = squads.length > 0;
+
   // Mobile swipe handling
   function handleSwipe(direction) {
     if (direction === 'left' && currentWeekIndex < summerWeeks.length - 1) {
@@ -268,6 +307,9 @@ export function SchedulePlanner({ camps, onClose }) {
 
           {/* Right: Stats & Actions */}
           <div className="planner-header-right">
+            {/* Squad Notifications */}
+            <SquadNotificationBell />
+
             <div className="planner-stats">
               <div className="planner-stat">
                 <span className="planner-stat-value">${totalCost.toLocaleString()}</span>
@@ -334,7 +376,34 @@ export function SchedulePlanner({ camps, onClose }) {
         </div>
       </header>
 
+      {/* Tab Navigation */}
+      <div className="planner-tabs">
+        <button
+          onClick={() => setActiveTab('schedule')}
+          className={`planner-tab ${activeTab === 'schedule' ? 'active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Schedule
+        </button>
+        <button
+          onClick={() => setActiveTab('squads')}
+          className={`planner-tab ${activeTab === 'squads' ? 'active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          Squads
+        </button>
+      </div>
+
       {/* Main Content Area */}
+      {activeTab === 'squads' ? (
+        <div className="planner-main" style={{ padding: 0 }}>
+          <SquadsPanel onClose={onClose} />
+        </div>
+      ) : (
       <main className="planner-main">
         {/* Sample Data Banner */}
         {hasSampleData && (
@@ -369,7 +438,73 @@ export function SchedulePlanner({ camps, onClose }) {
             </button>
           </div>
         ) : (
-          <>
+          <div className="planner-layout">
+            {/* Camp Sidebar */}
+            <aside className={`planner-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+              <div className="planner-sidebar-header">
+                <h3 className="planner-sidebar-title">Camps</h3>
+                <button
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="planner-sidebar-toggle"
+                  aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                >
+                  {sidebarCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+                </button>
+              </div>
+
+              {!sidebarCollapsed && (
+                <>
+                  <div className="planner-sidebar-search">
+                    <SearchIcon />
+                    <input
+                      type="text"
+                      placeholder="Search camps..."
+                      value={sidebarSearch}
+                      onChange={(e) => setSidebarSearch(e.target.value)}
+                      className="planner-sidebar-input"
+                    />
+                    {sidebarSearch && (
+                      <button
+                        onClick={() => setSidebarSearch('')}
+                        className="planner-sidebar-clear"
+                      >
+                        <XIcon />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="planner-sidebar-hint">
+                    <span>Drag camps to weeks →</span>
+                  </div>
+
+                  <div className="planner-sidebar-list">
+                    {sidebarCamps.map(camp => (
+                      <div
+                        key={camp.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(camp, e)}
+                        onDragEnd={handleDragEnd}
+                        className={`planner-sidebar-camp ${draggedCamp?.id === camp.id ? 'dragging' : ''}`}
+                      >
+                        <div className="planner-sidebar-camp-name">{camp.camp_name}</div>
+                        <div className="planner-sidebar-camp-meta">
+                          <span className="planner-sidebar-camp-category">{camp.category}</span>
+                          <span className="planner-sidebar-camp-price">
+                            {camp.min_price ? `$${camp.min_price}` : 'TBD'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {sidebarCamps.length === 0 && (
+                      <div className="planner-sidebar-empty">
+                        No camps found
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </aside>
+
             {/* Timeline View */}
             <div className="planner-timeline">
               {/* Month Labels */}
@@ -433,10 +568,11 @@ export function SchedulePlanner({ camps, onClose }) {
                           ) : weekCamps.length > 0 ? (
                             weekCamps.map(sc => {
                               const campInfo = camps.find(c => c.id === sc.camp_id);
+                              const lookingForFriends = isLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
                               return (
                                 <div
                                   key={sc.id}
-                                  className="planner-camp-card"
+                                  className={`planner-camp-card ${lookingForFriends ? 'looking-for-friends' : ''}`}
                                   style={{ '--child-color': selectedChildData?.color || 'var(--ocean-500)' }}
                                 >
                                   <div className="planner-camp-header">
@@ -457,6 +593,20 @@ export function SchedulePlanner({ camps, onClose }) {
                                       {sc.status}
                                     </span>
                                   </div>
+                                  {/* Looking for friends toggle - only show if user has squads */}
+                                  {hasSquads && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
+                                      }}
+                                      className={`planner-camp-friends-toggle ${lookingForFriends ? 'active' : ''}`}
+                                      title={lookingForFriends ? 'Looking for friends' : 'Find friends for this camp'}
+                                    >
+                                      <span className="friends-icon">👥</span>
+                                      <span className="friends-text">{lookingForFriends ? 'Looking' : 'Find friends'}</span>
+                                    </button>
+                                  )}
                                 </div>
                               );
                             })
@@ -560,9 +710,10 @@ export function SchedulePlanner({ camps, onClose }) {
                 <span>August</span>
               </div>
             </div>
-          </>
+          </div>
         )}
       </main>
+      )}
 
       {/* Floating Add Button (Mobile) */}
       <button
@@ -682,6 +833,47 @@ export function SchedulePlanner({ camps, onClose }) {
           border-bottom: 1px solid var(--sand-200);
           position: relative;
           z-index: 10;
+        }
+
+        /* ─────────────────────────────────────────────────────────────────────
+           TAB NAVIGATION
+           ───────────────────────────────────────────────────────────────────── */
+
+        .planner-tabs {
+          display: flex;
+          gap: 4px;
+          padding: 8px 20px;
+          background: white;
+          border-bottom: 1px solid var(--sand-200);
+        }
+
+        .planner-tab {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 10px 16px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--earth-600);
+          background: transparent;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .planner-tab:hover {
+          background: var(--sand-100);
+          color: var(--earth-800);
+        }
+
+        .planner-tab.active {
+          background: var(--ocean-50);
+          color: var(--ocean-600);
+        }
+
+        .planner-tab svg {
+          flex-shrink: 0;
         }
 
         .planner-header-inner {
@@ -1458,6 +1650,45 @@ export function SchedulePlanner({ camps, onClose }) {
 
         .planner-camp-status.status-waitlisted {
           background: var(--terra-400);
+        }
+
+        /* Looking for Friends Toggle */
+        .planner-camp-friends-toggle {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          margin-top: 6px;
+          padding: 4px 8px;
+          background: rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 6px;
+          font-size: 0.65rem;
+          color: rgba(255, 255, 255, 0.8);
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .planner-camp-friends-toggle:hover {
+          background: rgba(255, 255, 255, 0.25);
+          color: white;
+        }
+
+        .planner-camp-friends-toggle.active {
+          background: rgba(255, 255, 255, 0.9);
+          color: var(--ocean-600);
+          border-color: transparent;
+        }
+
+        .planner-camp-friends-toggle .friends-icon {
+          font-size: 0.75rem;
+        }
+
+        .planner-camp-friends-toggle .friends-text {
+          font-weight: 500;
+        }
+
+        .planner-camp-card.looking-for-friends {
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         /* Mobile Week Navigator */

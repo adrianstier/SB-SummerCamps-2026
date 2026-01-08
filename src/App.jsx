@@ -45,6 +45,7 @@ import { Dashboard } from './components/Dashboard';
 import { CampComparison } from './components/CampComparison';
 import { ReviewsList, ReviewsSummary } from './components/Reviews';
 import { AdminDashboard } from './components/AdminDashboard';
+import JoinSquad from './components/JoinSquad';
 import { supabase } from './lib/supabase';
 
 // Fetch camps from Supabase
@@ -360,7 +361,14 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   // Auth context
-  const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user } = useAuth();
+  const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user, friendInterestCounts, squads } = useAuth();
+
+  // Check for join squad route
+  const [joinInviteCode, setJoinInviteCode] = useState(() => {
+    const path = window.location.pathname;
+    const match = path.match(/^\/join\/([a-f0-9]+)$/i);
+    return match ? match[1] : null;
+  });
 
   // Detect mobile viewport
   useEffect(() => {
@@ -494,6 +502,24 @@ export default function App() {
     if (siblingDiscount) count++;
     return count;
   }, [search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount]);
+
+  // Handle join squad route
+  if (joinInviteCode) {
+    return (
+      <JoinSquad
+        inviteCode={joinInviteCode}
+        onComplete={() => {
+          setJoinInviteCode(null);
+          window.history.replaceState({}, '', '/');
+          setShowPlanner(true);
+        }}
+        onCancel={() => {
+          setJoinInviteCode(null);
+          window.history.replaceState({}, '', '/');
+        }}
+      />
+    );
+  }
 
   if (error) {
     return (
@@ -1111,6 +1137,8 @@ export default function App() {
                 index={index}
                 isComparing={compareList.includes(camp.id)}
                 onToggleCompare={() => toggleCompare(camp.id)}
+                friendInterestCounts={friendInterestCounts}
+                hasSquads={squads?.length > 0}
               />
             ))}
           </div>
@@ -1450,11 +1478,14 @@ function FeaturedCard({ camp, badge, onClick }) {
 }
 
 // Camp Card Component with scroll-triggered reveal
-function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare }) {
+function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare, friendInterestCounts = {}, hasSquads = false }) {
   const categoryClass = categoryClasses[camp.category] || 'category-multi-activity';
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
   const [imageError, setImageError] = useState(false);
   const [cardRef, isRevealed] = useScrollReveal();
+
+  // Get friend interest count for this camp
+  const friendCount = friendInterestCounts[camp.id] || 0;
 
   return (
     <div
@@ -1544,6 +1575,16 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
             </div>
           );
         })()}
+
+        {/* Friend Interest Indicator */}
+        {hasSquads && friendCount > 0 && (
+          <div className="friend-interest-badge mb-3">
+            <span className="friend-interest-icon">👥</span>
+            <span className="friend-interest-label">
+              {friendCount} {friendCount === 1 ? 'friend' : 'friends'} interested
+            </span>
+          </div>
+        )}
 
         {/* Feature Badges */}
         <div className="flex flex-wrap gap-2">
