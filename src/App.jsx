@@ -1776,135 +1776,167 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
 
   const urgency = getRegUrgency(camp.reg_date_2026);
 
+  // Build feature pills array
+  const featurePills = [];
+  if (urgency) featurePills.push({ ...urgency, key: 'urgency' });
+  if (camp.has_extended_care) featurePills.push({ icon: '⏰', label: 'Extended Care', key: 'extended' });
+  if (camp.food_included) featurePills.push({ icon: '🍽️', label: 'Meals Included', key: 'food' });
+  if (camp.has_transport) featurePills.push({ icon: '🚐', label: 'Transport', key: 'transport' });
+  if (camp.has_sibling_discount) featurePills.push({ icon: '👨‍👩‍👧', label: 'Sibling Discount', key: 'sibling' });
+
   return (
-    <div className="camp-modal-overlay" onClick={onClose}>
-      <div className="camp-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onClose}>
+      <article className="modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Close Button */}
-        <button className="camp-modal-close" onClick={onClose}>
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <button className="modal-close" onClick={onClose} aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M18 6L6 18M6 6l12 12" />
           </svg>
         </button>
 
-        {/* Hero Image Section */}
-        <div className="camp-modal-hero">
+        {/* Hero Section */}
+        <header className="modal-hero">
           {camp.image_url && !imageError ? (
             <img
               src={camp.image_url}
               alt={camp.camp_name}
-              className="camp-modal-hero-img"
+              className="modal-hero-img"
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="camp-modal-hero-fallback" style={{ background: categoryGradient }}>
-              <span className="camp-modal-hero-emoji">🏕️</span>
+            <div className="modal-hero-fallback" style={{ background: categoryGradient }} />
+          )}
+          <div className="modal-hero-gradient" />
+
+          {/* Favorite Button */}
+          <button
+            className={`modal-favorite ${isFavorite ? 'is-active' : ''}`}
+            onClick={onToggleFavorite}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+
+          {/* Title Block */}
+          <div className="modal-hero-content">
+            <p className="modal-category">{camp.category}</p>
+            <h1 className="modal-title">{camp.camp_name}</h1>
+            <p className="modal-subtitle">
+              {camp.ages || 'All ages'} · {formatPrice(camp)} · {camp.hours || 'Hours TBD'}
+            </p>
+          </div>
+        </header>
+
+        {/* Body */}
+        <div className="modal-body">
+          {/* Feature Pills */}
+          {featurePills.length > 0 && (
+            <div className="modal-pills">
+              {featurePills.map((pill) => (
+                <span
+                  key={pill.key}
+                  className={`modal-pill ${pill.type ? `modal-pill--${pill.type}` : ''}`}
+                >
+                  <span className="modal-pill-icon">{pill.icon}</span>
+                  {pill.label}
+                </span>
+              ))}
             </div>
           )}
-          <div className="camp-modal-hero-overlay" />
-
-          {/* Floating Actions on Hero */}
-          <div className="camp-modal-hero-actions">
-            <button
-              className={`camp-modal-action-btn ${isFavorite ? 'active' : ''}`}
-              onClick={onToggleFavorite}
-              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              <svg className="w-5 h-5" fill={isFavorite ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Title Overlay on Hero */}
-          <div className="camp-modal-hero-content">
-            <span className="camp-modal-category">{camp.category}</span>
-            <h1 className="camp-modal-title">{camp.camp_name}</h1>
-            <div className="camp-modal-meta">
-              <span>{camp.ages || 'All ages'}</span>
-              <span className="camp-modal-meta-dot">•</span>
-              <span className="camp-modal-price">{formatPrice(camp)}</span>
-              <span className="camp-modal-meta-dot">•</span>
-              <span>{camp.hours || 'Hours TBD'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="camp-modal-content">
-          {/* Quick Stats Bar */}
-          <div className="camp-modal-stats">
-            {urgency && (
-              <div className={`camp-modal-stat urgency-${urgency.type}`}>
-                <span className="camp-modal-stat-icon">{urgency.icon}</span>
-                <span className="camp-modal-stat-label">{urgency.label}</span>
-              </div>
-            )}
-            {camp.has_extended_care && (
-              <div className="camp-modal-stat">
-                <span className="camp-modal-stat-icon">⏰</span>
-                <span className="camp-modal-stat-label">Extended Care</span>
-              </div>
-            )}
-            {camp.food_included && (
-              <div className="camp-modal-stat">
-                <span className="camp-modal-stat-icon">🍽️</span>
-                <span className="camp-modal-stat-label">Meals</span>
-              </div>
-            )}
-            {camp.has_transport && (
-              <div className="camp-modal-stat">
-                <span className="camp-modal-stat-icon">🚌</span>
-                <span className="camp-modal-stat-label">Transport</span>
-              </div>
-            )}
-            {camp.has_sibling_discount && (
-              <div className="camp-modal-stat">
-                <span className="camp-modal-stat-icon">👨‍👩‍👧‍👦</span>
-                <span className="camp-modal-stat-label">Sibling Discount</span>
-              </div>
-            )}
-          </div>
 
           {/* Description */}
           {camp.description && (
-            <div className="camp-modal-section">
-              <p className="camp-modal-description">{camp.description}</p>
-            </div>
+            <p className="modal-description">{camp.description}</p>
           )}
 
-          {/* Two Column Details */}
-          <div className="camp-modal-details-grid">
-            <div className="camp-modal-detail-col">
-              <h3 className="camp-modal-section-title">Location & Schedule</h3>
-              <div className="camp-modal-detail-list">
-                {camp.address && <DetailRowModal icon="📍" label="Location" value={camp.address} />}
-                {camp.indoor_outdoor && <DetailRowModal icon="🏠" label="Setting" value={camp.indoor_outdoor} />}
-                {camp.hours && <DetailRowModal icon="🕐" label="Hours" value={camp.hours} />}
-                {camp.extended_care && <DetailRowModal icon="⏰" label="Extended Care" value={camp.extended_care} />}
-                {camp.extended_care_cost && <DetailRowModal icon="💵" label="Extended Cost" value={camp.extended_care_cost} />}
-              </div>
-            </div>
-
-            <div className="camp-modal-detail-col">
-              <h3 className="camp-modal-section-title">Contact & Pricing</h3>
-              <div className="camp-modal-detail-list">
-                {camp.contact_phone && <DetailRowModal icon="📞" label="Phone" value={camp.contact_phone} />}
-                {camp.contact_email && <DetailRowModal icon="✉️" label="Email" value={camp.contact_email} isEmail />}
-                {camp.sibling_discount && <DetailRowModal icon="👨‍👩‍👧‍👦" label="Sibling Discount" value={camp.sibling_discount} />}
-                {camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A' && (
-                  <DetailRowModal icon="📋" label="Cancellation" value={camp.refund_policy} />
+          {/* Details Grid */}
+          <div className="modal-grid">
+            {/* Location & Schedule */}
+            <section className="modal-section">
+              <h2 className="modal-section-title">Location & Schedule</h2>
+              <dl className="modal-dl">
+                {camp.address && (
+                  <>
+                    <dt>Location</dt>
+                    <dd>{camp.address}</dd>
+                  </>
                 )}
-              </div>
-            </div>
+                {camp.indoor_outdoor && camp.indoor_outdoor !== 'Unknown' && (
+                  <>
+                    <dt>Setting</dt>
+                    <dd>{camp.indoor_outdoor}</dd>
+                  </>
+                )}
+                {camp.hours && (
+                  <>
+                    <dt>Hours</dt>
+                    <dd>{camp.hours}</dd>
+                  </>
+                )}
+                {camp.extended_care && camp.extended_care !== 'Unknown' && (
+                  <>
+                    <dt>Extended Care</dt>
+                    <dd>{camp.extended_care}</dd>
+                  </>
+                )}
+              </dl>
+            </section>
+
+            {/* Contact & Pricing */}
+            <section className="modal-section">
+              <h2 className="modal-section-title">Contact & Pricing</h2>
+              <dl className="modal-dl">
+                {camp.contact_phone && (
+                  <>
+                    <dt>Phone</dt>
+                    <dd>
+                      <a href={`tel:${camp.contact_phone.replace(/\D/g, '')}`} className="modal-link">
+                        {camp.contact_phone}
+                      </a>
+                    </dd>
+                  </>
+                )}
+                {camp.contact_email && (
+                  <>
+                    <dt>Email</dt>
+                    <dd>
+                      <a href={`mailto:${camp.contact_email}`} className="modal-link">
+                        {camp.contact_email}
+                      </a>
+                    </dd>
+                  </>
+                )}
+                {camp.extended_care_cost && camp.extended_care_cost !== 'Unknown' && camp.extended_care_cost !== 'N/A' && (
+                  <>
+                    <dt>Extended Care Cost</dt>
+                    <dd>{camp.extended_care_cost}</dd>
+                  </>
+                )}
+                {camp.sibling_discount && camp.sibling_discount !== 'Unknown' && (
+                  <>
+                    <dt>Sibling Discount</dt>
+                    <dd>{camp.sibling_discount}</dd>
+                  </>
+                )}
+                {camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A' && (
+                  <>
+                    <dt>Cancellation</dt>
+                    <dd>{camp.refund_policy}</dd>
+                  </>
+                )}
+              </dl>
+            </section>
           </div>
 
-          {/* Food Section */}
-          {(camp.food_provided || camp.food_included) && (
-            <div className="camp-modal-info-card" style={{ '--card-bg': 'var(--ocean-50)', '--card-border': 'var(--ocean-200)' }}>
-              <span className="camp-modal-info-icon">🍽️</span>
+          {/* Food Info */}
+          {(camp.food_provided || camp.food_included) && camp.food_provided !== 'Unknown' && (
+            <div className="modal-callout modal-callout--ocean">
+              <span className="modal-callout-icon">🍽️</span>
               <div>
-                <p className="camp-modal-info-title">Food</p>
-                <p className="camp-modal-info-text">
+                <strong>Food</strong>
+                <p>
                   {camp.food_provided && camp.food_provided !== 'N/A' && camp.food_provided !== 'Unknown'
                     ? camp.food_provided
                     : camp.food_included ? 'Meals included' : 'Bring lunch'}
@@ -1915,27 +1947,25 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
 
           {/* Activities */}
           {camp.extracted?.activities && camp.extracted.activities.length > 0 && (
-            <div className="camp-modal-section">
-              <h3 className="camp-modal-section-title">🎯 Activities</h3>
-              <div className="camp-modal-tags">
+            <section className="modal-section modal-section--full">
+              <h2 className="modal-section-title">Activities</h2>
+              <div className="modal-tags">
                 {camp.extracted.activities.map((activity, i) => (
-                  <span key={i} className="camp-modal-tag">{activity}</span>
+                  <span key={i} className="modal-tag">{activity}</span>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
           {/* Staff & Safety */}
           {(camp.extracted?.staff_ratio || camp.extracted?.certifications?.length > 0) && (
-            <div className="camp-modal-info-card" style={{ '--card-bg': 'var(--sage-50)', '--card-border': 'var(--sage-200)' }}>
-              <span className="camp-modal-info-icon">👥</span>
+            <div className="modal-callout modal-callout--sage">
+              <span className="modal-callout-icon">👥</span>
               <div>
-                <p className="camp-modal-info-title">Staff & Safety</p>
-                {camp.extracted?.staff_ratio && (
-                  <p className="camp-modal-info-text">Staff ratio: {camp.extracted.staff_ratio}</p>
-                )}
+                <strong>Staff & Safety</strong>
+                {camp.extracted?.staff_ratio && <p>Staff ratio: {camp.extracted.staff_ratio}</p>}
                 {camp.extracted?.certifications?.length > 0 && (
-                  <p className="camp-modal-info-text">Certifications: {camp.extracted.certifications.join(', ')}</p>
+                  <p>Certifications: {camp.extracted.certifications.join(', ')}</p>
                 )}
               </div>
             </div>
@@ -1943,71 +1973,70 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
 
           {/* Testimonial */}
           {camp.extracted?.testimonials && camp.extracted.testimonials.length > 0 && (
-            <div className="camp-modal-testimonial">
-              <span className="camp-modal-quote-mark">"</span>
-              <p className="camp-modal-quote-text">{camp.extracted.testimonials[0]}</p>
-            </div>
+            <blockquote className="modal-quote">
+              <p>{camp.extracted.testimonials[0]}</p>
+            </blockquote>
           )}
 
           {/* Notes */}
           {camp.notes && (
-            <div className="camp-modal-info-card" style={{ '--card-bg': 'var(--sun-50)', '--card-border': 'var(--sun-200)' }}>
-              <span className="camp-modal-info-icon">📝</span>
+            <div className="modal-callout modal-callout--sun">
+              <span className="modal-callout-icon">📝</span>
               <div>
-                <p className="camp-modal-info-title">Notes</p>
-                <p className="camp-modal-info-text">{camp.notes}</p>
+                <strong>Notes</strong>
+                <p>{camp.notes}</p>
               </div>
             </div>
           )}
+        </div>
 
-          {/* Action Buttons */}
-          <div className="camp-modal-actions">
-            {camp.website_url && (
-              <a
-                href={camp.website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="camp-modal-btn camp-modal-btn-primary"
-              >
-                Visit Website
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
+        {/* Footer Actions */}
+        <footer className="modal-footer">
+          {camp.website_url && (
+            <a
+              href={camp.website_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="modal-btn modal-btn--primary"
+            >
+              Visit Website
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+              </svg>
+            </a>
+          )}
+          <button onClick={onAddToSchedule} className="modal-btn modal-btn--secondary">
+            Add to Schedule
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </button>
+        </footer>
+
+        {/* Social Links */}
+        {camp.social_media && Object.keys(camp.social_media).length > 0 && (
+          <div className="modal-social">
+            {camp.social_media.facebook && (
+              <a href={camp.social_media.facebook} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="Facebook">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               </a>
             )}
-            <button
-              onClick={onAddToSchedule}
-              className="camp-modal-btn camp-modal-btn-secondary"
-            >
-              Add to Schedule
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </button>
+            {camp.social_media.instagram && (
+              <a href={camp.social_media.instagram} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="Instagram">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              </a>
+            )}
+            {camp.social_media.youtube && (
+              <a href={camp.social_media.youtube} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="YouTube">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              </a>
+            )}
           </div>
-
-          {/* Social Media */}
-          {camp.social_media && Object.keys(camp.social_media).length > 0 && (
-            <div className="camp-modal-social">
-              {camp.social_media.facebook && (
-                <a href={camp.social_media.facebook} target="_blank" rel="noopener noreferrer" className="camp-modal-social-link facebook">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                </a>
-              )}
-              {camp.social_media.instagram && (
-                <a href={camp.social_media.instagram} target="_blank" rel="noopener noreferrer" className="camp-modal-social-link instagram">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-              )}
-              {camp.social_media.youtube && (
-                <a href={camp.social_media.youtube} target="_blank" rel="noopener noreferrer" className="camp-modal-social-link youtube">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+        )}
+      </article>
     </div>
   );
 }
