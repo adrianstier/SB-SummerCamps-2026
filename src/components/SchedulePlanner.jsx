@@ -990,42 +990,52 @@ export function SchedulePlanner({ camps, onClose }) {
         .planner-stats {
           display: flex;
           align-items: center;
-          gap: 16px;
-          padding: 8px 16px;
-          background: var(--sand-50);
-          border-radius: 12px;
+          gap: 0;
+          background: white;
+          border: 1px solid var(--sand-200);
+          border-radius: 10px;
+          overflow: hidden;
         }
 
         .planner-stat {
+          padding: 10px 18px;
           text-align: center;
+          position: relative;
+        }
+
+        .planner-stat:first-child {
+          background: var(--sand-50);
         }
 
         .planner-stat-value {
           display: block;
           font-family: 'Fraunces', Georgia, serif;
-          font-size: 1.25rem;
+          font-size: 1.125rem;
           font-weight: 600;
           color: var(--earth-800);
+          line-height: 1.2;
         }
 
         .planner-stat-value.has-gaps {
-          color: var(--terra-500);
+          color: var(--sun-600);
         }
 
         .planner-stat-value.no-gaps {
-          color: var(--ocean-500);
+          color: var(--sage-600);
         }
 
         .planner-stat-label {
-          font-size: 0.7rem;
+          font-size: 0.625rem;
+          font-weight: 600;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.08em;
           color: var(--sand-400);
+          margin-top: 2px;
         }
 
         .planner-stat-divider {
           width: 1px;
-          height: 32px;
+          height: 36px;
           background: var(--sand-200);
         }
 
@@ -1473,8 +1483,8 @@ export function SchedulePlanner({ camps, onClose }) {
           display: none;
           grid-template-columns: repeat(11, 1fr);
           gap: 8px;
-          margin-bottom: 8px;
-          padding: 0 4px;
+          margin-bottom: 16px;
+          padding: 0;
         }
 
         @media (min-width: 768px) {
@@ -1485,11 +1495,19 @@ export function SchedulePlanner({ camps, onClose }) {
 
         .planner-month-label {
           font-family: 'Fraunces', Georgia, serif;
-          font-size: 0.9rem;
-          font-weight: 500;
+          font-size: 1.125rem;
+          font-weight: 600;
           color: var(--earth-800);
-          padding: 8px 0;
+          padding: 12px 0 8px;
           border-bottom: 2px solid var(--earth-800);
+        }
+
+        .planner-month-label:nth-child(2) {
+          border-color: var(--ocean-500);
+        }
+
+        .planner-month-label:nth-child(3) {
+          border-color: var(--terra-500);
         }
 
         /* Week Grid */
@@ -1526,30 +1544,37 @@ export function SchedulePlanner({ camps, onClose }) {
         }
 
         .planner-week {
-          background: white;
-          border: 1px solid var(--sand-200);
-          border-radius: 12px;
-          padding: 12px;
-          min-height: 140px;
+          background: var(--sand-50);
+          border: 1px solid transparent;
+          border-radius: 16px;
+          padding: 14px;
+          min-height: 130px;
           display: flex;
           flex-direction: column;
           cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.2s ease;
           position: relative;
         }
 
         .planner-week:hover {
-          border-color: var(--sand-300);
-          box-shadow: 0 4px 12px -4px rgba(31, 26, 22, 0.1);
+          background: white;
+          border-color: var(--sand-200);
+          box-shadow: 0 4px 16px -4px rgba(31, 26, 22, 0.08);
         }
 
         .planner-week.has-camps {
-          border-color: var(--sand-300);
+          background: white;
+          border-color: var(--sand-200);
+          box-shadow: 0 2px 8px -2px rgba(31, 26, 22, 0.06);
         }
 
         .planner-week.is-gap {
-          border: 2px dashed var(--terra-300);
-          background: var(--terra-50);
+          background: linear-gradient(135deg, var(--sun-50) 0%, var(--terra-50) 100%);
+          border: 1px solid var(--sun-200);
+        }
+
+        .planner-week.is-gap:hover {
+          border-color: var(--terra-300);
         }
 
         .planner-week.drag-over {
@@ -1560,21 +1585,25 @@ export function SchedulePlanner({ camps, onClose }) {
         }
 
         .planner-week-header {
-          margin-bottom: 10px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid var(--sand-100);
+          margin-bottom: 8px;
         }
 
         .planner-week-label {
           display: block;
-          font-weight: 600;
-          font-size: 0.8rem;
-          color: var(--earth-800);
+          font-family: 'Outfit', sans-serif;
+          font-weight: 700;
+          font-size: 0.6875rem;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--sand-500);
+          margin-bottom: 2px;
         }
 
         .planner-week-dates {
-          font-size: 0.7rem;
-          color: var(--sand-400);
+          font-family: 'Fraunces', Georgia, serif;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--earth-800);
         }
 
         .planner-week-content {
@@ -1590,28 +1619,41 @@ export function SchedulePlanner({ camps, onClose }) {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 4px;
+          gap: 6px;
           color: var(--sand-300);
           font-size: 0.75rem;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+
+        .planner-week:hover .planner-week-empty {
+          opacity: 1;
         }
 
         .planner-week-empty svg {
-          width: 24px;
-          height: 24px;
+          width: 20px;
+          height: 20px;
+          opacity: 0.6;
+        }
+
+        .planner-week-empty span {
+          font-weight: 500;
+          letter-spacing: 0.02em;
         }
 
         .planner-gap-badge {
           position: absolute;
-          top: 8px;
-          right: 8px;
-          padding: 2px 8px;
-          font-size: 0.65rem;
+          top: -6px;
+          right: 12px;
+          padding: 3px 8px;
+          font-size: 0.625rem;
           font-weight: 600;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          background: var(--terra-500);
-          color: white;
+          letter-spacing: 0.08em;
+          background: var(--sun-400);
+          color: var(--earth-800);
           border-radius: 4px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         /* Blocked Week Styles */
