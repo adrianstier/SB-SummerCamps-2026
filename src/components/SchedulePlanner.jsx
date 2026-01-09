@@ -305,58 +305,9 @@ export function SchedulePlanner({ camps, onClose }) {
             ))}
           </div>
 
-          {/* Right: Stats & Actions */}
+          {/* Right: Notification Bell */}
           <div className="planner-header-right">
-            {/* Squad Notifications */}
             <SquadNotificationBell />
-
-            <div className="planner-stats">
-              <div className="planner-stat">
-                <span className="planner-stat-value">${totalCost.toLocaleString()}</span>
-                <span className="planner-stat-label">Total</span>
-              </div>
-              <div className="planner-stat-divider" />
-              <div className="planner-stat">
-                <span className={`planner-stat-value ${gaps.length > 0 ? 'has-gaps' : 'no-gaps'}`}>
-                  {gaps.length}
-                </span>
-                <span className="planner-stat-label">Gaps</span>
-              </div>
-            </div>
-
-            {/* Export Menu */}
-            {scheduledCamps.length > 0 && (
-              <div className="planner-export-group">
-                <button
-                  onClick={() => {
-                    const child = children.find(c => c.id === selectedChild);
-                    const childSchedules = scheduledCamps.filter(sc => sc.child_id === selectedChild);
-                    exportAllToICal(camps, childSchedules, child?.name);
-                  }}
-                  className="planner-export-btn"
-                  title="Download .ics file"
-                >
-                  <DownloadIcon />
-                </button>
-                <button
-                  onClick={() => {
-                    const childSchedules = scheduledCamps.filter(sc => sc.child_id === selectedChild);
-                    if (childSchedules.length > 0) {
-                      const firstSchedule = childSchedules[0];
-                      const camp = camps.find(c => c.id === firstSchedule.camp_id);
-                      if (camp) {
-                        const event = formatCampForCalendar(camp, firstSchedule);
-                        window.open(createGoogleCalendarUrl(event), '_blank');
-                      }
-                    }
-                  }}
-                  className="planner-export-btn"
-                  title="Add to Google Calendar"
-                >
-                  <CalendarExportIcon />
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -809,6 +760,62 @@ export function SchedulePlanner({ camps, onClose }) {
         />
       )}
 
+      {/* Sticky Bottom Summary Bar */}
+      <div className="planner-bottom-bar">
+        <div className="planner-bottom-bar-inner">
+          {/* Stats */}
+          <div className="planner-bottom-stats">
+            <div className="planner-bottom-stat">
+              <span className="planner-bottom-stat-value">${totalCost.toLocaleString()}</span>
+              <span className="planner-bottom-stat-label">Total</span>
+            </div>
+            <div className="planner-bottom-stat-divider" />
+            <div className="planner-bottom-stat">
+              <span className={`planner-bottom-stat-value ${gaps.length > 0 ? 'has-gaps' : 'no-gaps'}`}>
+                {gaps.length}
+              </span>
+              <span className="planner-bottom-stat-label">Gaps</span>
+            </div>
+          </div>
+
+          {/* Export Actions */}
+          {scheduledCamps.length > 0 && (
+            <div className="planner-bottom-actions">
+              <button
+                onClick={() => {
+                  const child = children.find(c => c.id === selectedChild);
+                  const childSchedules = scheduledCamps.filter(sc => sc.child_id === selectedChild);
+                  exportAllToICal(camps, childSchedules, child?.name);
+                }}
+                className="planner-bottom-action-btn"
+                title="Download .ics file"
+              >
+                <DownloadIcon />
+                <span>Export</span>
+              </button>
+              <button
+                onClick={() => {
+                  const childSchedules = scheduledCamps.filter(sc => sc.child_id === selectedChild);
+                  if (childSchedules.length > 0) {
+                    const firstSchedule = childSchedules[0];
+                    const camp = camps.find(c => c.id === firstSchedule.camp_id);
+                    if (camp) {
+                      const event = formatCampForCalendar(camp, firstSchedule);
+                      window.open(createGoogleCalendarUrl(event), '_blank');
+                    }
+                  }
+                }}
+                className="planner-bottom-action-btn"
+                title="Add to Google Calendar"
+              >
+                <CalendarExportIcon />
+                <span>Calendar</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       <style>{`
         /* ═══════════════════════════════════════════════════════════════════════
            SCHEDULE PLANNER - Editorial California Aesthetic
@@ -1143,11 +1150,13 @@ export function SchedulePlanner({ camps, onClose }) {
           flex: 1;
           overflow: auto;
           padding: 20px;
+          padding-bottom: 80px; /* Space for sticky bottom bar */
         }
 
         @media (min-width: 768px) {
           .planner-main {
             padding: 32px;
+            padding-bottom: 80px;
           }
         }
 
@@ -2086,12 +2095,138 @@ export function SchedulePlanner({ camps, onClose }) {
         }
 
         /* ─────────────────────────────────────────────────────────────────────
+           STICKY BOTTOM BAR
+           ───────────────────────────────────────────────────────────────────── */
+
+        .planner-bottom-bar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: white;
+          border-top: 1px solid var(--sand-200);
+          padding: 12px 20px;
+          z-index: 45;
+          box-shadow: 0 -4px 20px -4px rgba(0, 0, 0, 0.08);
+        }
+
+        .planner-bottom-bar-inner {
+          max-width: 1400px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .planner-bottom-stats {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          background: var(--sand-50);
+          padding: 8px 16px;
+          border-radius: 12px;
+          border: 1px solid var(--sand-200);
+        }
+
+        .planner-bottom-stat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        }
+
+        .planner-bottom-stat-value {
+          font-family: 'Fraunces', serif;
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--earth-800);
+        }
+
+        .planner-bottom-stat-value.has-gaps {
+          color: var(--terra-500);
+        }
+
+        .planner-bottom-stat-value.no-gaps {
+          color: var(--forest-600);
+        }
+
+        .planner-bottom-stat-label {
+          font-size: 0.65rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--earth-500);
+        }
+
+        .planner-bottom-stat-divider {
+          width: 1px;
+          height: 32px;
+          background: var(--sand-300);
+        }
+
+        .planner-bottom-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .planner-bottom-action-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 10px 16px;
+          background: var(--ocean-50);
+          border: 1px solid var(--ocean-200);
+          border-radius: 10px;
+          color: var(--ocean-700);
+          font-size: 0.8rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .planner-bottom-action-btn:hover {
+          background: var(--ocean-100);
+          border-color: var(--ocean-300);
+        }
+
+        .planner-bottom-action-btn svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        @media (max-width: 767px) {
+          .planner-bottom-bar {
+            padding: 10px 16px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+          }
+
+          .planner-bottom-stats {
+            padding: 6px 12px;
+            gap: 12px;
+          }
+
+          .planner-bottom-stat-value {
+            font-size: 1rem;
+          }
+
+          .planner-bottom-action-btn span {
+            display: none;
+          }
+
+          .planner-bottom-action-btn {
+            padding: 10px;
+          }
+        }
+
+        /* ─────────────────────────────────────────────────────────────────────
            FLOATING ACTION BUTTON
            ───────────────────────────────────────────────────────────────────── */
 
         .planner-fab {
           position: fixed;
-          bottom: 24px;
+          bottom: 80px; /* Above the sticky bottom bar */
           right: 24px;
           width: 56px;
           height: 56px;
