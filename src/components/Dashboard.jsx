@@ -38,110 +38,116 @@ export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
 
   // Get recommended camps
   const recommendations = useMemo(() => {
-    return getRecommendationScores(camps).slice(0, 6);
+    return getRecommendationScores(camps).slice(0, 4);
   }, [camps, getRecommendationScores]);
-
-  // Get favorite camps with details
-  const favoriteCamps = useMemo(() => {
-    return favorites
-      .map(f => ({
-        ...f,
-        camp: camps.find(c => c.id === f.camp_id)
-      }))
-      .filter(f => f.camp)
-      .slice(0, 4);
-  }, [favorites, camps]);
 
   // Get upcoming scheduled camps
   const upcomingCamps = useMemo(() => {
     return scheduledCamps
       .filter(sc => sc.status !== 'cancelled')
       .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
-      .slice(0, 4)
+      .slice(0, 3)
       .map(sc => ({
         ...sc,
-        camp: camps.find(c => c.id === sc.camp_id)
+        camp: camps.find(c => c.id === sc.camp_id),
+        child: children.find(c => c.id === sc.child_id)
       }));
-  }, [scheduledCamps, camps]);
+  }, [scheduledCamps, camps, children]);
 
   // Get coverage gaps for each child
-  const childCoverageGaps = useMemo(() => {
-    return children.map(child => ({
-      child,
-      gaps: getCoverageGaps(child.id, summerWeeks)
-    }));
+  const totalGaps = useMemo(() => {
+    return children.reduce((sum, child) => {
+      return sum + getCoverageGaps(child.id, summerWeeks).length;
+    }, 0);
   }, [children, summerWeeks, getCoverageGaps]);
 
+  const firstName = profile?.full_name?.split(' ')[0] || 'there';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-      <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl">
-        {/* Header */}
-        <div className="p-6" style={{ background: 'linear-gradient(135deg, var(--ocean-500) 0%, var(--ocean-600) 100%)' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt=""
-                  className="w-14 h-14 rounded-full border-2 border-white/30"
-                />
+    <div className="dashboard-overlay" onClick={onClose}>
+      <div className="dashboard-modal" onClick={e => e.stopPropagation()}>
+        {/* Close button */}
+        <button onClick={onClose} className="dashboard-close" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Header - Clean and minimal */}
+        <header className="dashboard-header">
+          <div className="dashboard-greeting">
+            <p className="dashboard-welcome">Welcome back,</p>
+            <h1 className="dashboard-name">{firstName}</h1>
+          </div>
+
+          {/* Compact stats row */}
+          <div className="dashboard-stats-row">
+            <div className="dashboard-stat-item">
+              <span className="dashboard-stat-number">{stats.childrenCount}</span>
+              <span className="dashboard-stat-label">{stats.childrenCount === 1 ? 'child' : 'children'}</span>
+            </div>
+            <div className="dashboard-stat-divider" />
+            <div className="dashboard-stat-item">
+              <span className="dashboard-stat-number">{stats.totalScheduled}</span>
+              <span className="dashboard-stat-label">camps</span>
+            </div>
+            <div className="dashboard-stat-divider" />
+            <div className="dashboard-stat-item">
+              <span className="dashboard-stat-number">${stats.totalCost.toLocaleString()}</span>
+              <span className="dashboard-stat-label">total</span>
+            </div>
+            {totalGaps > 0 && (
+              <>
+                <div className="dashboard-stat-divider" />
+                <div className="dashboard-stat-item dashboard-stat-alert">
+                  <span className="dashboard-stat-number">{totalGaps}</span>
+                  <span className="dashboard-stat-label">{totalGaps === 1 ? 'gap' : 'gaps'}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </header>
+
+        {/* Main content */}
+        <div className="dashboard-content">
+          {/* Two column layout */}
+          <div className="dashboard-grid">
+            {/* Left column - Schedule */}
+            <section className="dashboard-section">
+              <div className="dashboard-section-header">
+                <h2 className="dashboard-section-title">Your Schedule</h2>
+                <button onClick={onOpenPlanner} className="dashboard-section-link">
+                  View all
+                </button>
+              </div>
+
+              {upcomingCamps.length > 0 ? (
+                <div className="dashboard-schedule-list">
+                  {upcomingCamps.map(sc => (
+                    <ScheduleCard key={sc.id} scheduled={sc} />
+                  ))}
+                </div>
               ) : (
-                <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                  👋
+                <div className="dashboard-empty">
+                  <p className="dashboard-empty-text">No camps scheduled yet</p>
+                  <button onClick={onOpenPlanner} className="dashboard-empty-btn">
+                    Start planning
+                  </button>
                 </div>
               )}
-              <div>
-                <h2 className="text-white text-xl font-semibold">
-                  {profile?.full_name ? `Welcome back, ${profile.full_name.split(' ')[0]}!` : 'Your Dashboard'}
-                </h2>
-                <p className="text-white/80 text-sm">
-                  Plan your family's perfect summer
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors text-white"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+            </section>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-            <StatCard icon="👨‍👩‍👧‍👦" value={stats.childrenCount} label="Children" />
-            <StatCard icon="📅" value={stats.totalScheduled} label="Camps Planned" />
-            <StatCard icon="❤️" value={stats.favoritesCount} label="Favorites" />
-            <StatCard
-              icon="💰"
-              value={stats.totalCost > 0 ? `$${stats.totalCost.toLocaleString()}` : '$0'}
-              label="Est. Total"
-            />
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 280px)' }}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recommendations */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-serif text-lg font-semibold" style={{ color: 'var(--earth-800)' }}>
-                  Recommended for You
-                </h3>
-                {recommendations.length > 0 && (
-                  <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'var(--ocean-100)', color: 'var(--ocean-600)' }}>
-                    Based on your preferences
-                  </span>
-                )}
+            {/* Right column - Recommendations */}
+            <section className="dashboard-section">
+              <div className="dashboard-section-header">
+                <h2 className="dashboard-section-title">Recommended</h2>
+                <span className="dashboard-section-badge">For you</span>
               </div>
 
               {recommendations.length > 0 ? (
-                <div className="space-y-3">
+                <div className="dashboard-reco-list">
                   {recommendations.map(({ camp, score }) => (
-                    <RecommendedCampCard
+                    <RecoCard
                       key={camp.id}
                       camp={camp}
                       score={score}
@@ -150,248 +156,480 @@ export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  icon="🔍"
-                  title="No recommendations yet"
-                  description="Complete your profile and add preferences to get personalized camp suggestions."
-                />
-              )}
-            </section>
-
-            {/* Upcoming Schedule */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-serif text-lg font-semibold" style={{ color: 'var(--earth-800)' }}>
-                  Upcoming Schedule
-                </h3>
-                <button
-                  onClick={onOpenPlanner}
-                  className="text-sm font-medium hover:underline"
-                  style={{ color: 'var(--ocean-600)' }}
-                >
-                  View Full Schedule
-                </button>
-              </div>
-
-              {upcomingCamps.length > 0 ? (
-                <div className="space-y-3">
-                  {upcomingCamps.map(sc => (
-                    <ScheduledCampCard key={sc.id} scheduled={sc} />
-                  ))}
+                <div className="dashboard-empty">
+                  <p className="dashboard-empty-text">Add preferences to get personalized suggestions</p>
                 </div>
-              ) : (
-                <EmptyState
-                  icon="📅"
-                  title="No camps scheduled"
-                  description="Start planning your summer by adding camps to your schedule."
-                  action={
-                    <button onClick={onOpenPlanner} className="btn-primary mt-4">
-                      Open Planner
-                    </button>
-                  }
-                />
-              )}
-            </section>
-
-            {/* Coverage Gaps */}
-            {childCoverageGaps.length > 0 && childCoverageGaps.some(c => c.gaps.length > 0) && (
-              <section className="lg:col-span-2">
-                <h3 className="font-serif text-lg font-semibold mb-4" style={{ color: 'var(--earth-800)' }}>
-                  Coverage Gaps
-                </h3>
-                <div className="p-4 rounded-xl" style={{ background: 'var(--sun-50)', border: '1px solid var(--sun-200)' }}>
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">⚠️</span>
-                    <div>
-                      <p className="font-medium mb-2" style={{ color: 'var(--earth-800)' }}>
-                        Some weeks need coverage
-                      </p>
-                      <div className="space-y-2">
-                        {childCoverageGaps.filter(c => c.gaps.length > 0).map(({ child, gaps }) => (
-                          <div key={child.id} className="text-sm" style={{ color: 'var(--earth-700)' }}>
-                            <span className="font-medium">{child.name}:</span>{' '}
-                            {gaps.length} week{gaps.length !== 1 ? 's' : ''} without camps
-                            <span className="text-xs ml-2" style={{ color: 'var(--sand-400)' }}>
-                              ({gaps.map(g => g.label).join(', ')})
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            )}
-
-            {/* Favorites */}
-            <section className="lg:col-span-2">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-serif text-lg font-semibold" style={{ color: 'var(--earth-800)' }}>
-                  Your Favorites
-                </h3>
-                {favoriteCamps.length > 4 && (
-                  <button className="text-sm font-medium hover:underline" style={{ color: 'var(--ocean-600)' }}>
-                    View All ({favorites.length})
-                  </button>
-                )}
-              </div>
-
-              {favoriteCamps.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {favoriteCamps.map(({ camp }) => (
-                    <FavoriteCampCard
-                      key={camp.id}
-                      camp={camp}
-                      onSelect={() => onSelectCamp?.(camp)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  icon="❤️"
-                  title="No favorites yet"
-                  description="Browse camps and click the heart icon to save them here."
-                />
               )}
             </section>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 flex justify-end gap-3" style={{ borderTop: '1px solid var(--sand-200)' }}>
-          <button onClick={onOpenPlanner} className="btn-primary">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        {/* Footer CTA */}
+        <footer className="dashboard-footer">
+          <button onClick={onOpenPlanner} className="dashboard-cta">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18" />
             </svg>
-            <span>Plan My Summer</span>
+            Plan My Summer
           </button>
-        </div>
+        </footer>
+
+        {/* Inline styles */}
+        <style>{`
+          .dashboard-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(31, 26, 22, 0.6);
+            backdrop-filter: blur(8px);
+          }
+
+          .dashboard-modal {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 24px 48px -12px rgba(31, 26, 22, 0.25);
+          }
+
+          .dashboard-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            z-index: 10;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--sand-100);
+            border: none;
+            border-radius: 50%;
+            color: var(--earth-600);
+            cursor: pointer;
+            transition: all 0.15s ease;
+          }
+
+          .dashboard-close:hover {
+            background: var(--sand-200);
+            color: var(--earth-800);
+          }
+
+          /* Header */
+          .dashboard-header {
+            padding: 2rem 2rem 1.5rem;
+            background: var(--sand-50);
+            border-bottom: 1px solid var(--sand-200);
+          }
+
+          .dashboard-greeting {
+            margin-bottom: 1.25rem;
+          }
+
+          .dashboard-welcome {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--sand-500);
+            margin: 0 0 0.25rem;
+          }
+
+          .dashboard-name {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--earth-800);
+            margin: 0;
+            line-height: 1.1;
+          }
+
+          /* Stats row */
+          .dashboard-stats-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+          }
+
+          .dashboard-stat-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.375rem;
+          }
+
+          .dashboard-stat-number {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--earth-800);
+          }
+
+          .dashboard-stat-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8125rem;
+            color: var(--sand-500);
+          }
+
+          .dashboard-stat-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--sand-300);
+          }
+
+          .dashboard-stat-alert .dashboard-stat-number {
+            color: var(--sun-600);
+          }
+
+          .dashboard-stat-alert .dashboard-stat-label {
+            color: var(--sun-600);
+          }
+
+          /* Content */
+          .dashboard-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 2rem;
+          }
+
+          .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+          }
+
+          @media (max-width: 640px) {
+            .dashboard-grid {
+              grid-template-columns: 1fr;
+              gap: 1.5rem;
+            }
+          }
+
+          /* Section */
+          .dashboard-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+          }
+
+          .dashboard-section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--sand-500);
+            margin: 0;
+          }
+
+          .dashboard-section-link {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--ocean-600);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+          }
+
+          .dashboard-section-link:hover {
+            text-decoration: underline;
+          }
+
+          .dashboard-section-badge {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--sage-600);
+            background: var(--sage-100);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+          }
+
+          /* Schedule cards */
+          .dashboard-schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+          }
+
+          .schedule-card {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.875rem;
+            background: white;
+            border: 1px solid var(--sand-200);
+            border-radius: 12px;
+            transition: all 0.15s ease;
+          }
+
+          .schedule-card:hover {
+            border-color: var(--sand-300);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          }
+
+          .schedule-card-date {
+            text-align: center;
+            min-width: 44px;
+          }
+
+          .schedule-card-day {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--earth-800);
+            line-height: 1;
+          }
+
+          .schedule-card-month {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--sand-400);
+          }
+
+          .schedule-card-info {
+            flex: 1;
+            min-width: 0;
+          }
+
+          .schedule-card-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--earth-800);
+            margin: 0 0 0.125rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .schedule-card-child {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            color: var(--sand-500);
+          }
+
+          .schedule-card-status {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+          }
+
+          .schedule-card-status.planned {
+            background: var(--sun-100);
+            color: var(--sun-700);
+          }
+
+          .schedule-card-status.confirmed {
+            background: var(--sage-100);
+            color: var(--sage-700);
+          }
+
+          /* Recommendation cards */
+          .dashboard-reco-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+          }
+
+          .reco-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.875rem;
+            background: white;
+            border: 1px solid var(--sand-200);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+          }
+
+          .reco-card:hover {
+            border-color: var(--ocean-300);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          }
+
+          .reco-card-info {
+            flex: 1;
+            min-width: 0;
+          }
+
+          .reco-card-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--earth-800);
+            margin: 0 0 0.25rem;
+            line-height: 1.3;
+          }
+
+          .reco-card-meta {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            color: var(--sand-500);
+          }
+
+          .reco-card-fav {
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+          }
+
+          /* Empty state */
+          .dashboard-empty {
+            padding: 1.5rem 1rem;
+            text-align: center;
+            background: var(--sand-50);
+            border-radius: 12px;
+          }
+
+          .dashboard-empty-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.875rem;
+            color: var(--sand-500);
+            margin: 0;
+          }
+
+          .dashboard-empty-btn {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--ocean-600);
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-top: 0.75rem;
+            padding: 0;
+          }
+
+          .dashboard-empty-btn:hover {
+            text-decoration: underline;
+          }
+
+          /* Footer */
+          .dashboard-footer {
+            padding: 1rem 2rem 1.5rem;
+            display: flex;
+            justify-content: center;
+          }
+
+          .dashboard-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.75rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #fff;
+            background: var(--terra-500);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px -2px rgba(232, 90, 53, 0.4);
+          }
+
+          .dashboard-cta:hover {
+            background: var(--terra-600);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px -2px rgba(232, 90, 53, 0.5);
+          }
+
+          /* Mobile adjustments */
+          @media (max-width: 640px) {
+            .dashboard-modal {
+              max-height: 95vh;
+              border-radius: 20px 20px 0 0;
+            }
+
+            .dashboard-header {
+              padding: 1.5rem 1.25rem 1.25rem;
+            }
+
+            .dashboard-name {
+              font-size: 1.625rem;
+            }
+
+            .dashboard-stats-row {
+              gap: 0.75rem;
+            }
+
+            .dashboard-stat-number {
+              font-size: 1.125rem;
+            }
+
+            .dashboard-content {
+              padding: 1.25rem;
+            }
+
+            .dashboard-footer {
+              padding: 1rem 1.25rem 1.25rem;
+            }
+          }
+        `}</style>
       </div>
     </div>
   );
 }
 
-// Stat Card Component
-function StatCard({ icon, value, label }) {
-  return (
-    <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.15)' }}>
-      <div className="flex items-center gap-3">
-        <span className="text-2xl">{icon}</span>
-        <div>
-          <p className="text-white text-xl font-bold">{value}</p>
-          <p className="text-white/70 text-xs">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Recommended Camp Card
-function RecommendedCampCard({ camp, score, onSelect }) {
-  return (
-    <div
-      onClick={onSelect}
-      className="flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all hover:shadow-md"
-      style={{ background: 'var(--sand-50)', border: '1px solid var(--sand-200)' }}
-    >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <h4 className="font-medium truncate" style={{ color: 'var(--earth-800)' }}>
-            {camp.camp_name}
-          </h4>
-          <div
-            className="flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium"
-            style={{
-              background: score >= 50 ? 'var(--sage-100)' : score >= 30 ? 'var(--ocean-100)' : 'var(--sand-100)',
-              color: score >= 50 ? 'var(--sage-600)' : score >= 30 ? 'var(--ocean-600)' : 'var(--sand-500)'
-            }}
-          >
-            {score >= 50 ? 'Great Match' : score >= 30 ? 'Good Match' : 'Match'}
-          </div>
-        </div>
-        <p className="text-sm mt-1" style={{ color: 'var(--sand-400)' }}>
-          {camp.category} • {camp.ages} • {formatPrice(camp)}
-        </p>
-        <p className="text-sm mt-2 line-clamp-2" style={{ color: 'var(--earth-600)' }}>
-          {camp.description?.substring(0, 100)}...
-        </p>
-      </div>
-      <div onClick={(e) => e.stopPropagation()}>
-        <FavoriteButton campId={camp.id} size="sm" />
-      </div>
-    </div>
-  );
-}
-
-// Scheduled Camp Card
-function ScheduledCampCard({ scheduled }) {
+// Schedule Card Component
+function ScheduleCard({ scheduled }) {
   const startDate = new Date(scheduled.start_date);
-  const endDate = new Date(scheduled.end_date);
-  const dateRange = `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  const day = startDate.getDate();
+  const month = startDate.toLocaleDateString('en-US', { month: 'short' });
 
   return (
-    <div
-      className="flex items-center gap-4 p-4 rounded-xl"
-      style={{ background: 'var(--sand-50)', border: '1px solid var(--sand-200)' }}
-    >
-      <div
-        className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold"
-        style={{ background: scheduled.children?.color || 'var(--ocean-500)', color: 'white' }}
-      >
-        {startDate.getDate()}
+    <div className="schedule-card">
+      <div className="schedule-card-date">
+        <div className="schedule-card-day">{day}</div>
+        <div className="schedule-card-month">{month}</div>
       </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium truncate" style={{ color: 'var(--earth-800)' }}>
-          {scheduled.camp?.camp_name || scheduled.camp_id}
-        </h4>
-        <p className="text-sm" style={{ color: 'var(--sand-400)' }}>
-          {scheduled.children?.name} • {dateRange}
-        </p>
+      <div className="schedule-card-info">
+        <p className="schedule-card-name">{scheduled.camp?.camp_name || 'Camp'}</p>
+        <p className="schedule-card-child">{scheduled.child?.name || 'Child'}</p>
       </div>
-      <span
-        className="px-2 py-1 rounded-full text-xs font-medium capitalize"
-        style={{
-          background: scheduled.status === 'confirmed' ? 'var(--sage-100)' : 'var(--sun-100)',
-          color: scheduled.status === 'confirmed' ? 'var(--sage-600)' : 'var(--sun-600)'
-        }}
-      >
+      <span className={`schedule-card-status ${scheduled.status}`}>
         {scheduled.status}
       </span>
     </div>
   );
 }
 
-// Favorite Camp Card
-function FavoriteCampCard({ camp, onSelect }) {
+// Recommendation Card Component
+function RecoCard({ camp, score, onSelect }) {
   return (
-    <div
-      onClick={onSelect}
-      className="flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all hover:shadow-md"
-      style={{ background: 'var(--sand-50)', border: '1px solid var(--sand-200)' }}
-    >
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium truncate" style={{ color: 'var(--earth-800)' }}>
-          {camp.camp_name}
-        </h4>
-        <p className="text-sm" style={{ color: 'var(--sand-400)' }}>
-          {camp.category} • {formatPrice(camp)}
+    <div className="reco-card" onClick={onSelect}>
+      <div className="reco-card-info">
+        <p className="reco-card-name">{camp.camp_name}</p>
+        <p className="reco-card-meta">
+          {camp.category} · {formatPrice(camp)}
         </p>
       </div>
-      <div onClick={(e) => e.stopPropagation()}>
+      <div className="reco-card-fav" onClick={e => e.stopPropagation()}>
         <FavoriteButton campId={camp.id} size="sm" />
       </div>
-    </div>
-  );
-}
-
-// Empty State Component
-function EmptyState({ icon, title, description, action }) {
-  return (
-    <div className="text-center py-8 px-4 rounded-xl" style={{ background: 'var(--sand-50)' }}>
-      <span className="text-4xl block mb-3">{icon}</span>
-      <h4 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>{title}</h4>
-      <p className="text-sm" style={{ color: 'var(--sand-400)' }}>{description}</p>
-      {action}
     </div>
   );
 }
