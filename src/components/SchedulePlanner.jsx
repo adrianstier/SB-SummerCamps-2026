@@ -1141,6 +1141,239 @@ export function SchedulePlanner({ camps, onClose }) {
           }
         }
 
+        /* ─────────────────────────────────────────────────────────────────────
+           SIDEBAR + LAYOUT
+           ───────────────────────────────────────────────────────────────────── */
+
+        .planner-layout {
+          display: flex;
+          gap: 0;
+          height: 100%;
+          min-height: 0;
+        }
+
+        .planner-sidebar {
+          width: 280px;
+          flex-shrink: 0;
+          background: var(--sand-50);
+          border-right: 1px solid var(--sand-200);
+          display: flex;
+          flex-direction: column;
+          transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          overflow: hidden;
+        }
+
+        .planner-sidebar.collapsed {
+          width: 48px;
+        }
+
+        .planner-sidebar-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px;
+          border-bottom: 1px solid var(--sand-200);
+          min-height: 56px;
+        }
+
+        .planner-sidebar-title {
+          font-family: 'Outfit', sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--earth-700);
+          white-space: nowrap;
+        }
+
+        .planner-sidebar.collapsed .planner-sidebar-title {
+          display: none;
+        }
+
+        .planner-sidebar-toggle {
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          background: var(--sand-100);
+          border: 1px solid var(--sand-200);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          flex-shrink: 0;
+        }
+
+        .planner-sidebar-toggle:hover {
+          background: var(--sand-200);
+        }
+
+        .planner-sidebar-toggle svg {
+          width: 14px;
+          height: 14px;
+          color: var(--earth-600);
+        }
+
+        .planner-sidebar-search {
+          position: relative;
+          padding: 12px 16px;
+          border-bottom: 1px solid var(--sand-200);
+        }
+
+        .planner-sidebar-search svg {
+          position: absolute;
+          left: 28px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 16px;
+          height: 16px;
+          color: var(--sand-400);
+          pointer-events: none;
+        }
+
+        .planner-sidebar-input {
+          width: 100%;
+          padding: 10px 32px 10px 36px;
+          border-radius: 8px;
+          border: 1px solid var(--sand-200);
+          background: #fff;
+          font-size: 0.875rem;
+          color: var(--earth-800);
+          outline: none;
+          transition: all 0.2s;
+        }
+
+        .planner-sidebar-input:focus {
+          border-color: var(--ocean-400);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .planner-sidebar-input::placeholder {
+          color: var(--sand-400);
+        }
+
+        .planner-sidebar-clear {
+          position: absolute;
+          right: 24px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: var(--sand-200);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .planner-sidebar-clear:hover {
+          background: var(--sand-300);
+        }
+
+        .planner-sidebar-clear svg {
+          position: static;
+          transform: none;
+          width: 12px;
+          height: 12px;
+          color: var(--earth-600);
+        }
+
+        .planner-sidebar-hint {
+          padding: 8px 16px;
+          background: var(--ocean-50);
+          border-bottom: 1px solid var(--sand-200);
+        }
+
+        .planner-sidebar-hint span {
+          font-size: 0.75rem;
+          color: var(--ocean-600);
+          font-weight: 500;
+        }
+
+        .planner-sidebar-list {
+          flex: 1;
+          overflow-y: auto;
+          padding: 8px;
+        }
+
+        .planner-sidebar-camp {
+          padding: 12px;
+          margin-bottom: 6px;
+          background: #fff;
+          border: 1px solid var(--sand-200);
+          border-radius: 10px;
+          cursor: grab;
+          transition: all 0.2s;
+        }
+
+        .planner-sidebar-camp:hover {
+          border-color: var(--ocean-300);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          transform: translateY(-1px);
+        }
+
+        .planner-sidebar-camp:active,
+        .planner-sidebar-camp.dragging {
+          cursor: grabbing;
+          opacity: 0.7;
+          transform: scale(0.98);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .planner-sidebar-camp-name {
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: var(--earth-800);
+          margin-bottom: 4px;
+          line-height: 1.3;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .planner-sidebar-camp-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+
+        .planner-sidebar-camp-category {
+          font-size: 0.6875rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--sand-500);
+          font-weight: 500;
+        }
+
+        .planner-sidebar-camp-price {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--ocean-600);
+        }
+
+        .planner-sidebar-empty {
+          padding: 32px 16px;
+          text-align: center;
+          color: var(--sand-500);
+          font-size: 0.875rem;
+        }
+
+        /* Hide sidebar on mobile */
+        @media (max-width: 1023px) {
+          .planner-sidebar {
+            display: none;
+          }
+
+          .planner-layout {
+            display: block;
+          }
+        }
+
         /* Sample Banner */
         .planner-sample-banner {
           max-width: 1200px;
@@ -1222,8 +1455,17 @@ export function SchedulePlanner({ camps, onClose }) {
            ───────────────────────────────────────────────────────────────────── */
 
         .planner-timeline {
+          flex: 1;
+          min-width: 0;
           max-width: 1200px;
           margin: 0 auto;
+          padding: 0 20px;
+        }
+
+        @media (max-width: 1023px) {
+          .planner-timeline {
+            padding: 0;
+          }
         }
 
         /* Month Labels */
