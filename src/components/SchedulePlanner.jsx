@@ -47,6 +47,10 @@ export function SchedulePlanner({ camps, onClose }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const weekScrollRef = useRef(null);
 
+  // What-If Planning Preview mode
+  const [previewMode, setPreviewMode] = useState(false);
+  const [previewCamps, setPreviewCamps] = useState([]); // Temporary camps for preview
+
   // Filter camps for add modal
   const filteredCamps = useMemo(() => {
     if (!searchQuery) return camps.slice(0, 30);
@@ -70,6 +74,27 @@ export function SchedulePlanner({ camps, onClose }) {
     return filtered.slice(0, 50);
   }, [camps, sidebarSearch]);
 
+  // Combine scheduled camps with preview camps for display
+  const allDisplayCamps = useMemo(() => {
+    if (!previewMode || previewCamps.length === 0) return scheduledCamps;
+    return [...scheduledCamps, ...previewCamps];
+  }, [scheduledCamps, previewCamps, previewMode]);
+
+  // Calculate preview cost impact
+  const previewCostImpact = useMemo(() => {
+    if (!previewMode || previewCamps.length === 0) return null;
+    const previewTotal = previewCamps.reduce((sum, pc) => sum + (parseFloat(pc.price) || 0), 0);
+    const currentTotal = scheduledCamps
+      .filter(sc => sc.status !== 'cancelled')
+      .reduce((sum, sc) => sum + (parseFloat(sc.price) || 0), 0);
+    return {
+      previewTotal,
+      currentTotal,
+      newTotal: currentTotal + previewTotal,
+      difference: previewTotal
+    };
+  }, [previewCamps, scheduledCamps, previewMode]);
+
   // Group scheduled camps by child and week
   const scheduleByChildAndWeek = useMemo(() => {
     const result = {};
@@ -81,7 +106,7 @@ export function SchedulePlanner({ camps, onClose }) {
       });
     });
 
-    scheduledCamps.forEach(sc => {
+    allDisplayCamps.forEach(sc => {
       const scStart = new Date(sc.start_date);
 
       summerWeeks.forEach(week => {
@@ -97,7 +122,7 @@ export function SchedulePlanner({ camps, onClose }) {
     });
 
     return result;
-  }, [children, scheduledCamps]);
+  }, [children, allDisplayCamps]);
 
   // Get current child's schedule
   const currentChildSchedule = selectedChild ? scheduleByChildAndWeek[selectedChild] || {} : {};
@@ -124,6 +149,26 @@ export function SchedulePlanner({ camps, onClose }) {
 
     const campData = camps.find(c => c.id === camp.id);
 
+    // In preview mode, add to preview camps instead of database
+    if (previewMode) {
+      const previewCamp = {
+        id: `preview-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        camp_id: camp.id,
+        child_id: selectedChild,
+        start_date: week.startDate,
+        end_date: week.endDate,
+        price: campData?.min_price || null,
+        status: 'preview',
+        isPreview: true,
+        camps: campData // Include camp data for display
+      };
+      setPreviewCamps(prev => [...prev, previewCamp]);
+      setShowAddCamp(null);
+      setSearchQuery('');
+      setShowCampDrawer(false);
+      return;
+    }
+
     await addScheduledCamp({
       camp_id: camp.id,
       child_id: selectedChild,
@@ -139,8 +184,40 @@ export function SchedulePlanner({ camps, onClose }) {
     setShowCampDrawer(false);
   }
 
+  // Preview mode functions
+  function handleRemovePreviewCamp(previewId) {
+    setPreviewCamps(prev => prev.filter(pc => pc.id !== previewId));
+  }
+
+  async function handleCommitPreviewCamps() {
+    // Save all preview camps to database
+    for (const pc of previewCamps) {
+      await addScheduledCamp({
+        camp_id: pc.camp_id,
+        child_id: pc.child_id,
+        start_date: pc.start_date,
+        end_date: pc.end_date,
+        price: pc.price,
+        status: 'planned'
+      });
+    }
+    await refreshSchedule();
+    setPreviewCamps([]);
+    setPreviewMode(false);
+  }
+
+  function handleCancelPreview() {
+    setPreviewCamps([]);
+    setPreviewMode(false);
+  }
+
   async function handleRemoveCamp(scheduleId, e) {
     e?.stopPropagation();
+    // Check if this is a preview camp
+    if (typeof scheduleId === 'string' && scheduleId.startsWith('preview-')) {
+      handleRemovePreviewCamp(scheduleId);
+      return;
+    }
     if (confirm('Remove this camp from your schedule?')) {
       await deleteScheduledCamp(scheduleId);
       await refreshSchedule();
@@ -260,6 +337,170 @@ export function SchedulePlanner({ camps, onClose }) {
   // Check if user has any squads (to show the toggle)
   const hasSquads = squads.length > 0;
 
+  // Render week card helper function
+  function renderWeekCard(week) {
+    const weekCamps = currentChildSchedule[week.weekNum] || [];
+    const isGap = gaps.some(g => g.weekNum === week.weekNum);
+    const isDragOver = dragOverWeek === week.weekNum;
+    const blocked = getBlockedWeek(week.weekNum);
+    const isBlockMenuOpen = showBlockMenu?.weekNum === week.weekNum;
+
+    return (
+      <div
+        key={week.weekNum}
+        className={`week-card ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''}`}
+        style={blocked ? { '--block-color': blocked.color } : { '--child-color': selectedChildData?.color || 'var(--ocean-500)' }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!blocked) setDragOverWeek(week.weekNum);
+        }}
+        onDragLeave={() => setDragOverWeek(null)}
+        onDrop={(e) => !blocked && handleWeekDrop(week.weekNum, e)}
+        onClick={() => {
+          if (weekCamps.length === 0 && !blocked && !isBlockMenuOpen) {
+            setShowBlockMenu({ weekNum: week.weekNum });
+          }
+        }}
+      >
+        {/* Week Header */}
+        <div className="week-card-header">
+          <span className="week-card-number">{week.weekNum}</span>
+          <div className="week-card-dates">
+            <span className="week-card-label">{week.label}</span>
+            <span className="week-card-range">{week.display}</span>
+          </div>
+        </div>
+
+        {/* Week Content */}
+        <div className="week-card-content">
+          {blocked ? (
+            <div className="week-blocked" style={{ '--block-color': blocked.color }}>
+              <span className="week-blocked-icon">{blocked.icon}</span>
+              <span className="week-blocked-label">{blocked.label}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUnblockWeek(week.weekNum);
+                }}
+                className="week-blocked-remove"
+              >
+                <XIcon />
+              </button>
+            </div>
+          ) : weekCamps.length > 0 ? (
+            weekCamps.map(sc => {
+              const campInfo = camps.find(c => c.id === sc.camp_id);
+              const lookingForFriends = isLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
+              const isPreviewCamp = sc.isPreview === true;
+              const categoryColors = {
+                'Sports': '#3b82f6',
+                'Arts': '#ec4899',
+                'STEM': '#8b5cf6',
+                'Nature': '#22c55e',
+                'Academic': '#f59e0b',
+                'Multi-Activity': '#14b8a6',
+                'Performing Arts': '#f43f5e'
+              };
+              const catColor = categoryColors[campInfo?.category] || 'var(--ocean-500)';
+              return (
+                <div
+                  key={sc.id}
+                  className={`camp-card-enhanced ${lookingForFriends ? 'looking-for-friends' : ''} ${isPreviewCamp ? 'preview-camp-card' : ''}`}
+                  style={{ '--child-color': selectedChildData?.color || 'var(--ocean-500)', '--cat-color': catColor }}
+                >
+                  <div className="camp-card-accent" />
+                  <div className="camp-card-body">
+                    <div className="camp-card-top">
+                      <span className="camp-card-category">{campInfo?.category}</span>
+                      <button
+                        onClick={(e) => handleRemoveCamp(sc.id, e)}
+                        className="camp-card-remove"
+                      >
+                        <XIcon />
+                      </button>
+                    </div>
+                    <h4 className="camp-card-name">{campInfo?.camp_name || 'Unknown'}</h4>
+                    <div className="camp-card-details">
+                      <span className="camp-card-price">
+                        {sc.price ? `$${sc.price}` : 'TBD'}
+                      </span>
+                      <span className={`camp-card-status status-${sc.status}`}>
+                        {sc.status}
+                      </span>
+                    </div>
+                    {hasSquads && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
+                        }}
+                        className={`camp-card-friends ${lookingForFriends ? 'active' : ''}`}
+                      >
+                        <span>👥</span>
+                        <span>{lookingForFriends ? 'Looking for friends' : 'Find friends'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="week-empty">
+              <div className="week-empty-icon">
+                <PlusIcon />
+              </div>
+              <span>Add camp</span>
+            </div>
+          )}
+        </div>
+
+        {/* Gap indicator */}
+        {isGap && weekCamps.length === 0 && !blocked && (
+          <div className="week-gap-badge">
+            <WarningIcon />
+            Gap
+          </div>
+        )}
+
+        {/* Block Menu Popup */}
+        {isBlockMenuOpen && (
+          <div className="week-block-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="block-menu-header">
+              <span>What's happening?</span>
+              <button onClick={() => setShowBlockMenu(null)} className="block-menu-close">
+                <XIcon />
+              </button>
+            </div>
+            <button
+              onClick={() => {
+                setShowBlockMenu(null);
+                setShowAddCamp({ weekNum: week.weekNum });
+              }}
+              className="block-menu-option block-menu-camp"
+            >
+              <span className="block-menu-icon">🏕️</span>
+              <span>Add a Camp</span>
+            </button>
+            <div className="block-menu-divider">
+              <span>or mark as...</span>
+            </div>
+            {BLOCK_TYPES.map(block => (
+              <button
+                key={block.id}
+                onClick={() => handleBlockWeek(week.weekNum, block)}
+                className="block-menu-option"
+                style={{ '--block-color': block.color }}
+              >
+                <span className="block-menu-icon">{block.icon}</span>
+                <span>{block.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Mobile swipe handling
   function handleSwipe(direction) {
     if (direction === 'left' && currentWeekIndex < summerWeeks.length - 1) {
@@ -305,8 +546,18 @@ export function SchedulePlanner({ camps, onClose }) {
             ))}
           </div>
 
-          {/* Right: Notification Bell */}
+          {/* Right: Actions */}
           <div className="planner-header-right">
+            <button
+              onClick={() => setPreviewMode(!previewMode)}
+              className={`planner-preview-toggle ${previewMode ? 'active' : ''}`}
+              title={previewMode ? 'Exit What-If Mode' : 'What-If Planning'}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              <span className="planner-preview-label">What-If</span>
+            </button>
             <SquadNotificationBell />
           </div>
         </div>
@@ -349,6 +600,44 @@ export function SchedulePlanner({ camps, onClose }) {
         </button>
       </div>
 
+      {/* Preview Mode Banner */}
+      {previewMode && (
+        <div className="planner-preview-banner">
+          <div className="planner-preview-content">
+            <span className="planner-preview-icon">🔮</span>
+            <div className="planner-preview-info">
+              <p className="planner-preview-title">What-If Planning Mode</p>
+              <p className="planner-preview-text">
+                {previewCamps.length === 0
+                  ? 'Drag camps to see how they affect your budget'
+                  : `${previewCamps.length} camp${previewCamps.length > 1 ? 's' : ''} in preview`}
+                {previewCostImpact && previewCostImpact.difference > 0 && (
+                  <span className="planner-preview-cost">
+                    {' '}• +${previewCostImpact.difference.toLocaleString()} (Total: ${previewCostImpact.newTotal.toLocaleString()})
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="planner-preview-actions">
+            {previewCamps.length > 0 && (
+              <button
+                onClick={handleCommitPreviewCamps}
+                className="planner-preview-commit"
+              >
+                Add to Schedule
+              </button>
+            )}
+            <button
+              onClick={handleCancelPreview}
+              className="planner-preview-cancel"
+            >
+              {previewCamps.length > 0 ? 'Discard' : 'Exit Preview'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       {activeTab === 'squads' ? (
         <div className="planner-main" style={{ padding: 0 }}>
@@ -357,7 +646,7 @@ export function SchedulePlanner({ camps, onClose }) {
       ) : (
       <main className="planner-main">
         {/* Sample Data Banner */}
-        {hasSampleData && (
+        {hasSampleData && !previewMode && (
           <div className="planner-sample-banner">
             <div className="planner-sample-content">
               <span className="planner-sample-icon">✨</span>
@@ -390,10 +679,74 @@ export function SchedulePlanner({ camps, onClose }) {
           </div>
         ) : (
           <div className="planner-layout">
+            {/* Summer at a Glance - Hero Visualization */}
+            <div className="summer-glance">
+              <div className="summer-glance-header">
+                <div className="summer-glance-title">
+                  <span className="summer-glance-label">Summer at a Glance</span>
+                  <h2 className="summer-glance-child">
+                    {selectedChildData?.name}'s Adventure
+                  </h2>
+                </div>
+                <div className="summer-glance-stats">
+                  <div className="glance-stat glance-stat-weeks">
+                    <span className="glance-stat-value">{scheduledCamps.filter(sc => sc.child_id === selectedChild).length}</span>
+                    <span className="glance-stat-label">Camps</span>
+                  </div>
+                  <div className="glance-stat glance-stat-coverage">
+                    <span className="glance-stat-value">{Math.round(((11 - gaps.length) / 11) * 100)}%</span>
+                    <span className="glance-stat-label">Coverage</span>
+                  </div>
+                </div>
+              </div>
+              <div className="summer-glance-timeline">
+                <div className="glance-months">
+                  <span className="glance-month">June</span>
+                  <span className="glance-month">July</span>
+                  <span className="glance-month">August</span>
+                </div>
+                <div className="glance-bar">
+                  {summerWeeks.map((week) => {
+                    const weekCamps = currentChildSchedule[week.weekNum] || [];
+                    const blocked = getBlockedWeek(week.weekNum);
+                    const isGap = gaps.some(g => g.weekNum === week.weekNum) && !blocked;
+                    const campInfo = weekCamps[0] ? camps.find(c => c.id === weekCamps[0].camp_id) : null;
+                    return (
+                      <div
+                        key={week.weekNum}
+                        className={`glance-segment ${weekCamps.length > 0 ? 'filled' : ''} ${blocked ? 'blocked' : ''} ${isGap ? 'gap' : ''}`}
+                        style={weekCamps.length > 0 ? { '--segment-color': selectedChildData?.color } : blocked ? { '--segment-color': blocked.color } : {}}
+                        title={`${week.label}: ${weekCamps.length > 0 ? campInfo?.camp_name || 'Camp' : blocked ? blocked.label : isGap ? 'Coverage gap' : 'Open'}`}
+                      >
+                        {weekCamps.length > 0 && <span className="glance-segment-pip" />}
+                        {blocked && <span className="glance-segment-icon">{blocked.icon}</span>}
+                        {isGap && <span className="glance-segment-warning">!</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="glance-legend">
+                  <span className="glance-legend-item">
+                    <span className="legend-dot legend-filled" style={{ background: selectedChildData?.color }} />
+                    Scheduled
+                  </span>
+                  <span className="glance-legend-item">
+                    <span className="legend-dot legend-blocked" />
+                    Blocked
+                  </span>
+                  <span className="glance-legend-item">
+                    <span className="legend-dot legend-gap" />
+                    Gap
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Camp Sidebar */}
+            <div className="planner-content-area">
             <aside className={`planner-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
               <div className="planner-sidebar-header">
-                <h3 className="planner-sidebar-title">Camps</h3>
+                <h3 className="planner-sidebar-title">Camp Library</h3>
                 <button
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                   className="planner-sidebar-toggle"
@@ -425,30 +778,49 @@ export function SchedulePlanner({ camps, onClose }) {
                   </div>
 
                   <div className="planner-sidebar-hint">
-                    <span>Drag camps to weeks →</span>
+                    <DragIcon />
+                    <span>Drag to schedule</span>
                   </div>
 
                   <div className="planner-sidebar-list">
-                    {sidebarCamps.map(camp => (
-                      <div
-                        key={camp.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(camp, e)}
-                        onDragEnd={handleDragEnd}
-                        className={`planner-sidebar-camp ${draggedCamp?.id === camp.id ? 'dragging' : ''}`}
-                      >
-                        <div className="planner-sidebar-camp-name">{camp.camp_name}</div>
-                        <div className="planner-sidebar-camp-meta">
-                          <span className="planner-sidebar-camp-category">{camp.category}</span>
-                          <span className="planner-sidebar-camp-price">
-                            {camp.min_price ? `$${camp.min_price}` : 'TBD'}
-                          </span>
+                    {sidebarCamps.map(camp => {
+                      const categoryColors = {
+                        'Sports': '#3b82f6',
+                        'Arts': '#ec4899',
+                        'STEM': '#8b5cf6',
+                        'Nature': '#22c55e',
+                        'Academic': '#f59e0b',
+                        'Multi-Activity': '#14b8a6',
+                        'Performing Arts': '#f43f5e'
+                      };
+                      const catColor = categoryColors[camp.category] || 'var(--ocean-500)';
+                      return (
+                        <div
+                          key={camp.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(camp, e)}
+                          onDragEnd={handleDragEnd}
+                          className={`planner-sidebar-camp ${draggedCamp?.id === camp.id ? 'dragging' : ''}`}
+                          style={{ '--cat-color': catColor }}
+                        >
+                          <div className="sidebar-camp-accent" />
+                          <div className="sidebar-camp-content">
+                            <div className="planner-sidebar-camp-name">{camp.camp_name}</div>
+                            <div className="planner-sidebar-camp-meta">
+                              <span className="planner-sidebar-camp-category">{camp.category}</span>
+                              <span className="planner-sidebar-camp-price">
+                                {camp.min_price ? `$${camp.min_price}` : 'TBD'}
+                              </span>
+                            </div>
+                          </div>
+                          <GripIcon className="sidebar-camp-grip" />
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {sidebarCamps.length === 0 && (
                       <div className="planner-sidebar-empty">
-                        No camps found
+                        <span className="sidebar-empty-icon">🔍</span>
+                        <span>No camps found</span>
                       </div>
                     )}
                   </div>
@@ -458,161 +830,40 @@ export function SchedulePlanner({ camps, onClose }) {
 
             {/* Timeline View */}
             <div className="planner-timeline">
-              {/* Month Labels */}
-              <div className="planner-months">
-                <div className="planner-month-label" style={{ gridColumn: '1 / 5' }}>June</div>
-                <div className="planner-month-label" style={{ gridColumn: '5 / 9' }}>July</div>
-                <div className="planner-month-label" style={{ gridColumn: '9 / 12' }}>August</div>
-              </div>
+              {/* Editorial Month Sections */}
+              <div className="month-sections">
+                {/* June */}
+                <section className="month-section month-june">
+                  <div className="month-header">
+                    <h3 className="month-name">June</h3>
+                    <span className="month-range">Jun 8 - Jul 3</span>
+                  </div>
+                  <div className="month-weeks">
+                    {summerWeeks.slice(0, 4).map((week) => renderWeekCard(week))}
+                  </div>
+                </section>
 
-              {/* Week Grid */}
-              <div className="planner-weeks-container" ref={weekScrollRef}>
-                <div className="planner-weeks">
-                  {summerWeeks.map((week) => {
-                    const weekCamps = currentChildSchedule[week.weekNum] || [];
-                    const isGap = gaps.some(g => g.weekNum === week.weekNum);
-                    const isDragOver = dragOverWeek === week.weekNum;
-                    const blocked = getBlockedWeek(week.weekNum);
-                    const isBlockMenuOpen = showBlockMenu?.weekNum === week.weekNum;
+                {/* July */}
+                <section className="month-section month-july">
+                  <div className="month-header">
+                    <h3 className="month-name">July</h3>
+                    <span className="month-range">Jul 6 - Aug 1</span>
+                  </div>
+                  <div className="month-weeks">
+                    {summerWeeks.slice(4, 8).map((week) => renderWeekCard(week))}
+                  </div>
+                </section>
 
-                    return (
-                      <div
-                        key={week.weekNum}
-                        className={`planner-week ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''}`}
-                        style={blocked ? { '--block-color': blocked.color } : {}}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          if (!blocked) setDragOverWeek(week.weekNum);
-                        }}
-                        onDragLeave={() => setDragOverWeek(null)}
-                        onDrop={(e) => !blocked && handleWeekDrop(week.weekNum, e)}
-                        onClick={() => {
-                          if (weekCamps.length === 0 && !blocked && !isBlockMenuOpen) {
-                            setShowBlockMenu({ weekNum: week.weekNum });
-                          }
-                        }}
-                      >
-                        {/* Week Header */}
-                        <div className="planner-week-header">
-                          <span className="planner-week-label">{week.label}</span>
-                          <span className="planner-week-dates">{week.display}</span>
-                        </div>
-
-                        {/* Week Content */}
-                        <div className="planner-week-content">
-                          {blocked ? (
-                            // Blocked week display
-                            <div className="planner-block-card" style={{ '--block-color': blocked.color }}>
-                              <span className="planner-block-icon">{blocked.icon}</span>
-                              <span className="planner-block-label">{blocked.label}</span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUnblockWeek(week.weekNum);
-                                }}
-                                className="planner-block-remove"
-                                aria-label="Remove block"
-                              >
-                                <XIcon />
-                              </button>
-                            </div>
-                          ) : weekCamps.length > 0 ? (
-                            weekCamps.map(sc => {
-                              const campInfo = camps.find(c => c.id === sc.camp_id);
-                              const lookingForFriends = isLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
-                              return (
-                                <div
-                                  key={sc.id}
-                                  className={`planner-camp-card ${lookingForFriends ? 'looking-for-friends' : ''}`}
-                                  style={{ '--child-color': selectedChildData?.color || 'var(--ocean-500)' }}
-                                >
-                                  <div className="planner-camp-header">
-                                    <span className="planner-camp-name">{campInfo?.camp_name || 'Unknown'}</span>
-                                    <button
-                                      onClick={(e) => handleRemoveCamp(sc.id, e)}
-                                      className="planner-camp-remove"
-                                      aria-label="Remove camp"
-                                    >
-                                      <XIcon />
-                                    </button>
-                                  </div>
-                                  <div className="planner-camp-meta">
-                                    <span className="planner-camp-price">
-                                      {sc.price ? `$${sc.price}` : 'TBD'}
-                                    </span>
-                                    <span className={`planner-camp-status status-${sc.status}`}>
-                                      {sc.status}
-                                    </span>
-                                  </div>
-                                  {/* Looking for friends toggle - only show if user has squads */}
-                                  {hasSquads && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleToggleLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
-                                      }}
-                                      className={`planner-camp-friends-toggle ${lookingForFriends ? 'active' : ''}`}
-                                      title={lookingForFriends ? 'Looking for friends' : 'Find friends for this camp'}
-                                    >
-                                      <span className="friends-icon">👥</span>
-                                      <span className="friends-text">{lookingForFriends ? 'Looking' : 'Find friends'}</span>
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <div className="planner-week-empty">
-                              <PlusIcon />
-                              <span>Add</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Gap indicator */}
-                        {isGap && weekCamps.length === 0 && !blocked && (
-                          <div className="planner-gap-badge">Gap</div>
-                        )}
-
-                        {/* Block Menu Popup */}
-                        {isBlockMenuOpen && (
-                          <div className="planner-block-menu" onClick={(e) => e.stopPropagation()}>
-                            <div className="planner-block-menu-header">
-                              <span>What's happening?</span>
-                              <button onClick={() => setShowBlockMenu(null)} className="planner-block-menu-close">
-                                <XIcon />
-                              </button>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setShowBlockMenu(null);
-                                setShowAddCamp({ weekNum: week.weekNum });
-                              }}
-                              className="planner-block-option planner-block-option-camp"
-                            >
-                              <span className="planner-block-option-icon">🏕️</span>
-                              <span>Add a Camp</span>
-                            </button>
-                            <div className="planner-block-divider">
-                              <span>or mark as...</span>
-                            </div>
-                            {BLOCK_TYPES.map(block => (
-                              <button
-                                key={block.id}
-                                onClick={() => handleBlockWeek(week.weekNum, block)}
-                                className="planner-block-option"
-                                style={{ '--block-color': block.color }}
-                              >
-                                <span className="planner-block-option-icon">{block.icon}</span>
-                                <span>{block.label}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                {/* August */}
+                <section className="month-section month-august">
+                  <div className="month-header">
+                    <h3 className="month-name">August</h3>
+                    <span className="month-range">Aug 4 - 22</span>
+                  </div>
+                  <div className="month-weeks">
+                    {summerWeeks.slice(8).map((week) => renderWeekCard(week))}
+                  </div>
+                </section>
               </div>
 
               {/* Mobile Week Navigator */}
@@ -637,29 +888,6 @@ export function SchedulePlanner({ camps, onClose }) {
                 </button>
               </div>
             </div>
-
-            {/* Coverage Summary */}
-            <div className="planner-coverage">
-              <div className="planner-coverage-bar">
-                {summerWeeks.map((week) => {
-                  const weekCamps = currentChildSchedule[week.weekNum] || [];
-                  const blocked = getBlockedWeek(week.weekNum);
-                  const isGap = gaps.some(g => g.weekNum === week.weekNum) && !blocked;
-                  return (
-                    <div
-                      key={week.weekNum}
-                      className={`planner-coverage-segment ${weekCamps.length > 0 ? 'filled' : ''} ${blocked ? 'blocked' : ''} ${isGap ? 'gap' : ''}`}
-                      style={weekCamps.length > 0 ? { background: selectedChildData?.color } : blocked ? { background: blocked.color } : {}}
-                      title={`${week.label}: ${weekCamps.length > 0 ? 'Scheduled' : blocked ? blocked.label : isGap ? 'Gap' : 'Open'}`}
-                    />
-                  );
-                })}
-              </div>
-              <div className="planner-coverage-labels">
-                <span>June</span>
-                <span>July</span>
-                <span>August</span>
-              </div>
             </div>
           </div>
         )}
@@ -1161,25 +1389,253 @@ export function SchedulePlanner({ camps, onClose }) {
         }
 
         /* ─────────────────────────────────────────────────────────────────────
+           SUMMER AT A GLANCE - Hero Visualization
+           ───────────────────────────────────────────────────────────────────── */
+
+        .summer-glance {
+          background: linear-gradient(135deg, white 0%, var(--sand-50) 100%);
+          border: 1px solid var(--sand-200);
+          border-radius: 20px;
+          padding: 24px 28px;
+          margin-bottom: 28px;
+          box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.06);
+        }
+
+        .summer-glance-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 24px;
+          margin-bottom: 20px;
+        }
+
+        .summer-glance-label {
+          display: block;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          color: var(--ocean-600);
+          margin-bottom: 6px;
+        }
+
+        .summer-glance-child {
+          font-family: 'Fraunces', Georgia, serif;
+          font-size: 1.75rem;
+          font-weight: 600;
+          color: var(--earth-800);
+          line-height: 1.2;
+        }
+
+        .summer-glance-stats {
+          display: flex;
+          gap: 20px;
+        }
+
+        .glance-stat {
+          text-align: center;
+          padding: 12px 20px;
+          background: white;
+          border-radius: 12px;
+          border: 1px solid var(--sand-200);
+          min-width: 80px;
+        }
+
+        .glance-stat-value {
+          display: block;
+          font-family: 'Fraunces', Georgia, serif;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--earth-800);
+          line-height: 1;
+        }
+
+        .glance-stat-weeks .glance-stat-value {
+          color: var(--ocean-600);
+        }
+
+        .glance-stat-coverage .glance-stat-value {
+          color: var(--forest-600);
+        }
+
+        .glance-stat-label {
+          display: block;
+          font-size: 0.65rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--earth-500);
+          margin-top: 4px;
+        }
+
+        .summer-glance-timeline {
+          position: relative;
+        }
+
+        .glance-months {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          padding: 0 4px;
+        }
+
+        .glance-month {
+          font-family: 'Fraunces', Georgia, serif;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--earth-600);
+        }
+
+        .glance-bar {
+          display: flex;
+          gap: 4px;
+          height: 48px;
+          padding: 4px;
+          background: var(--sand-100);
+          border-radius: 12px;
+        }
+
+        .glance-segment {
+          flex: 1;
+          border-radius: 8px;
+          background: var(--sand-200);
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+        }
+
+        .glance-segment:hover {
+          transform: scaleY(1.1);
+        }
+
+        .glance-segment.filled {
+          background: linear-gradient(135deg, var(--segment-color) 0%, color-mix(in srgb, var(--segment-color) 80%, black) 100%);
+          box-shadow: 0 2px 8px -2px var(--segment-color);
+        }
+
+        .glance-segment.blocked {
+          background: linear-gradient(135deg, var(--segment-color) 0%, color-mix(in srgb, var(--segment-color) 70%, black) 100%);
+        }
+
+        .glance-segment.gap {
+          background: var(--terra-100);
+          border: 2px dashed var(--terra-300);
+        }
+
+        .glance-segment-pip {
+          width: 6px;
+          height: 6px;
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 50%;
+        }
+
+        .glance-segment-icon {
+          font-size: 0.875rem;
+        }
+
+        .glance-segment-warning {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--terra-600);
+        }
+
+        .glance-legend {
+          display: flex;
+          justify-content: center;
+          gap: 24px;
+          margin-top: 12px;
+        }
+
+        .glance-legend-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.75rem;
+          color: var(--earth-600);
+        }
+
+        .legend-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 3px;
+        }
+
+        .legend-dot.legend-blocked {
+          background: var(--purple-400);
+        }
+
+        .legend-dot.legend-gap {
+          background: var(--terra-200);
+          border: 1px dashed var(--terra-400);
+        }
+
+        @media (max-width: 767px) {
+          .summer-glance {
+            padding: 16px;
+            margin-bottom: 20px;
+          }
+
+          .summer-glance-header {
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .summer-glance-child {
+            font-size: 1.25rem;
+          }
+
+          .summer-glance-stats {
+            width: 100%;
+          }
+
+          .glance-stat {
+            flex: 1;
+            padding: 10px 12px;
+          }
+
+          .glance-stat-value {
+            font-size: 1.25rem;
+          }
+
+          .glance-bar {
+            height: 36px;
+          }
+        }
+
+        /* ─────────────────────────────────────────────────────────────────────
            SIDEBAR + LAYOUT
            ───────────────────────────────────────────────────────────────────── */
 
         .planner-layout {
           display: flex;
+          flex-direction: column;
           gap: 0;
-          height: 100%;
           min-height: 0;
+          height: 100%;
+        }
+
+        .planner-content-area {
+          display: flex;
+          gap: 0;
+          flex: 1;
+          min-height: 0;
+          overflow: hidden;
         }
 
         .planner-sidebar {
-          width: 280px;
+          width: 300px;
           flex-shrink: 0;
-          background: var(--sand-50);
+          background: white;
           border-right: 1px solid var(--sand-200);
           display: flex;
           flex-direction: column;
           transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
+          border-radius: 16px 0 0 16px;
+          margin-right: -1px;
         }
 
         .planner-sidebar.collapsed {
@@ -1190,18 +1646,17 @@ export function SchedulePlanner({ camps, onClose }) {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 16px;
-          border-bottom: 1px solid var(--sand-200);
+          padding: 18px 16px;
+          border-bottom: 1px solid var(--sand-100);
           min-height: 56px;
+          background: linear-gradient(135deg, var(--sand-50) 0%, white 100%);
         }
 
         .planner-sidebar-title {
-          font-family: 'Outfit', sans-serif;
-          font-size: 0.8125rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--earth-700);
+          font-family: 'Fraunces', Georgia, serif;
+          font-size: 1rem;
+          font-weight: 600;
+          color: var(--earth-800);
           white-space: nowrap;
         }
 
@@ -1231,6 +1686,27 @@ export function SchedulePlanner({ camps, onClose }) {
           width: 14px;
           height: 14px;
           color: var(--earth-600);
+        }
+
+        .planner-sidebar-hint {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          background: linear-gradient(90deg, var(--ocean-50) 0%, var(--ocean-50) 100%);
+          border-bottom: 1px solid var(--ocean-100);
+        }
+
+        .planner-sidebar-hint svg {
+          width: 16px;
+          height: 16px;
+          color: var(--ocean-500);
+        }
+
+        .planner-sidebar-hint span {
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: var(--ocean-700);
         }
 
         .planner-sidebar-search {
@@ -1300,18 +1776,6 @@ export function SchedulePlanner({ camps, onClose }) {
           color: var(--earth-600);
         }
 
-        .planner-sidebar-hint {
-          padding: 8px 16px;
-          background: var(--ocean-50);
-          border-bottom: 1px solid var(--sand-200);
-        }
-
-        .planner-sidebar-hint span {
-          font-size: 0.75rem;
-          color: var(--ocean-600);
-          font-weight: 500;
-        }
-
         .planner-sidebar-list {
           flex: 1;
           overflow-y: auto;
@@ -1319,34 +1783,61 @@ export function SchedulePlanner({ camps, onClose }) {
         }
 
         .planner-sidebar-camp {
-          padding: 12px;
-          margin-bottom: 6px;
-          background: #fff;
+          display: flex;
+          align-items: stretch;
+          gap: 0;
+          margin-bottom: 8px;
+          background: white;
           border: 1px solid var(--sand-200);
           border-radius: 10px;
           cursor: grab;
           transition: all 0.2s;
+          overflow: hidden;
         }
 
         .planner-sidebar-camp:hover {
-          border-color: var(--ocean-300);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-          transform: translateY(-1px);
+          border-color: var(--cat-color);
+          box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.1);
+          transform: translateY(-2px);
         }
 
         .planner-sidebar-camp:active,
         .planner-sidebar-camp.dragging {
           cursor: grabbing;
-          opacity: 0.7;
+          opacity: 0.8;
           transform: scale(0.98);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar-camp-accent {
+          width: 4px;
+          flex-shrink: 0;
+          background: var(--cat-color);
+        }
+
+        .sidebar-camp-content {
+          flex: 1;
+          padding: 12px;
+          min-width: 0;
+        }
+
+        .sidebar-camp-grip {
+          width: 20px;
+          height: 20px;
+          color: var(--sand-300);
+          margin: auto 8px;
+          flex-shrink: 0;
+        }
+
+        .planner-sidebar-camp:hover .sidebar-camp-grip {
+          color: var(--sand-500);
         }
 
         .planner-sidebar-camp-name {
           font-size: 0.8125rem;
           font-weight: 600;
           color: var(--earth-800);
-          margin-bottom: 4px;
+          margin-bottom: 6px;
           line-height: 1.3;
           display: -webkit-box;
           -webkit-line-clamp: 2;
@@ -1362,22 +1853,37 @@ export function SchedulePlanner({ camps, onClose }) {
         }
 
         .planner-sidebar-camp-category {
-          font-size: 0.6875rem;
+          font-size: 0.625rem;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: var(--sand-500);
-          font-weight: 500;
+          letter-spacing: 0.06em;
+          color: var(--cat-color);
+          font-weight: 600;
+          background: color-mix(in srgb, var(--cat-color) 10%, white);
+          padding: 2px 6px;
+          border-radius: 4px;
         }
 
         .planner-sidebar-camp-price {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: var(--ocean-600);
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: var(--earth-700);
         }
 
         .planner-sidebar-empty {
-          padding: 32px 16px;
+          padding: 40px 16px;
           text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .sidebar-empty-icon {
+          font-size: 1.5rem;
+          opacity: 0.5;
+        }
+
+        .planner-sidebar-empty span {
           color: var(--sand-500);
           font-size: 0.875rem;
         }
@@ -1388,7 +1894,7 @@ export function SchedulePlanner({ camps, onClose }) {
             display: none;
           }
 
-          .planner-layout {
+          .planner-content-area {
             display: block;
           }
         }
@@ -1470,202 +1976,619 @@ export function SchedulePlanner({ camps, onClose }) {
         }
 
         /* ─────────────────────────────────────────────────────────────────────
-           TIMELINE VIEW
+           EDITORIAL MONTH SECTIONS
            ───────────────────────────────────────────────────────────────────── */
 
         .planner-timeline {
           flex: 1;
           min-width: 0;
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 20px;
-        }
-
-        @media (max-width: 1023px) {
-          .planner-timeline {
-            padding: 0;
-          }
-        }
-
-        /* Month Labels */
-        .planner-months {
-          display: none;
-          grid-template-columns: repeat(11, 1fr);
-          gap: 8px;
-          margin-bottom: 16px;
           padding: 0;
+          background: white;
+          border-radius: 0 16px 16px 0;
+          overflow-y: auto;
         }
 
-        @media (min-width: 768px) {
-          .planner-months {
-            display: grid;
-          }
+        .month-sections {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
         }
 
-        .planner-month-label {
-          font-family: 'Fraunces', Georgia, serif;
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: var(--earth-800);
-          padding: 12px 0 8px;
+        .month-section {
+          padding: 24px;
+          border-bottom: 1px solid var(--sand-100);
+        }
+
+        .month-section:last-child {
+          border-bottom: none;
+        }
+
+        .month-header {
+          display: flex;
+          align-items: baseline;
+          gap: 12px;
+          margin-bottom: 20px;
+          padding-bottom: 12px;
           border-bottom: 2px solid var(--earth-800);
         }
 
-        .planner-month-label:nth-child(2) {
+        .month-june .month-header {
           border-color: var(--ocean-500);
         }
 
-        .planner-month-label:nth-child(3) {
+        .month-july .month-header {
+          border-color: var(--forest-500);
+        }
+
+        .month-august .month-header {
           border-color: var(--terra-500);
         }
 
-        /* Week Grid */
-        .planner-weeks-container {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          margin: 0 -20px;
-          padding: 0 20px;
+        .month-name {
+          font-family: 'Fraunces', Georgia, serif;
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: var(--earth-800);
+          margin: 0;
         }
 
-        .planner-weeks-container::-webkit-scrollbar {
-          display: none;
+        .month-range {
+          font-size: 0.8rem;
+          color: var(--earth-500);
         }
 
-        @media (min-width: 768px) {
-          .planner-weeks-container {
-            overflow-x: visible;
-            margin: 0;
-            padding: 0;
-          }
-        }
-
-        .planner-weeks {
+        .month-weeks {
           display: grid;
-          grid-template-columns: repeat(11, minmax(140px, 1fr));
-          gap: 8px;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
         }
 
-        @media (min-width: 768px) {
-          .planner-weeks {
-            grid-template-columns: repeat(11, 1fr);
+        .month-august .month-weeks {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        @media (max-width: 1023px) {
+          .month-weeks {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .month-august .month-weeks {
+            grid-template-columns: repeat(2, 1fr);
           }
         }
 
-        .planner-week {
+        @media (max-width: 640px) {
+          .month-weeks,
+          .month-august .month-weeks {
+            grid-template-columns: 1fr;
+          }
+          .month-section {
+            padding: 16px;
+          }
+        }
+
+        /* ─────────────────────────────────────────────────────────────────────
+           WEEK CARDS - Enhanced Design
+           ───────────────────────────────────────────────────────────────────── */
+
+        .week-card {
           background: var(--sand-50);
           border: 1px solid transparent;
           border-radius: 16px;
-          padding: 14px;
-          min-height: 130px;
+          padding: 16px;
+          min-height: 180px;
           display: flex;
           flex-direction: column;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
         }
 
-        .planner-week:hover {
+        .week-card:hover {
           background: white;
           border-color: var(--sand-200);
-          box-shadow: 0 4px 16px -4px rgba(31, 26, 22, 0.08);
+          box-shadow: 0 8px 24px -8px rgba(31, 26, 22, 0.1);
+          transform: translateY(-2px);
         }
 
-        .planner-week.has-camps {
+        .week-card.has-camps {
           background: white;
           border-color: var(--sand-200);
-          box-shadow: 0 2px 8px -2px rgba(31, 26, 22, 0.06);
+          box-shadow: 0 4px 16px -6px rgba(31, 26, 22, 0.08);
         }
 
-        .planner-week.is-gap {
+        .week-card.is-gap {
           background: linear-gradient(135deg, var(--sun-50) 0%, var(--terra-50) 100%);
-          border: 1px solid var(--sun-200);
+          border: 2px dashed var(--terra-300);
         }
 
-        .planner-week.is-gap:hover {
-          border-color: var(--terra-300);
+        .week-card.is-gap:hover {
+          border-color: var(--terra-400);
         }
 
-        .planner-week.drag-over {
-          border-color: var(--ocean-400);
+        .week-card.drag-over {
+          border: 2px solid var(--ocean-400);
           background: var(--ocean-50);
           box-shadow: 0 0 0 4px var(--ocean-100);
           transform: scale(1.02);
         }
 
-        .planner-week-header {
-          margin-bottom: 8px;
+        .week-card.is-blocked {
+          background: color-mix(in srgb, var(--block-color) 8%, white);
+          border-color: var(--block-color);
         }
 
-        .planner-week-label {
+        .week-card-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .week-card-number {
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--sand-100);
+          border-radius: 8px;
+          font-family: 'Fraunces', Georgia, serif;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--earth-600);
+          flex-shrink: 0;
+        }
+
+        .week-card.has-camps .week-card-number {
+          background: var(--child-color);
+          color: white;
+        }
+
+        .week-card-dates {
+          flex: 1;
+        }
+
+        .week-card-label {
           display: block;
-          font-family: 'Outfit', sans-serif;
-          font-weight: 700;
           font-size: 0.6875rem;
+          font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.08em;
-          color: var(--sand-500);
+          color: var(--earth-500);
           margin-bottom: 2px;
         }
 
-        .planner-week-dates {
+        .week-card-range {
+          display: block;
           font-family: 'Fraunces', Georgia, serif;
-          font-size: 0.875rem;
+          font-size: 0.9375rem;
           font-weight: 500;
           color: var(--earth-800);
         }
 
-        .planner-week-content {
+        .week-card-content {
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 8px;
         }
 
-        .planner-week-empty {
+        /* Empty Week State */
+        .week-empty {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          opacity: 0.4;
+          transition: opacity 0.2s ease;
+        }
+
+        .week-card:hover .week-empty {
+          opacity: 1;
+        }
+
+        .week-empty-icon {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--sand-100);
+          border-radius: 12px;
+          transition: all 0.2s ease;
+        }
+
+        .week-card:hover .week-empty-icon {
+          background: var(--ocean-100);
+        }
+
+        .week-empty-icon svg {
+          width: 20px;
+          height: 20px;
+          color: var(--sand-400);
+        }
+
+        .week-card:hover .week-empty-icon svg {
+          color: var(--ocean-500);
+        }
+
+        .week-empty span {
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: var(--sand-400);
+        }
+
+        .week-card:hover .week-empty span {
+          color: var(--ocean-600);
+        }
+
+        /* Gap Badge */
+        .week-gap-badge {
+          position: absolute;
+          top: -8px;
+          right: 16px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 10px;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          background: var(--terra-400);
+          color: white;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(232, 90, 53, 0.3);
+        }
+
+        .week-gap-badge svg {
+          width: 12px;
+          height: 12px;
+        }
+
+        /* Blocked Week */
+        .week-blocked {
           flex: 1;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 6px;
-          color: var(--sand-300);
-          font-size: 0.75rem;
-          opacity: 0;
-          transition: opacity 0.2s ease;
+          padding: 16px;
+          background: linear-gradient(135deg, color-mix(in srgb, var(--block-color) 12%, white) 0%, color-mix(in srgb, var(--block-color) 20%, white) 100%);
+          border-radius: 12px;
+          position: relative;
         }
 
-        .planner-week:hover .planner-week-empty {
+        .week-blocked-icon {
+          font-size: 1.75rem;
+        }
+
+        .week-blocked-label {
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: color-mix(in srgb, var(--block-color) 60%, black);
+        }
+
+        .week-blocked-remove {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: white;
+          border: 1px solid var(--sand-200);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: all 0.2s;
+        }
+
+        .week-blocked:hover .week-blocked-remove {
           opacity: 1;
         }
 
-        .planner-week-empty svg {
-          width: 20px;
-          height: 20px;
-          opacity: 0.6;
+        .week-blocked-remove:hover {
+          background: var(--terra-50);
+          border-color: var(--terra-300);
         }
 
-        .planner-week-empty span {
-          font-weight: 500;
-          letter-spacing: 0.02em;
+        .week-blocked-remove svg {
+          width: 12px;
+          height: 12px;
+          color: var(--earth-600);
         }
 
-        .planner-gap-badge {
+        /* Block Menu */
+        .week-block-menu {
           position: absolute;
-          top: -6px;
-          right: 12px;
-          padding: 3px 8px;
-          font-size: 0.625rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          background: var(--sun-400);
-          color: var(--earth-800);
-          border-radius: 4px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 100;
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 12px 48px -12px rgba(31, 26, 22, 0.25);
+          border: 1px solid var(--sand-200);
+          padding: 12px;
+          min-width: 200px;
+          animation: menuSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* Blocked Week Styles */
+        @keyframes menuSlideUp {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-8px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+          }
+        }
+
+        .block-menu-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 4px 4px 12px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--earth-800);
+        }
+
+        .block-menu-close {
+          width: 26px;
+          height: 26px;
+          border-radius: 8px;
+          background: var(--sand-50);
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .block-menu-close:hover {
+          background: var(--sand-100);
+        }
+
+        .block-menu-close svg {
+          width: 14px;
+          height: 14px;
+          color: var(--earth-600);
+        }
+
+        .block-menu-option {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          width: 100%;
+          padding: 12px 14px;
+          border: none;
+          background: none;
+          border-radius: 10px;
+          font-size: 0.9rem;
+          color: var(--earth-700);
+          cursor: pointer;
+          transition: all 0.15s ease;
+          text-align: left;
+        }
+
+        .block-menu-option:hover {
+          background: color-mix(in srgb, var(--block-color, var(--sand-100)) 12%, white);
+        }
+
+        .block-menu-camp {
+          --block-color: var(--ocean-500);
+          background: var(--ocean-50);
+          font-weight: 500;
+        }
+
+        .block-menu-camp:hover {
+          background: var(--ocean-100);
+        }
+
+        .block-menu-icon {
+          font-size: 1.25rem;
+        }
+
+        .block-menu-divider {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 0;
+          margin: 4px 0;
+        }
+
+        .block-menu-divider::before,
+        .block-menu-divider::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: var(--sand-200);
+        }
+
+        .block-menu-divider span {
+          font-size: 0.7rem;
+          color: var(--sand-400);
+          white-space: nowrap;
+        }
+
+        /* ─────────────────────────────────────────────────────────────────────
+           ENHANCED CAMP CARDS
+           ───────────────────────────────────────────────────────────────────── */
+
+        .camp-card-enhanced {
+          display: flex;
+          background: white;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.08);
+          border: 1px solid var(--sand-200);
+          transition: all 0.2s ease;
+        }
+
+        .camp-card-enhanced:hover {
+          box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.12);
+        }
+
+        .camp-card-enhanced.looking-for-friends {
+          border-color: var(--ocean-300);
+          box-shadow: 0 0 0 2px var(--ocean-100), 0 4px 16px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        .camp-card-accent {
+          width: 5px;
+          flex-shrink: 0;
+          background: linear-gradient(180deg, var(--child-color) 0%, color-mix(in srgb, var(--child-color) 70%, black) 100%);
+        }
+
+        .camp-card-body {
+          flex: 1;
+          padding: 12px;
+          min-width: 0;
+        }
+
+        .camp-card-top {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          margin-bottom: 6px;
+        }
+
+        .camp-card-category {
+          font-size: 0.5625rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--cat-color);
+          background: color-mix(in srgb, var(--cat-color) 12%, white);
+          padding: 3px 6px;
+          border-radius: 4px;
+        }
+
+        .camp-card-remove {
+          width: 22px;
+          height: 22px;
+          border-radius: 6px;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: all 0.2s;
+        }
+
+        .camp-card-enhanced:hover .camp-card-remove {
+          opacity: 1;
+        }
+
+        .camp-card-remove:hover {
+          background: var(--terra-100);
+        }
+
+        .camp-card-remove svg {
+          width: 14px;
+          height: 14px;
+          color: var(--earth-500);
+        }
+
+        .camp-card-remove:hover svg {
+          color: var(--terra-600);
+        }
+
+        .camp-card-name {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--earth-800);
+          margin: 0 0 8px;
+          line-height: 1.3;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .camp-card-details {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+
+        .camp-card-price {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: var(--earth-800);
+        }
+
+        .camp-card-status {
+          padding: 3px 8px;
+          border-radius: 6px;
+          font-size: 0.625rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          background: var(--sand-100);
+          color: var(--earth-600);
+        }
+
+        .camp-card-status.status-registered {
+          background: var(--sun-100);
+          color: var(--sun-700);
+        }
+
+        .camp-card-status.status-confirmed {
+          background: var(--forest-100);
+          color: var(--forest-700);
+        }
+
+        .camp-card-status.status-waitlisted {
+          background: var(--terra-100);
+          color: var(--terra-700);
+        }
+
+        .camp-card-friends {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding: 6px 10px;
+          background: var(--sand-50);
+          border: 1px solid var(--sand-200);
+          border-radius: 8px;
+          font-size: 0.6875rem;
+          color: var(--earth-600);
+          cursor: pointer;
+          transition: all 0.2s;
+          width: 100%;
+          justify-content: center;
+        }
+
+        .camp-card-friends:hover {
+          background: var(--ocean-50);
+          border-color: var(--ocean-200);
+          color: var(--ocean-700);
+        }
+
+        .camp-card-friends.active {
+          background: var(--ocean-100);
+          border-color: var(--ocean-300);
+          color: var(--ocean-700);
+        }
+
+        /* ─────────────────────────────────────────────────────────────────────
+           OLD STYLES (kept for backward compat)
+           ───────────────────────────────────────────────────────────────────── */
+
+        /* Old Blocked Week Styles - keeping for compatibility */
         .planner-week.is-blocked {
           background: color-mix(in srgb, var(--block-color) 10%, white);
           border-color: var(--block-color);
@@ -2581,10 +3504,26 @@ function ChevronRightIcon() {
   );
 }
 
-function GripIcon() {
+function GripIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
+    </svg>
+  );
+}
+
+function DragIcon() {
+  return (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+    </svg>
+  );
+}
+
+function WarningIcon() {
   return (
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
     </svg>
   );
 }

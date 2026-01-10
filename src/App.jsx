@@ -46,7 +46,10 @@ import { CampComparison } from './components/CampComparison';
 import { ReviewsList, ReviewsSummary } from './components/Reviews';
 import { AdminDashboard } from './components/AdminDashboard';
 import JoinSquad from './components/JoinSquad';
-import { supabase } from './lib/supabase';
+import { Settings } from './components/Settings';
+import { CostDashboard } from './components/CostDashboard';
+import { Wishlist } from './components/Wishlist';
+import { supabase, getRegistrationStatus, checkWorkScheduleCoverage } from './lib/supabase';
 
 // Fetch camps from Supabase
 async function fetchCamps(filters = {}) {
@@ -356,9 +359,15 @@ export default function App() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showCostDashboard, setShowCostDashboard] = useState(false);
+  const [showWishlist, setShowWishlist] = useState(false);
   const [compareList, setCompareList] = useState([]);
   const [modalCamp, setModalCamp] = useState(null); // Camp detail modal
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Work schedule filter
+  const [matchWorkSchedule, setMatchWorkSchedule] = useState(false);
 
   // Auth context
   const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user, friendInterestCounts, squads } = useAuth();
@@ -385,9 +394,11 @@ export default function App() {
       const target = e.detail;
       if (target === 'planner') setShowPlanner(true);
       if (target === 'children') setShowChildren(true);
-      if (target === 'favorites') setShowFavorites(true);
+      if (target === 'favorites') setShowWishlist(true); // Now opens wishlist
       if (target === 'dashboard') setShowDashboard(true);
       if (target === 'admin') setShowAdmin(true);
+      if (target === 'settings') setShowSettings(true);
+      if (target === 'budget') setShowCostDashboard(true);
     }
     window.addEventListener('navigate', handleNavigate);
     return () => window.removeEventListener('navigate', handleNavigate);
@@ -486,6 +497,7 @@ export default function App() {
     setFoodIncluded(false);
     setHasTransport(false);
     setSiblingDiscount(false);
+    setMatchWorkSchedule(false);
   };
 
   // Count active filters
@@ -500,8 +512,22 @@ export default function App() {
     if (foodIncluded) count++;
     if (hasTransport) count++;
     if (siblingDiscount) count++;
+    if (matchWorkSchedule) count++;
     return count;
-  }, [search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount]);
+  }, [search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount, matchWorkSchedule]);
+
+  // Apply work schedule filter to camps
+  const filteredCamps = useMemo(() => {
+    if (!matchWorkSchedule || !profile) return camps;
+
+    const workStart = profile.work_hours_start || '08:00';
+    const workEnd = profile.work_hours_end || '17:30';
+
+    return camps.filter(camp => {
+      const coverage = checkWorkScheduleCoverage(camp, workStart, workEnd);
+      return coverage.covers;
+    });
+  }, [camps, matchWorkSchedule, profile]);
 
   // Handle join squad route
   if (joinInviteCode) {
@@ -975,6 +1001,7 @@ export default function App() {
                   { key: 'foodIncluded', label: 'Food Included', state: foodIncluded, setter: setFoodIncluded },
                   { key: 'hasTransport', label: 'Transportation', state: hasTransport, setter: setHasTransport },
                   { key: 'siblingDiscount', label: 'Sibling Discount', state: siblingDiscount, setter: setSiblingDiscount },
+                  ...(user ? [{ key: 'matchWorkSchedule', label: 'Fits My Schedule', state: matchWorkSchedule, setter: setMatchWorkSchedule }] : []),
                 ].map(({ key, label, state, setter }) => (
                   <button
                     key={key}
@@ -1084,12 +1111,13 @@ export default function App() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         {/* Results Count */}
-        {!loading && camps.length > 0 && (
+        {!loading && filteredCamps.length > 0 && (
           <p className="results-count">
-            Showing <strong>{camps.length}</strong> {camps.length === 1 ? 'camp' : 'camps'}
+            Showing <strong>{filteredCamps.length}</strong> {filteredCamps.length === 1 ? 'camp' : 'camps'}
             {selectedCategory !== 'All' && <> in <strong>{selectedCategory}</strong></>}
             {childAge && <> for age <strong>{childAge}</strong></>}
             {maxPrice && <> under <strong>${maxPrice}</strong></>}
+            {matchWorkSchedule && <> that fit your schedule</>}
           </p>
         )}
 
@@ -1100,7 +1128,7 @@ export default function App() {
               Loading camps...
             </p>
           </div>
-        ) : camps.length === 0 ? (
+        ) : filteredCamps.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sand-100)' }}>
               <svg className="w-12 h-12" style={{ color: 'var(--sand-400)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -1119,7 +1147,7 @@ export default function App() {
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {camps.map((camp, index) => (
+            {filteredCamps.map((camp, index) => (
               <CampCard
                 key={camp.id}
                 camp={camp}
@@ -1144,7 +1172,7 @@ export default function App() {
           </div>
         ) : (
           <CampTable
-            camps={camps}
+            camps={filteredCamps}
             sortBy={sortBy}
             sortDir={sortDir}
             onSort={(field) => {
@@ -1243,6 +1271,33 @@ export default function App() {
         <AdminDashboard
           camps={camps}
           onClose={() => setShowAdmin(false)}
+        />
+      )}
+
+      {showSettings && (
+        <Settings onClose={() => setShowSettings(false)} />
+      )}
+
+      {showCostDashboard && (
+        <CostDashboard
+          camps={camps}
+          onClose={() => setShowCostDashboard(false)}
+        />
+      )}
+
+      {showWishlist && (
+        <Wishlist
+          camps={camps}
+          onClose={() => setShowWishlist(false)}
+          onScheduleCamp={(camp) => {
+            setShowWishlist(false);
+            setShowPlanner(true);
+          }}
+          onCompareCamps={(campIds) => {
+            setCompareList(campIds);
+            setShowWishlist(false);
+            setShowComparison(true);
+          }}
         />
       )}
 
@@ -1564,14 +1619,36 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
           </div>
         </div>
 
-        {/* Registration Urgency Badge */}
+        {/* Registration Status Badge */}
         {(() => {
-          const urgency = getRegUrgency(camp.reg_date_2026);
-          if (!urgency) return null;
+          const regStatus = getRegistrationStatus(camp);
+          if (regStatus.status === 'unknown') return null;
           return (
-            <div className={`urgency-badge urgency-${urgency.type} mb-3`}>
-              <span className="urgency-icon">{urgency.icon}</span>
-              <span className="urgency-label">{urgency.label}</span>
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-3 w-fit"
+              style={{
+                backgroundColor: `${regStatus.color}15`,
+                color: regStatus.color
+              }}
+            >
+              {regStatus.isOpen ? (
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              ) : regStatus.status === 'upcoming' && regStatus.daysUntil <= 7 ? (
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+              ) : regStatus.status === 'closed' || regStatus.status === 'waitlist' ? (
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                </svg>
+              )}
+              <span>{regStatus.label}</span>
             </div>
           );
         })()}
@@ -1815,15 +1892,24 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
     };
   }, [onClose]);
 
-  const urgency = getRegUrgency(camp.reg_date_2026);
+  const regStatus = getRegistrationStatus(camp);
 
   // Build feature pills array
   const featurePills = [];
-  if (urgency) featurePills.push({ ...urgency, key: 'urgency' });
+  if (regStatus.status !== 'unknown') {
+    featurePills.push({
+      icon: regStatus.isOpen ? '✓' : regStatus.status === 'upcoming' ? '📅' : '⏳',
+      label: regStatus.label,
+      type: regStatus.isOpen ? 'open' : regStatus.status === 'upcoming' ? (regStatus.daysUntil <= 7 ? 'soon' : 'upcoming') : 'full',
+      key: 'registration',
+      color: regStatus.color
+    });
+  }
   if (camp.has_extended_care) featurePills.push({ icon: '⏰', label: 'Extended Care', key: 'extended' });
   if (camp.food_included) featurePills.push({ icon: '🍽️', label: 'Meals Included', key: 'food' });
   if (camp.has_transport) featurePills.push({ icon: '🚐', label: 'Transport', key: 'transport' });
   if (camp.has_sibling_discount) featurePills.push({ icon: '👨‍👩‍👧', label: 'Sibling Discount', key: 'sibling' });
+  if (camp.fsa_eligible) featurePills.push({ icon: '💳', label: 'FSA Eligible', key: 'fsa', type: 'fsa' });
 
   return (
     <div className="modal-overlay" onClick={onClose}>

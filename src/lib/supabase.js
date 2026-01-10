@@ -1,4 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
+import {
+  validate,
+  ReviewSchema,
+  ChildSchema,
+  ChildUpdateSchema,
+  QuestionSchema,
+  AnswerSchema,
+  ScheduledCampSchema,
+  sanitizeString
+} from './validation.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -75,9 +85,40 @@ export async function updateProfile(updates) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Allowlist safe fields - NEVER include role or other sensitive fields
+  const allowedFields = [
+    'full_name',
+    'avatar_url',
+    'preferences',
+    'preferred_categories',
+    'onboarding_completed',
+    'tour_completed',
+    'last_active_at',
+    'notification_preferences',
+    // Phase 1: School dates and work hours
+    'school_year_end',
+    'school_year_start',
+    'work_hours_start',
+    'work_hours_end',
+    'summer_budget'
+  ];
+
+  const safeUpdates = {};
+  for (const field of allowedFields) {
+    if (updates[field] !== undefined) {
+      safeUpdates[field] = updates[field];
+    }
+  }
+
+  // Reject if trying to update forbidden fields
+  const forbiddenFields = Object.keys(updates).filter(k => !allowedFields.includes(k));
+  if (forbiddenFields.length > 0) {
+    console.warn('Attempted to update forbidden profile fields:', forbiddenFields);
+  }
+
   return supabase
     .from('profiles')
-    .update(updates)
+    .update(safeUpdates)
     .eq('id', user.id)
     .select()
     .single();
@@ -122,9 +163,15 @@ export async function addChild(child) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input
+  const validation = validate(ChildSchema, child);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('children')
-    .insert({ ...child, user_id: user.id })
+    .insert({ ...validation.data, user_id: user.id })
     .select()
     .single();
 }
@@ -132,9 +179,15 @@ export async function addChild(child) {
 export async function updateChild(id, updates) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input
+  const validation = validate(ChildUpdateSchema, updates);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('children')
-    .update(updates)
+    .update(validation.data)
     .eq('id', id)
     .select()
     .single();
@@ -255,9 +308,15 @@ export async function addScheduledCamp(schedule) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input
+  const validation = validate(ScheduledCampSchema, schedule);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('scheduled_camps')
-    .insert({ ...schedule, user_id: user.id })
+    .insert({ ...validation.data, user_id: user.id })
     .select()
     .single();
 }
@@ -350,9 +409,24 @@ export async function addReview(review) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input
+  const validation = validate(ReviewSchema, review);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  // SECURITY: Sanitize text fields
+  const sanitizedReview = {
+    ...validation.data,
+    review_text: validation.data.review_text ? sanitizeString(validation.data.review_text) : undefined,
+    pros: validation.data.pros ? sanitizeString(validation.data.pros) : undefined,
+    cons: validation.data.cons ? sanitizeString(validation.data.cons) : undefined,
+  };
+
+  // SECURITY: Reviews should default to 'pending' status for moderation
   return supabase
     .from('reviews')
-    .insert({ ...review, user_id: user.id })
+    .insert({ ...sanitizedReview, user_id: user.id, status: 'pending' })
     .select()
     .single();
 }
@@ -519,7 +593,13 @@ export async function deleteComparisonList(id) {
 export async function shareComparisonList(id) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
-  const shareToken = crypto.randomUUID();
+  // SECURITY: Generate high-entropy share token (UUID + 32 random hex chars)
+  // This provides ~256 bits of entropy, making enumeration attacks infeasible
+  const uuid = crypto.randomUUID();
+  const randomBytes = new Uint8Array(16);
+  crypto.getRandomValues(randomBytes);
+  const randomHex = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  const shareToken = `${uuid}-${randomHex}`;
 
   return supabase
     .from('comparison_lists')
@@ -625,12 +705,18 @@ export async function askQuestion(campId, questionText) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input
+  const validation = validate(QuestionSchema, { camp_id: campId, question_text: questionText });
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('camp_questions')
     .insert({
       user_id: user.id,
-      camp_id: campId,
-      question_text: questionText
+      camp_id: validation.data.camp_id,
+      question_text: sanitizeString(validation.data.question_text)
     })
     .select()
     .single();
@@ -642,12 +728,18 @@ export async function answerQuestion(questionId, answerText) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input
+  const validation = validate(AnswerSchema, { question_id: questionId, answer_text: answerText });
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('camp_answers')
     .insert({
       user_id: user.id,
-      question_id: questionId,
-      answer_text: answerText
+      question_id: validation.data.question_id,
+      answer_text: sanitizeString(validation.data.answer_text)
     })
     .select()
     .single();
@@ -694,27 +786,117 @@ export async function getAllSessions() {
 // SUMMER WEEKS HELPER
 // ============================================================================
 
-export function getSummerWeeks2026() {
+// Default dates for Santa Barbara Unified School District 2026
+export const DEFAULT_SCHOOL_END = '2026-06-05'; // Friday, last day of school
+export const DEFAULT_SCHOOL_START = '2026-08-19'; // Wednesday, first day of school
+export const DEFAULT_SUMMER_START = '2026-06-08'; // First Monday after school ends
+
+/**
+ * Get summer weeks based on school dates
+ * @param {string} schoolEndDate - Last day of school (YYYY-MM-DD)
+ * @param {string} schoolStartDate - First day of next school year (YYYY-MM-DD)
+ * @returns {Array} Array of week objects
+ */
+export function getSummerWeeks(schoolEndDate = DEFAULT_SCHOOL_END, schoolStartDate = DEFAULT_SCHOOL_START) {
   const weeks = [];
-  const startDate = new Date('2026-06-08'); // First Monday after school ends
 
-  for (let i = 0; i < 11; i++) {
-    const weekStart = new Date(startDate);
-    weekStart.setDate(startDate.getDate() + (i * 7));
+  // Find the first Monday after school ends
+  const schoolEnd = new Date(schoolEndDate);
+  const summerStart = new Date(schoolEnd);
+  summerStart.setDate(schoolEnd.getDate() + 1); // Day after school ends
 
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 4); // Mon-Fri
+  // Move to next Monday if not already Monday
+  while (summerStart.getDay() !== 1) {
+    summerStart.setDate(summerStart.getDate() + 1);
+  }
 
-    weeks.push({
-      weekNum: i + 1,
-      startDate: weekStart.toISOString().split('T')[0],
-      endDate: weekEnd.toISOString().split('T')[0],
-      label: `Week ${i + 1}`,
-      display: `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-    });
+  // Calculate end date (Friday before school starts)
+  const schoolStart = new Date(schoolStartDate);
+
+  let weekNum = 1;
+  let currentWeekStart = new Date(summerStart);
+
+  while (currentWeekStart < schoolStart) {
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(currentWeekStart.getDate() + 4); // Mon-Fri
+
+    // Don't add partial weeks that extend past school start
+    if (weekEnd >= schoolStart) {
+      weekEnd.setTime(schoolStart.getTime());
+      weekEnd.setDate(weekEnd.getDate() - 1);
+    }
+
+    // Only add if we have at least 1 day
+    if (weekEnd >= currentWeekStart) {
+      weeks.push({
+        weekNum,
+        startDate: currentWeekStart.toISOString().split('T')[0],
+        endDate: weekEnd.toISOString().split('T')[0],
+        label: `Week ${weekNum}`,
+        display: `${currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+      });
+      weekNum++;
+    }
+
+    // Move to next week
+    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
   }
 
   return weeks;
+}
+
+// Legacy function for backward compatibility
+export function getSummerWeeks2026() {
+  return getSummerWeeks(DEFAULT_SCHOOL_END, DEFAULT_SCHOOL_START);
+}
+
+/**
+ * Get pre-school gap (days between school end and summer camp start)
+ * @param {string} schoolEndDate - Last day of school
+ * @returns {Object} Gap info with dates and count
+ */
+export function getPreSchoolGap(schoolEndDate = DEFAULT_SCHOOL_END) {
+  const schoolEnd = new Date(schoolEndDate);
+  const weeks = getSummerWeeks(schoolEndDate);
+
+  if (weeks.length === 0) return null;
+
+  const summerStart = new Date(weeks[0].startDate);
+  const gapDays = Math.floor((summerStart - schoolEnd) / (1000 * 60 * 60 * 24)) - 1;
+
+  if (gapDays <= 0) return null;
+
+  return {
+    startDate: new Date(schoolEnd.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    endDate: new Date(summerStart.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    days: gapDays,
+    label: 'Before Camps Start'
+  };
+}
+
+/**
+ * Get post-summer gap (days between last camp week and school start)
+ * @param {string} schoolStartDate - First day of school
+ * @param {string} schoolEndDate - Last day of previous school year (for week calculation)
+ * @returns {Object} Gap info with dates and count
+ */
+export function getPostSummerGap(schoolStartDate = DEFAULT_SCHOOL_START, schoolEndDate = DEFAULT_SCHOOL_END) {
+  const schoolStart = new Date(schoolStartDate);
+  const weeks = getSummerWeeks(schoolEndDate, schoolStartDate);
+
+  if (weeks.length === 0) return null;
+
+  const lastWeekEnd = new Date(weeks[weeks.length - 1].endDate);
+  const gapDays = Math.floor((schoolStart - lastWeekEnd) / (1000 * 60 * 60 * 24)) - 1;
+
+  if (gapDays <= 0) return null;
+
+  return {
+    startDate: new Date(lastWeekEnd.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    endDate: new Date(schoolStart.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    days: gapDays,
+    label: 'Before School Starts'
+  };
 }
 
 // ============================================================================
@@ -938,13 +1120,26 @@ export async function getSquadCampInterests(squadId) {
     return [];
   }
 
-  // Merge member info with interests
+  // SECURITY: Filter data based on reveal_identity flag
+  // Members who haven't revealed identity should not have their profile data exposed
   return interests.map(interest => {
     const member = members.find(m => m.user_id === interest.user_id);
+    const revealIdentity = member?.reveal_identity || false;
+
     return {
-      ...interest,
-      reveal_identity: member?.reveal_identity || false,
-      member_name: member?.profiles?.full_name || 'A friend'
+      // Only include non-identifying fields from interest
+      id: interest.id,
+      camp_id: interest.camp_id,
+      week_number: interest.week_number,
+      looking_for_friends: interest.looking_for_friends,
+      created_at: interest.created_at,
+      // SECURITY: Only reveal child info if identity is revealed
+      children: revealIdentity ? interest.children : null,
+      // SECURITY: Only reveal profile info if identity is revealed
+      reveal_identity: revealIdentity,
+      member_name: revealIdentity ? (member?.profiles?.full_name || 'A friend') : 'A friend',
+      // SECURITY: Never expose user_id of anonymous members
+      user_id: revealIdentity ? interest.user_id : null,
     };
   });
 }
@@ -1163,4 +1358,237 @@ export async function hasSampleData() {
     console.error('Error checking sample data:', error);
     return false;
   }
+}
+
+// ============================================================================
+// PHASE 1: REGISTRATION & WORK SCHEDULE HELPERS
+// ============================================================================
+
+/**
+ * Parse time string to minutes since midnight for comparison
+ * @param {string} timeStr - Time string like "9:00am", "9am", "09:00", etc.
+ * @returns {number|null} Minutes since midnight, or null if unparseable
+ */
+export function parseTimeToMinutes(timeStr) {
+  if (!timeStr) return null;
+
+  const normalized = timeStr.toLowerCase().trim();
+
+  // Handle HH:MM format
+  let match = normalized.match(/^(\d{1,2}):(\d{2})(?:\s*(am|pm))?$/);
+  if (match) {
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const period = match[3];
+
+    if (period === 'pm' && hours < 12) hours += 12;
+    if (period === 'am' && hours === 12) hours = 0;
+
+    return hours * 60 + minutes;
+  }
+
+  // Handle Xam/Xpm format
+  match = normalized.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
+  if (match) {
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2] || '0');
+    const period = match[3];
+
+    if (period === 'pm' && hours < 12) hours += 12;
+    if (period === 'am' && hours === 12) hours = 0;
+
+    return hours * 60 + minutes;
+  }
+
+  return null;
+}
+
+/**
+ * Format minutes to time string
+ * @param {number} minutes - Minutes since midnight
+ * @returns {string} Formatted time like "9:00am"
+ */
+export function formatMinutesToTime(minutes) {
+  if (minutes == null) return '';
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const period = hours >= 12 ? 'pm' : 'am';
+  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+  return mins === 0 ? `${displayHours}${period}` : `${displayHours}:${mins.toString().padStart(2, '0')}${period}`;
+}
+
+/**
+ * Check if a camp's hours cover the user's work schedule
+ * @param {Object} camp - Camp object with drop_off, pick_up, extended care fields
+ * @param {string} workStart - Work start time (e.g., "8:00am" or "08:00")
+ * @param {string} workEnd - Work end time (e.g., "5:30pm" or "17:30")
+ * @returns {Object} { covers: boolean, needsExtendedCare: boolean, dropOff: string, pickUp: string }
+ */
+export function checkWorkScheduleCoverage(camp, workStart, workEnd) {
+  const workStartMins = parseTimeToMinutes(workStart) || 8 * 60; // Default 8am
+  const workEndMins = parseTimeToMinutes(workEnd) || 17 * 60 + 30; // Default 5:30pm
+
+  // Parse camp times
+  const campDropOff = parseTimeToMinutes(camp.drop_off) || parseTimeToMinutes(camp.hours?.split('-')[0]);
+  const campPickUp = parseTimeToMinutes(camp.pick_up) || parseTimeToMinutes(camp.hours?.split('-')[1]);
+
+  // Parse extended care times if available
+  let extDropOff = null;
+  let extPickUp = null;
+
+  if (camp.extended_care && typeof camp.extended_care === 'string') {
+    // Try to extract times from extended_care text
+    const extMatch = camp.extended_care.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*[-–to]+\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+    if (extMatch) {
+      extDropOff = parseTimeToMinutes(extMatch[1]);
+      extPickUp = parseTimeToMinutes(extMatch[2]);
+    }
+  }
+
+  // Check basic coverage
+  const basicCovers = campDropOff && campPickUp &&
+    campDropOff <= workStartMins && campPickUp >= workEndMins;
+
+  // Check extended care coverage
+  const extCovers = (extDropOff || campDropOff) && (extPickUp || campPickUp) &&
+    (extDropOff || campDropOff) <= workStartMins &&
+    (extPickUp || campPickUp) >= workEndMins;
+
+  const needsExtendedCare = !basicCovers && extCovers;
+
+  return {
+    covers: basicCovers || extCovers,
+    needsExtendedCare,
+    dropOff: formatMinutesToTime(campDropOff),
+    pickUp: formatMinutesToTime(campPickUp),
+    extendedDropOff: formatMinutesToTime(extDropOff),
+    extendedPickUp: formatMinutesToTime(extPickUp)
+  };
+}
+
+/**
+ * Get registration status for a camp
+ * @param {Object} camp - Camp object with registration_opens, reg_status, reg_date_2026
+ * @returns {Object} { status, daysUntil, isOpen, label, color }
+ */
+export function getRegistrationStatus(camp) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // If we have a parsed registration_opens date
+  if (camp.registration_opens) {
+    const regDate = new Date(camp.registration_opens);
+    regDate.setHours(0, 0, 0, 0);
+    const daysUntil = Math.ceil((regDate - today) / (1000 * 60 * 60 * 24));
+
+    if (daysUntil > 0) {
+      return {
+        status: 'upcoming',
+        daysUntil,
+        isOpen: false,
+        label: daysUntil === 1 ? 'Opens tomorrow' : `Opens in ${daysUntil}d`,
+        color: daysUntil <= 7 ? '#f59e0b' : '#6b7280' // amber if soon, gray otherwise
+      };
+    }
+  }
+
+  // Check reg_status field
+  const status = (camp.reg_status || '').toLowerCase();
+
+  if (status.includes('open') || status.includes('now')) {
+    return {
+      status: 'open',
+      daysUntil: 0,
+      isOpen: true,
+      label: 'Register Now',
+      color: '#10b981' // green
+    };
+  }
+
+  if (status.includes('waitlist')) {
+    return {
+      status: 'waitlist',
+      daysUntil: null,
+      isOpen: false,
+      label: 'Waitlist Only',
+      color: '#f59e0b' // amber
+    };
+  }
+
+  if (status.includes('closed') || status.includes('full')) {
+    return {
+      status: 'closed',
+      daysUntil: null,
+      isOpen: false,
+      label: 'Closed',
+      color: '#ef4444' // red
+    };
+  }
+
+  // Try to parse reg_date_2026 text field
+  if (camp.reg_date_2026) {
+    const regText = camp.reg_date_2026.toLowerCase();
+
+    // Check for month names
+    const monthMatch = regText.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*(\d{1,2})?/i);
+    if (monthMatch) {
+      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const monthIndex = monthNames.findIndex(m => monthMatch[1].toLowerCase().startsWith(m));
+      const day = parseInt(monthMatch[2]) || 1;
+      const year = today.getFullYear() + (monthIndex < today.getMonth() ? 1 : 0);
+
+      const regDate = new Date(year, monthIndex, day);
+      const daysUntil = Math.ceil((regDate - today) / (1000 * 60 * 60 * 24));
+
+      if (daysUntil > 0) {
+        return {
+          status: 'upcoming',
+          daysUntil,
+          isOpen: false,
+          label: daysUntil <= 7 ? `Opens in ${daysUntil}d` : `Opens ${monthMatch[0]}`,
+          color: daysUntil <= 7 ? '#f59e0b' : '#6b7280'
+        };
+      } else {
+        return {
+          status: 'open',
+          daysUntil: 0,
+          isOpen: true,
+          label: 'Register Now',
+          color: '#10b981'
+        };
+      }
+    }
+  }
+
+  // Unknown
+  return {
+    status: 'unknown',
+    daysUntil: null,
+    isOpen: null,
+    label: 'Check Website',
+    color: '#6b7280'
+  };
+}
+
+/**
+ * Update favorite with notes and priority
+ */
+export async function updateFavorite(campId, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  const allowedUpdates = {};
+  if (updates.notes !== undefined) allowedUpdates.notes = updates.notes;
+  if (updates.priority !== undefined) allowedUpdates.priority = updates.priority;
+  if (updates.child_id !== undefined) allowedUpdates.child_id = updates.child_id;
+
+  return supabase
+    .from('favorites')
+    .update(allowedUpdates)
+    .eq('user_id', user.id)
+    .eq('camp_id', campId)
+    .select()
+    .single();
 }

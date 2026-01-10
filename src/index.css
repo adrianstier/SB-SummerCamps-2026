@@ -3492,3 +3492,150 @@ body.modal-open {
     padding: 0.75rem 1.25rem 1.25rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WHAT-IF PLANNING PREVIEW MODE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.planner-preview-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-600);
+  background: transparent;
+  border: 1px solid var(--earth-200);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.planner-preview-toggle:hover {
+  background: var(--sand-100);
+  border-color: var(--earth-300);
+}
+
+.planner-preview-toggle.active {
+  background: var(--ocean-100);
+  border-color: var(--ocean-400);
+  color: var(--ocean-600);
+}
+
+.planner-preview-label {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .planner-preview-label {
+    display: inline;
+  }
+}
+
+.planner-preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--ocean-50) 0%, #e8f4f8 100%);
+  border-bottom: 2px solid var(--ocean-300);
+}
+
+.planner-preview-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.planner-preview-icon {
+  font-size: 1.25rem;
+}
+
+.planner-preview-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.planner-preview-title {
+  font-weight: 600;
+  color: var(--ocean-700);
+  font-size: 0.875rem;
+}
+
+.planner-preview-text {
+  font-size: 0.8125rem;
+  color: var(--ocean-600);
+}
+
+.planner-preview-cost {
+  font-weight: 600;
+  color: var(--sage-600);
+}
+
+.planner-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.planner-preview-commit {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--ocean-500);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.planner-preview-commit:hover {
+  background: var(--ocean-600);
+}
+
+.planner-preview-cancel {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: transparent;
+  color: var(--ocean-600);
+  border: 1px solid var(--ocean-300);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.planner-preview-cancel:hover {
+  background: var(--ocean-100);
+}
+
+/* Preview camp card styling */
+.preview-camp-card {
+  position: relative;
+  border: 2px dashed var(--ocean-400) !important;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(31, 136, 136, 0.03) 10px,
+    rgba(31, 136, 136, 0.03) 20px
+  ) !important;
+}
+
+.preview-camp-card::before {
+  content: 'Preview';
+  position: absolute;
+  top: -0.5rem;
+  right: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  background: var(--ocean-500);
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 0.25rem;
+}

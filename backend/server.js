@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -24,7 +25,56 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// SECURITY: Apply security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://*.supabase.co", "https://accounts.google.com"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Needed for third-party images
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+
+// SECURITY: Configure CORS with explicit allowed origins
+const ALLOWED_ORIGINS = [
+  'https://sb-summer-camps.vercel.app',
+  'https://sb-summercamps.vercel.app',
+  // Development origins (only active in non-production)
+  ...(process.env.NODE_ENV !== 'production' ? [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173'
+  ] : [])
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  maxAge: 86400 // Cache preflight for 24 hours
+}));
+
 app.use(express.json());
 
 // Add request logging in development
@@ -32,10 +82,31 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(requestLogger());
 }
 
-// Apply rate limiting to all API routes (higher limit for testing)
+// SECURITY: Apply tiered rate limiting
+// Global rate limit - standard for most endpoints
+const isProduction = process.env.NODE_ENV === 'production';
 app.use('/api', rateLimit({
   windowMs: 60000,    // 1 minute
-  maxRequests: 500    // 500 requests per minute (increased for E2E testing)
+  maxRequests: isProduction ? 100 : 500  // Stricter in production
+}));
+
+// SECURITY: Stricter rate limits for sensitive endpoints
+app.use('/api/notifications', rateLimit({
+  windowMs: 60000,    // 1 minute
+  maxRequests: isProduction ? 10 : 50,
+  message: 'Too many notification requests, please try again later'
+}));
+
+app.use('/api/admin', rateLimit({
+  windowMs: 60000,    // 1 minute
+  maxRequests: isProduction ? 30 : 100,
+  message: 'Too many admin requests, please try again later'
+}));
+
+app.use('/api/scrape', rateLimit({
+  windowMs: 300000,   // 5 minutes
+  maxRequests: isProduction ? 5 : 20,
+  message: 'Too many scrape requests, please try again later'
 }));
 
 // Serve static files from dist in production

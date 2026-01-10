@@ -1,4 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+
+/**
+ * SECURITY: Constant-time string comparison to prevent timing attacks
+ */
+function secureCompare(a, b) {
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
 
 // Initialize Supabase client with service key for admin operations
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -221,11 +231,14 @@ export function rateLimit(options = {}) {
 
 /**
  * API Key authentication for internal/server-to-server calls
+ * SECURITY: Uses constant-time comparison to prevent timing attacks
+ * SECURITY: Requires minimum key length to prevent weak keys
  */
 export function apiKeyAuth(options = {}) {
   const {
     headerName = 'x-api-key',
-    envVar = 'INTERNAL_API_KEY'
+    envVar = 'INTERNAL_API_KEY',
+    minKeyLength = 32  // Minimum 32 chars (256 bits) for security
   } = options;
 
   return (req, res, next) => {
@@ -234,10 +247,23 @@ export function apiKeyAuth(options = {}) {
 
     if (!expectedKey) {
       console.warn(`API key env var ${envVar} not configured`);
-      return next();
+      return res.status(500).json({
+        error: 'Configuration Error',
+        message: 'API key not configured'
+      });
     }
 
-    if (!apiKey || apiKey !== expectedKey) {
+    // SECURITY: Enforce minimum key length
+    if (expectedKey.length < minKeyLength) {
+      console.error(`SECURITY WARNING: ${envVar} is too short (${expectedKey.length} chars). Minimum ${minKeyLength} required.`);
+      return res.status(500).json({
+        error: 'Configuration Error',
+        message: 'API key configuration is insecure'
+      });
+    }
+
+    // SECURITY: Use constant-time comparison to prevent timing attacks
+    if (!apiKey || !secureCompare(apiKey, expectedKey)) {
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Invalid API key'
