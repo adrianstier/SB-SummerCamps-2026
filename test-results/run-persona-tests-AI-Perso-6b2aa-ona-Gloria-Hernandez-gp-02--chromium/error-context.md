@@ -1,0 +1,1216 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - img [ref=e8]
+          - generic [ref=e13]: Santa Barbara
+        - generic [ref=e14]:
+          - button "Plan My Summer" [ref=e15] [cursor=pointer]:
+            - img [ref=e16]
+            - generic [ref=e18]: Plan My Summer
+          - button "Table" [ref=e19] [cursor=pointer]:
+            - img [ref=e20]
+            - generic [ref=e22]: Table
+          - button "Sign In" [active] [ref=e23] [cursor=pointer]:
+            - img [ref=e24]
+            - generic [ref=e29]: Sign In
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - paragraph [ref=e32]: Summer 2026
+          - heading "Your summer, sorted." [level=1] [ref=e33]
+        - paragraph [ref=e34]:
+          - text: Stop juggling spreadsheets.
+          - strong [ref=e35]: "43"
+          - text: camps, one plan, zero scrambling.
+        - generic [ref=e36]:
+          - img [ref=e38]
+          - textbox "Search camps..." [ref=e40]
+        - generic [ref=e41]:
+          - generic [ref=e44]:
+            - strong [ref=e45]: "43"
+            - text: local camps
+          - generic [ref=e48]:
+            - strong [ref=e49]: "16"
+            - text: categories
+          - generic [ref=e52]: Ages 3–18
+          - generic [ref=e53]:
+            - img [ref=e54]
+            - generic [ref=e56]: Updated Jan 2026
+    - img [ref=e58]
+  - generic [ref=e62]:
+    - generic [ref=e63]:
+      - generic [ref=e64]: Quick find
+      - button "Full-Day Care" [ref=e66] [cursor=pointer]
+      - button "Under $300" [ref=e67] [cursor=pointer]
+      - button "Sports" [ref=e68] [cursor=pointer]
+      - button "Art & Creative" [ref=e69] [cursor=pointer]
+      - button "STEM" [ref=e70] [cursor=pointer]
+      - button "Outdoors" [ref=e71] [cursor=pointer]
+    - generic [ref=e72]:
+      - button "All Filters" [ref=e73] [cursor=pointer]:
+        - img [ref=e74]
+        - generic [ref=e76]: All Filters
+      - combobox [ref=e77] [cursor=pointer]:
+        - option "A–Z" [selected]
+        - option "Z–A"
+        - option "Price ↑"
+        - option "Price ↓"
+  - generic [ref=e79]:
+    - generic [ref=e80]:
+      - heading "Editor's Picks" [level=2] [ref=e81]
+      - generic [ref=e82]: Hand-picked for Santa Barbara families
+    - generic [ref=e83]:
+      - generic [ref=e84] [cursor=pointer]:
+        - generic [ref=e85]:
+          - img "A-Frame Surf Camp" [ref=e86]
+          - generic [ref=e87]: Most Popular
+        - generic [ref=e88]:
+          - paragraph [ref=e89]: Beach & Water
+          - heading "A-Frame Surf Camp" [level=3] [ref=e90]
+          - paragraph [ref=e91]: Surf and beach camp since 2005. Surfing, games, beach fun. Weekday camps and Saturday options. Gener...
+          - generic [ref=e92]:
+            - generic [ref=e93]: 5-16
+            - generic [ref=e94]: •
+            - generic [ref=e95]: TBD
+      - generic [ref=e96] [cursor=pointer]:
+        - generic [ref=e97]:
+          - img "Anacapa School Arts & Exploration" [ref=e98]
+          - generic [ref=e99]: Great Value
+        - generic [ref=e100]:
+          - paragraph [ref=e101]: Arts
+          - heading "Anacapa School Arts & Exploration" [level=3] [ref=e102]
+          - paragraph [ref=e103]: Dynamic mix of hands-on art projects, musical sessions, and outdoor activities/exploration.
+          - generic [ref=e104]:
+            - generic [ref=e105]: 9-13
+            - generic [ref=e106]: •
+            - generic [ref=e107]: TBD
+      - generic [ref=e108] [cursor=pointer]:
+        - generic [ref=e109]:
+          - img "Apples to Zucchini Cooking School" [ref=e110]
+          - generic [ref=e111]: New This Year
+        - generic [ref=e112]:
+          - paragraph [ref=e113]: Cooking
+          - heading "Apples to Zucchini Cooking School" [level=3] [ref=e114]
+          - paragraph [ref=e115]: Hands-on cooking camp teaching culinary skills and kitchen safety. Each day features recipes around ...
+          - generic [ref=e116]:
+            - generic [ref=e117]: 1-6 (grades)
+            - generic [ref=e118]: •
+            - generic [ref=e119]: $495/wk
+  - generic [ref=e121]:
+    - heading "Browse by Interest" [level=2] [ref=e122]
+    - generic [ref=e123]:
+      - button "🏄 Beach/Surf 1 camps" [ref=e124] [cursor=pointer]:
+        - generic [ref=e125]: 🏄
+        - generic [ref=e126]: Beach/Surf
+        - generic [ref=e127]: 1 camps
+      - button "⚽ Sports 6 camps" [ref=e128] [cursor=pointer]:
+        - generic [ref=e129]: ⚽
+        - generic [ref=e130]: Sports
+        - generic [ref=e131]: 6 camps
+      - button "🔬 Science/STEM 1 camps" [ref=e132] [cursor=pointer]:
+        - generic [ref=e133]: 🔬
+        - generic [ref=e134]: Science/STEM
+        - generic [ref=e135]: 1 camps
+      - button "🌲 Nature/Outdoor 2 camps" [ref=e136] [cursor=pointer]:
+        - generic [ref=e137]: 🌲
+        - generic [ref=e138]: Nature/Outdoor
+        - generic [ref=e139]: 2 camps
+      - button "💃 Dance 2 camps" [ref=e140] [cursor=pointer]:
+        - generic [ref=e141]: 💃
+        - generic [ref=e142]: Dance
+        - generic [ref=e143]: 2 camps
+      - button "🎵 Music 1 camps" [ref=e144] [cursor=pointer]:
+        - generic [ref=e145]: 🎵
+        - generic [ref=e146]: Music
+        - generic [ref=e147]: 1 camps
+      - button "👨‍🍳 Cooking 1 camps" [ref=e148] [cursor=pointer]:
+        - generic [ref=e149]: 👨‍🍳
+        - generic [ref=e150]: Cooking
+        - generic [ref=e151]: 1 camps
+      - button "🦁 Animals/Zoo 1 camps" [ref=e152] [cursor=pointer]:
+        - generic [ref=e153]: 🦁
+        - generic [ref=e154]: Animals/Zoo
+        - generic [ref=e155]: 1 camps
+      - button "🎯 Multi-Activity 4 camps" [ref=e156] [cursor=pointer]:
+        - generic [ref=e157]: 🎯
+        - generic [ref=e158]: Multi-Activity
+        - generic [ref=e159]: 4 camps
+  - generic [ref=e160]:
+    - paragraph [ref=e161]: "\"Found the perfect STEM camp for my 10-year-old in under 5 minutes. This site is a lifesaver for busy parents.\""
+    - paragraph [ref=e162]: — Sarah M., Goleta Mom
+  - main [ref=e163]:
+    - paragraph [ref=e164]:
+      - text: Showing
+      - strong [ref=e165]: "43"
+      - text: camps
+    - generic [ref=e166]:
+      - generic [ref=e167] [cursor=pointer]:
+        - img "A-Frame Surf Camp" [ref=e169]
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - heading "A-Frame Surf Camp" [level=3] [ref=e173]
+            - generic [ref=e174]:
+              - button "Add to compare" [ref=e175]:
+                - img [ref=e176]
+              - button "Add to favorites" [ref=e178]:
+                - img [ref=e179]
+            - img [ref=e181]
+          - generic [ref=e184]: Beach & Water
+          - paragraph [ref=e186]: Surf and beach camp since 2005. Surfing, games, beach fun. Weekday camps and Saturday options. Generations of campers.
+          - generic [ref=e187]:
+            - generic [ref=e188]:
+              - paragraph [ref=e189]: Ages
+              - paragraph [ref=e190]: 5-16
+            - generic [ref=e191]:
+              - paragraph [ref=e192]: Price
+              - paragraph [ref=e193]: TBD
+            - generic [ref=e194]:
+              - paragraph [ref=e195]: Hours
+              - paragraph [ref=e196]: Monday-Friday all summer
+      - generic [ref=e197] [cursor=pointer]:
+        - img "Anacapa School Arts & Exploration" [ref=e199]
+        - generic [ref=e201]:
+          - generic [ref=e202]:
+            - heading "Anacapa School Arts & Exploration" [level=3] [ref=e203]
+            - generic [ref=e204]:
+              - button "Add to compare" [ref=e205]:
+                - img [ref=e206]
+              - button "Add to favorites" [ref=e208]:
+                - img [ref=e209]
+            - img [ref=e211]
+          - generic [ref=e214]: Arts
+          - paragraph [ref=e216]: Dynamic mix of hands-on art projects, musical sessions, and outdoor activities/exploration.
+          - generic [ref=e217]:
+            - generic [ref=e218]:
+              - paragraph [ref=e219]: Ages
+              - paragraph [ref=e220]: 9-13
+            - generic [ref=e221]:
+              - paragraph [ref=e222]: Price
+              - paragraph [ref=e223]: TBD
+            - generic [ref=e224]:
+              - paragraph [ref=e225]: Hours
+              - paragraph [ref=e226]: TBD
+      - generic [ref=e227] [cursor=pointer]:
+        - img "Apples to Zucchini Cooking School" [ref=e229]
+        - generic [ref=e231]:
+          - generic [ref=e232]:
+            - heading "Apples to Zucchini Cooking School" [level=3] [ref=e233]
+            - generic [ref=e234]:
+              - button "Add to compare" [ref=e235]:
+                - img [ref=e236]
+              - button "Add to favorites" [ref=e238]:
+                - img [ref=e239]
+            - img [ref=e241]
+          - generic [ref=e244]: Cooking
+          - paragraph [ref=e246]: Hands-on cooking camp teaching culinary skills and kitchen safety. Each day features recipes around weekly themes.
+          - generic [ref=e247]:
+            - generic [ref=e248]:
+              - paragraph [ref=e249]: Ages
+              - paragraph [ref=e250]: 1-6 (grades)
+            - generic [ref=e251]:
+              - paragraph [ref=e252]: Price
+              - paragraph [ref=e253]: $495/wk
+            - generic [ref=e254]:
+              - paragraph [ref=e255]: Hours
+              - paragraph [ref=e256]: 9am-3pm
+          - generic [ref=e258]: Meals
+      - generic [ref=e259] [cursor=pointer]:
+        - img "Art Explorers" [ref=e261]
+        - generic [ref=e263]:
+          - generic [ref=e264]:
+            - heading "Art Explorers" [level=3] [ref=e265]
+            - generic [ref=e266]:
+              - button "Add to compare" [ref=e267]:
+                - img [ref=e268]
+              - button "Add to favorites" [ref=e270]:
+                - img [ref=e271]
+            - img [ref=e273]
+          - generic [ref=e276]: Arts
+          - paragraph [ref=e278]: "Visual arts camps: drawing, painting, clay, sewing, cooking, movie making, digital arts. Nine weekly themed camps. Artist-quality materials."
+          - generic [ref=e279]:
+            - generic [ref=e280]:
+              - paragraph [ref=e281]: Ages
+              - paragraph [ref=e282]: K-8
+            - generic [ref=e283]:
+              - paragraph [ref=e284]: Price
+              - paragraph [ref=e285]: $299/wk
+            - generic [ref=e286]:
+              - paragraph [ref=e287]: Hours
+              - paragraph [ref=e288]: 9am-3pm
+          - generic [ref=e289]:
+            - generic [ref=e290]: Extended Care
+            - generic [ref=e291]: Sibling $
+      - generic [ref=e292] [cursor=pointer]:
+        - img "Best U Camp" [ref=e294]
+        - generic [ref=e296]:
+          - generic [ref=e297]:
+            - heading "Best U Camp" [level=3] [ref=e298]
+            - generic [ref=e299]:
+              - button "Add to compare" [ref=e300]:
+                - img [ref=e301]
+              - button "Add to favorites" [ref=e303]:
+                - img [ref=e304]
+            - img [ref=e306]
+          - generic [ref=e309]: General
+          - paragraph [ref=e311]: Affordable all-day downtown camp. Sports, games, hikes, beach days, Slip N Slide, and more.
+          - generic [ref=e312]:
+            - generic [ref=e313]:
+              - paragraph [ref=e314]: Ages
+              - paragraph [ref=e315]: K-6 (grades)
+            - generic [ref=e316]:
+              - paragraph [ref=e317]: Price
+              - paragraph [ref=e318]: TBD
+            - generic [ref=e319]:
+              - paragraph [ref=e320]: Hours
+              - paragraph [ref=e321]: Full day
+      - generic [ref=e322] [cursor=pointer]:
+        - img "Boxtales Theatre Camp" [ref=e324]
+        - generic [ref=e326]:
+          - generic [ref=e327]:
+            - heading "Boxtales Theatre Camp" [level=3] [ref=e328]
+            - generic [ref=e329]:
+              - button "Add to compare" [ref=e330]:
+                - img [ref=e331]
+              - button "Add to favorites" [ref=e333]:
+                - img [ref=e334]
+            - img [ref=e336]
+          - generic [ref=e339]: Performing Arts
+          - paragraph [ref=e341]: "Professional theatre training: acting, storytelling, mime, acro-yoga, music, collaboration. Create original play based on Greek mythology."
+          - generic [ref=e342]:
+            - generic [ref=e343]:
+              - paragraph [ref=e344]: Ages
+              - paragraph [ref=e345]: 9-13
+            - generic [ref=e346]:
+              - paragraph [ref=e347]: Price
+              - paragraph [ref=e348]: $875/wk
+            - generic [ref=e349]:
+              - paragraph [ref=e350]: Hours
+              - paragraph [ref=e351]: Mon-Thu 9am-3:30pm; Fri 9am-1pm
+          - generic [ref=e352]:
+            - img [ref=e353]
+            - generic [ref=e355]: Opens march
+      - generic [ref=e356] [cursor=pointer]:
+        - img "Camp Elings" [ref=e358]
+        - generic [ref=e360]:
+          - generic [ref=e361]:
+            - heading "Camp Elings" [level=3] [ref=e362]
+            - generic [ref=e363]:
+              - button "Add to compare" [ref=e364]:
+                - img [ref=e365]
+              - button "Add to favorites" [ref=e367]:
+                - img [ref=e368]
+            - img [ref=e370]
+          - generic [ref=e373]: Nature & Outdoor
+          - paragraph [ref=e375]: "Outdoor adventure at 230-acre park: tag, dodgeball, relay races, basketball, soccer, hiking, nature art, live reptile visits."
+          - generic [ref=e376]:
+            - generic [ref=e377]:
+              - paragraph [ref=e378]: Ages
+              - paragraph [ref=e379]: 5-12
+            - generic [ref=e380]:
+              - paragraph [ref=e381]: Price
+              - paragraph [ref=e382]: TBD
+            - generic [ref=e383]:
+              - paragraph [ref=e384]: Hours
+              - paragraph [ref=e385]: TBD
+      - generic [ref=e386] [cursor=pointer]:
+        - img "Camp Haverim" [ref=e388]
+        - generic [ref=e390]:
+          - generic [ref=e391]:
+            - heading "Camp Haverim" [level=3] [ref=e392]
+            - generic [ref=e393]:
+              - button "Add to compare" [ref=e394]:
+                - img [ref=e395]
+              - button "Add to favorites" [ref=e397]:
+                - img [ref=e398]
+            - img [ref=e400]
+          - generic [ref=e403]: General
+          - paragraph [ref=e405]: Jewish day camp with swimming, sports, arts, music, field trips, and Judaic enrichment. Celebrates Shabbat. Open to everyone.
+          - generic [ref=e406]:
+            - generic [ref=e407]:
+              - paragraph [ref=e408]: Ages
+              - paragraph [ref=e409]: TK-11
+            - generic [ref=e410]:
+              - paragraph [ref=e411]: Price
+              - paragraph [ref=e412]: $800–1600/wk
+            - generic [ref=e413]:
+              - paragraph [ref=e414]: Hours
+              - paragraph [ref=e415]: 9am-3pm
+          - generic [ref=e416]:
+            - img [ref=e417]
+            - generic [ref=e419]: Opens jun 15
+          - generic [ref=e420]:
+            - generic [ref=e421]: Transport
+            - generic [ref=e422]: Sibling $
+      - generic [ref=e423] [cursor=pointer]:
+        - img "Camp Stow" [ref=e425]
+        - generic [ref=e427]:
+          - generic [ref=e428]:
+            - heading "Camp Stow" [level=3] [ref=e429]
+            - generic [ref=e430]:
+              - button "Add to compare" [ref=e431]:
+                - img [ref=e432]
+              - button "Add to favorites" [ref=e434]:
+                - img [ref=e435]
+            - img [ref=e437]
+          - generic [ref=e440]: Nature & Outdoor
+          - paragraph [ref=e442]: Historic ranch camp with nature exploration, ranch activities, and local history at the 1872 Stow House.
+          - generic [ref=e443]:
+            - generic [ref=e444]:
+              - paragraph [ref=e445]: Ages
+              - paragraph [ref=e446]: 5-12
+            - generic [ref=e447]:
+              - paragraph [ref=e448]: Price
+              - paragraph [ref=e449]: $400–550/wk
+            - generic [ref=e450]:
+              - paragraph [ref=e451]: Hours
+              - paragraph [ref=e452]: "Half: 9am-12:30pm; Full: 9am-3pm"
+      - generic [ref=e453] [cursor=pointer]:
+        - img "Ensemble Theatre Company" [ref=e455]
+        - generic [ref=e457]:
+          - generic [ref=e458]:
+            - heading "Ensemble Theatre Company" [level=3] [ref=e459]
+            - generic [ref=e460]:
+              - button "Add to compare" [ref=e461]:
+                - img [ref=e462]
+              - button "Add to favorites" [ref=e464]:
+                - img [ref=e465]
+            - img [ref=e467]
+          - generic [ref=e470]: Performing Arts
+          - paragraph [ref=e472]: "Young Actors Conservatory: Camp DramaRama (9-13), Performance Playground (5-8), Acting Intensive (14-22), Musical Theatre Intensive (14-22)."
+          - generic [ref=e473]:
+            - generic [ref=e474]:
+              - paragraph [ref=e475]: Ages
+              - paragraph [ref=e476]: 5-22
+            - generic [ref=e477]:
+              - paragraph [ref=e478]: Price
+              - paragraph [ref=e479]: Varies by program
+            - generic [ref=e480]:
+              - paragraph [ref=e481]: Hours
+              - paragraph [ref=e482]: Varies
+          - generic [ref=e483]:
+            - img [ref=e484]
+            - generic [ref=e486]: Opens feb 1
+      - generic [ref=e487] [cursor=pointer]:
+        - img "Girls Inc. of Greater Santa Barbara" [ref=e489]
+        - generic [ref=e491]:
+          - generic [ref=e492]:
+            - heading "Girls Inc. of Greater Santa Barbara" [level=3] [ref=e493]
+            - generic [ref=e494]:
+              - button "Add to compare" [ref=e495]:
+                - img [ref=e496]
+              - button "Add to favorites" [ref=e498]:
+                - img [ref=e499]
+            - img [ref=e501]
+          - generic [ref=e504]: Multi-Activity
+          - paragraph [ref=e506]: Pro-girl summer camp with STEM, art, sports, theater, cooking, woodshop themes.
+          - generic [ref=e507]:
+            - generic [ref=e508]:
+              - paragraph [ref=e509]: Ages
+              - paragraph [ref=e510]: 5-17
+            - generic [ref=e511]:
+              - paragraph [ref=e512]: Price
+              - paragraph [ref=e513]: $200–345/wk
+            - generic [ref=e514]:
+              - paragraph [ref=e515]: Hours
+              - paragraph [ref=e516]: Unknown
+      - generic [ref=e517] [cursor=pointer]:
+        - img "GUSD Summer Thrive" [ref=e519]
+        - generic [ref=e521]:
+          - generic [ref=e522]:
+            - heading "GUSD Summer Thrive" [level=3] [ref=e523]
+            - generic [ref=e524]:
+              - button "Add to compare" [ref=e525]:
+                - img [ref=e526]
+              - button "Add to favorites" [ref=e528]:
+                - img [ref=e529]
+            - img [ref=e531]
+          - generic [ref=e534]: General
+          - paragraph [ref=e536]: District-run summer program at Goleta elementary schools. Free for ELOP-eligible families; low-cost paid option for others.
+          - generic [ref=e537]:
+            - generic [ref=e538]:
+              - paragraph [ref=e539]: Ages
+              - paragraph [ref=e540]: K-6
+            - generic [ref=e541]:
+              - paragraph [ref=e542]: Price
+              - paragraph [ref=e543]: Free
+            - generic [ref=e544]:
+              - paragraph [ref=e545]: Hours
+              - paragraph [ref=e546]: 7:30am-4:30pm
+          - generic [ref=e548]: Extended Care
+      - generic [ref=e549] [cursor=pointer]:
+        - img "Ice in Paradise" [ref=e551]
+        - generic [ref=e553]:
+          - generic [ref=e554]:
+            - heading "Ice in Paradise" [level=3] [ref=e555]
+            - generic [ref=e556]:
+              - button "Add to compare" [ref=e557]:
+                - img [ref=e558]
+              - button "Add to favorites" [ref=e560]:
+                - img [ref=e561]
+            - img [ref=e563]
+          - generic [ref=e566]: Sports
+          - paragraph [ref=e568]: Figure skating and hockey camps at indoor ice rink. No prior skating experience required. Grouped by age and ability level.
+          - generic [ref=e569]:
+            - generic [ref=e570]:
+              - paragraph [ref=e571]: Ages
+              - paragraph [ref=e572]: 4-11
+            - generic [ref=e573]:
+              - paragraph [ref=e574]: Price
+              - paragraph [ref=e575]: Unknown
+            - generic [ref=e576]:
+              - paragraph [ref=e577]: Hours
+              - paragraph [ref=e578]: 9am-3pm
+      - generic [ref=e579] [cursor=pointer]:
+        - img "InterAct Theatre School" [ref=e581]
+        - generic [ref=e583]:
+          - generic [ref=e584]:
+            - heading "InterAct Theatre School" [level=3] [ref=e585]
+            - generic [ref=e586]:
+              - button "Add to compare" [ref=e587]:
+                - img [ref=e588]
+              - button "Add to favorites" [ref=e590]:
+                - img [ref=e591]
+            - img [ref=e593]
+          - generic [ref=e596]: Performing Arts
+          - paragraph [ref=e598]: Theatrical experience combining performance, creativity, teamwork, and personal growth. Act It! Move It! Make It!
+          - generic [ref=e599]:
+            - generic [ref=e600]:
+              - paragraph [ref=e601]: Ages
+              - paragraph [ref=e602]: 4-16
+            - generic [ref=e603]:
+              - paragraph [ref=e604]: Price
+              - paragraph [ref=e605]: TBD
+            - generic [ref=e606]:
+              - paragraph [ref=e607]: Hours
+              - paragraph [ref=e608]: TBD
+      - generic [ref=e609] [cursor=pointer]:
+        - img "Laguna Blanca Summer Programs" [ref=e611]
+        - generic [ref=e613]:
+          - generic [ref=e614]:
+            - heading "Laguna Blanca Summer Programs" [level=3] [ref=e615]
+            - generic [ref=e616]:
+              - button "Add to compare" [ref=e617]:
+                - img [ref=e618]
+              - button "Add to favorites" [ref=e620]:
+                - img [ref=e621]
+            - img [ref=e623]
+          - generic [ref=e626]: General
+          - paragraph [ref=e628]: Independent school camps at Hope Ranch & Montecito campuses. Wide variety including sports, arts, academics. Lunch included.
+          - generic [ref=e629]:
+            - generic [ref=e630]:
+              - paragraph [ref=e631]: Ages
+              - paragraph [ref=e632]: 4-17
+            - generic [ref=e633]:
+              - paragraph [ref=e634]: Price
+              - paragraph [ref=e635]: $405/wk
+            - generic [ref=e636]:
+              - paragraph [ref=e637]: Hours
+              - paragraph [ref=e638]: 9am-3pm
+          - generic [ref=e639]:
+            - img [ref=e640]
+            - generic [ref=e642]: Opens feb 28
+          - generic [ref=e643]:
+            - generic [ref=e644]: Extended Care
+            - generic [ref=e645]: Meals
+            - generic [ref=e646]: Transport
+      - generic [ref=e647] [cursor=pointer]:
+        - img "Lobster Jo's Beach Camp" [ref=e649]
+        - generic [ref=e651]:
+          - generic [ref=e652]:
+            - heading "Lobster Jo's Beach Camp" [level=3] [ref=e653]
+            - generic [ref=e654]:
+              - button "Add to compare" [ref=e655]:
+                - img [ref=e656]
+              - button "Add to favorites" [ref=e658]:
+                - img [ref=e659]
+            - img [ref=e661]
+          - generic [ref=e664]: Beach/Surf
+          - paragraph [ref=e666]: Beach day camp with surfing, boogie boarding, sandcastles, beach games, arts & crafts. Color-coded rash guards indicate swim levels.
+          - generic [ref=e667]:
+            - generic [ref=e668]:
+              - paragraph [ref=e669]: Ages
+              - paragraph [ref=e670]: 5-13
+            - generic [ref=e671]:
+              - paragraph [ref=e672]: Price
+              - paragraph [ref=e673]: $360–450/wk
+            - generic [ref=e674]:
+              - paragraph [ref=e675]: Hours
+              - paragraph [ref=e676]: 9am-3pm
+          - generic [ref=e677]:
+            - img [ref=e678]
+            - generic [ref=e680]: Register Now
+      - generic [ref=e681] [cursor=pointer]:
+        - img "Momentum Dance Company" [ref=e683]
+        - generic [ref=e685]:
+          - generic [ref=e686]:
+            - heading "Momentum Dance Company" [level=3] [ref=e687]
+            - generic [ref=e688]:
+              - button "Add to compare" [ref=e689]:
+                - img [ref=e690]
+              - button "Add to favorites" [ref=e692]:
+                - img [ref=e693]
+            - img [ref=e695]
+          - generic [ref=e698]: Dance
+          - paragraph [ref=e700]: Dance camps with jazz, hip hop, tumbling, ballet, contemporary. Themed weeks with costumes and final performance. Ages 3 to teen.
+          - generic [ref=e701]:
+            - generic [ref=e702]:
+              - paragraph [ref=e703]: Ages
+              - paragraph [ref=e704]: 3-18
+            - generic [ref=e705]:
+              - paragraph [ref=e706]: Price
+              - paragraph [ref=e707]: Varies
+            - generic [ref=e708]:
+              - paragraph [ref=e709]: Hours
+              - paragraph [ref=e710]: 1pm-4pm (camps); varies (intensives)
+      - generic [ref=e711] [cursor=pointer]:
+        - img "Montessori Center School Camp" [ref=e713]
+        - generic [ref=e715]:
+          - generic [ref=e716]:
+            - heading "Montessori Center School Camp" [level=3] [ref=e717]
+            - generic [ref=e718]:
+              - button "Add to compare" [ref=e719]:
+                - img [ref=e720]
+              - button "Add to favorites" [ref=e722]:
+                - img [ref=e723]
+            - img [ref=e725]
+          - generic [ref=e728]: General
+          - paragraph [ref=e730]: Thematic summer camp with Montessori principles. Creativity, discovery, social interaction, and fun.
+          - generic [ref=e731]:
+            - generic [ref=e732]:
+              - paragraph [ref=e733]: Ages
+              - paragraph [ref=e734]: 3-12
+            - generic [ref=e735]:
+              - paragraph [ref=e736]: Price
+              - paragraph [ref=e737]: TBD
+            - generic [ref=e738]:
+              - paragraph [ref=e739]: Hours
+              - paragraph [ref=e740]: TBD
+      - generic [ref=e741] [cursor=pointer]:
+        - img "MOXI Museum Camp" [ref=e743]
+        - generic [ref=e745]:
+          - generic [ref=e746]:
+            - heading "MOXI Museum Camp" [level=3] [ref=e747]
+            - generic [ref=e748]:
+              - button "Add to compare" [ref=e749]:
+                - img [ref=e750]
+              - button "Add to favorites" [ref=e752]:
+                - img [ref=e753]
+            - img [ref=e755]
+          - generic [ref=e758]: Science/STEM
+          - paragraph [ref=e760]: STEM/STEAM day camps at interactive science museum.
+          - generic [ref=e761]:
+            - generic [ref=e762]:
+              - paragraph [ref=e763]: Ages
+              - paragraph [ref=e764]: 5-12
+            - generic [ref=e765]:
+              - paragraph [ref=e766]: Price
+              - paragraph [ref=e767]: $325–375/wk
+            - generic [ref=e768]:
+              - paragraph [ref=e769]: Hours
+              - paragraph [ref=e770]: 9am-3pm
+          - generic [ref=e771]:
+            - img [ref=e772]
+            - generic [ref=e774]: Register Now
+      - generic [ref=e775] [cursor=pointer]:
+        - img "Nature Rangers" [ref=e777]
+        - generic [ref=e779]:
+          - generic [ref=e780]:
+            - heading "Nature Rangers" [level=3] [ref=e781]
+            - generic [ref=e782]:
+              - button "Add to compare" [ref=e783]:
+                - img [ref=e784]
+              - button "Add to favorites" [ref=e786]:
+                - img [ref=e787]
+            - img [ref=e789]
+          - generic [ref=e792]: Nature & Outdoor
+          - paragraph [ref=e794]: Nature immersion with games, problem-solving quests, crafts, science experiments. Focus on confidence, resilience, nature connection.
+          - generic [ref=e795]:
+            - generic [ref=e796]:
+              - paragraph [ref=e797]: Ages
+              - paragraph [ref=e798]: 5-14
+            - generic [ref=e799]:
+              - paragraph [ref=e800]: Price
+              - paragraph [ref=e801]: $320–400/wk
+            - generic [ref=e802]:
+              - paragraph [ref=e803]: Hours
+              - paragraph [ref=e804]: 9am-2pm (aftercare to 4pm)
+          - generic [ref=e806]: Extended Care
+      - generic [ref=e807] [cursor=pointer]:
+        - img "Next Level Sports Camp" [ref=e809]
+        - generic [ref=e811]:
+          - generic [ref=e812]:
+            - heading "Next Level Sports Camp" [level=3] [ref=e813]
+            - generic [ref=e814]:
+              - button "Add to compare" [ref=e815]:
+                - img [ref=e816]
+              - button "Add to favorites" [ref=e818]:
+                - img [ref=e819]
+            - img [ref=e821]
+          - generic [ref=e824]: Sports
+          - paragraph [ref=e826]: "Multi-sport camp: baseball, football, lacrosse, soccer, volleyball. Choose different sports each session. Top local coaches."
+          - generic [ref=e827]:
+            - generic [ref=e828]:
+              - paragraph [ref=e829]: Ages
+              - paragraph [ref=e830]: 6-14
+            - generic [ref=e831]:
+              - paragraph [ref=e832]: Price
+              - paragraph [ref=e833]: TBD
+            - generic [ref=e834]:
+              - paragraph [ref=e835]: Hours
+              - paragraph [ref=e836]: Full day
+      - generic [ref=e837] [cursor=pointer]:
+        - img "Nick Rail Summer Band Camp" [ref=e839]
+        - generic [ref=e841]:
+          - generic [ref=e842]:
+            - heading "Nick Rail Summer Band Camp" [level=3] [ref=e843]
+            - generic [ref=e844]:
+              - button "Add to compare" [ref=e845]:
+                - img [ref=e846]
+              - button "Add to favorites" [ref=e848]:
+                - img [ref=e849]
+            - img [ref=e851]
+          - generic [ref=e854]: Music
+          - paragraph [ref=e856]: Band camp for students learning instruments. Sponsored by SB Education Foundation. Builds musical skills and confidence.
+          - generic [ref=e857]:
+            - generic [ref=e858]:
+              - paragraph [ref=e859]: Ages
+              - paragraph [ref=e860]: Various
+            - generic [ref=e861]:
+              - paragraph [ref=e862]: Price
+              - paragraph [ref=e863]: TBD
+            - generic [ref=e864]:
+              - paragraph [ref=e865]: Hours
+              - paragraph [ref=e866]: TBD
+      - generic [ref=e867] [cursor=pointer]:
+        - img "Octobots Robotics Camp" [ref=e869]
+        - generic [ref=e871]:
+          - generic [ref=e872]:
+            - heading "Octobots Robotics Camp" [level=3] [ref=e873]
+            - generic [ref=e874]:
+              - button "Add to compare" [ref=e875]:
+                - img [ref=e876]
+              - button "Add to favorites" [ref=e878]:
+                - img [ref=e879]
+            - img [ref=e881]
+          - generic [ref=e884]: STEM
+          - paragraph [ref=e886]: Engineering and robotics camp combining craftsmanship with excitement of high school robotics. All levels welcome.
+          - generic [ref=e887]:
+            - generic [ref=e888]:
+              - paragraph [ref=e889]: Ages
+              - paragraph [ref=e890]: 9-14
+            - generic [ref=e891]:
+              - paragraph [ref=e892]: Price
+              - paragraph [ref=e893]: TBD
+            - generic [ref=e894]:
+              - paragraph [ref=e895]: Hours
+              - paragraph [ref=e896]: TBD
+      - generic [ref=e897] [cursor=pointer]:
+        - img "Page Youth Center" [ref=e899]
+        - generic [ref=e901]:
+          - generic [ref=e902]:
+            - heading "Page Youth Center" [level=3] [ref=e903]
+            - generic [ref=e904]:
+              - button "Add to compare" [ref=e905]:
+                - img [ref=e906]
+              - button "Add to favorites" [ref=e908]:
+                - img [ref=e909]
+            - img [ref=e911]
+          - generic [ref=e914]: Sports
+          - paragraph [ref=e916]: Sports-focused camp in 23,000 sq ft facility with 16,000 sq ft gym. Basketball, volleyball, sports games.
+          - generic [ref=e917]:
+            - generic [ref=e918]:
+              - paragraph [ref=e919]: Ages
+              - paragraph [ref=e920]: Grades 1-8
+            - generic [ref=e921]:
+              - paragraph [ref=e922]: Price
+              - paragraph [ref=e923]: Unknown
+            - generic [ref=e924]:
+              - paragraph [ref=e925]: Hours
+              - paragraph [ref=e926]: 8:30am-4pm
+          - generic [ref=e927]:
+            - img [ref=e928]
+            - generic [ref=e930]: Register Now
+      - generic [ref=e931] [cursor=pointer]:
+        - img "Peak2Pacific" [ref=e933]
+        - generic [ref=e935]:
+          - generic [ref=e936]:
+            - heading "Peak2Pacific" [level=3] [ref=e937]
+            - generic [ref=e938]:
+              - button "Add to compare" [ref=e939]:
+                - img [ref=e940]
+              - button "Add to favorites" [ref=e942]:
+                - img [ref=e943]
+            - img [ref=e945]
+          - generic [ref=e948]: Outdoor/Adventure
+          - paragraph [ref=e950]: "Outdoor adventure: hiking, bouldering, kayaking, surfing, sailing, marine biology, nature art."
+          - generic [ref=e951]:
+            - generic [ref=e952]:
+              - paragraph [ref=e953]: Ages
+              - paragraph [ref=e954]: 3-18
+            - generic [ref=e955]:
+              - paragraph [ref=e956]: Price
+              - paragraph [ref=e957]: $375–425/wk
+            - generic [ref=e958]:
+              - paragraph [ref=e959]: Hours
+              - paragraph [ref=e960]: 9am-3pm
+          - generic [ref=e961]:
+            - img [ref=e962]
+            - generic [ref=e964]: Register Now
+      - generic [ref=e965] [cursor=pointer]:
+        - img "Refugio Jr. Guards" [ref=e967]
+        - generic [ref=e969]:
+          - generic [ref=e970]:
+            - heading "Refugio Jr. Guards" [level=3] [ref=e971]
+            - generic [ref=e972]:
+              - button "Add to compare" [ref=e973]:
+                - img [ref=e974]
+              - button "Add to favorites" [ref=e976]:
+                - img [ref=e977]
+            - img [ref=e979]
+          - generic [ref=e982]: Beach & Water
+          - paragraph [ref=e984]: Ocean safety program at state beach run by CA State Parks lifeguards. CPR, first aid, surf rescue, environmental education.
+          - generic [ref=e985]:
+            - generic [ref=e986]:
+              - paragraph [ref=e987]: Ages
+              - paragraph [ref=e988]: 7-17
+            - generic [ref=e989]:
+              - paragraph [ref=e990]: Price
+              - paragraph [ref=e991]: $430–450/wk
+            - generic [ref=e992]:
+              - paragraph [ref=e993]: Hours
+              - paragraph [ref=e994]: 9am-3pm
+          - generic [ref=e995]:
+            - img [ref=e996]
+            - generic [ref=e998]: Opens feb
+          - generic [ref=e999]:
+            - generic [ref=e1000]: Transport
+            - generic [ref=e1001]: Sibling $
+      - generic [ref=e1002] [cursor=pointer]:
+        - img "Safety Town" [ref=e1004]
+        - generic [ref=e1006]:
+          - generic [ref=e1007]:
+            - heading "Safety Town" [level=3] [ref=e1008]
+            - generic [ref=e1009]:
+              - button "Add to compare" [ref=e1010]:
+                - img [ref=e1011]
+              - button "Add to favorites" [ref=e1013]:
+                - img [ref=e1014]
+            - img [ref=e1016]
+          - generic [ref=e1019]: General
+          - paragraph [ref=e1021]: Traffic, fire, water, and personal safety education for pre-K and kindergarteners. Interactive lessons with guest speakers.
+          - generic [ref=e1022]:
+            - generic [ref=e1023]:
+              - paragraph [ref=e1024]: Ages
+              - paragraph [ref=e1025]: Pre-K/K (5 by 9/1)
+            - generic [ref=e1026]:
+              - paragraph [ref=e1027]: Price
+              - paragraph [ref=e1028]: $200/wk
+            - generic [ref=e1029]:
+              - paragraph [ref=e1030]: Hours
+              - paragraph [ref=e1031]: 8:30am-12pm (3.5 hours)
+      - generic [ref=e1032] [cursor=pointer]:
+        - img "Santa Barbara Dance Arts" [ref=e1034]
+        - generic [ref=e1036]:
+          - generic [ref=e1037]:
+            - heading "Santa Barbara Dance Arts" [level=3] [ref=e1038]
+            - generic [ref=e1039]:
+              - button "Add to compare" [ref=e1040]:
+                - img [ref=e1041]
+              - button "Add to favorites" [ref=e1043]:
+                - img [ref=e1044]
+            - img [ref=e1046]
+          - generic [ref=e1049]: Dance
+          - paragraph [ref=e1051]: "Dance camps in jazz, ballet, hip hop, tap, acro. Themed camps: Disney Dance, Bluey, Tutu & Tails, Cupcakes & Cartwheels. Performance at end of week."
+          - generic [ref=e1052]:
+            - generic [ref=e1053]:
+              - paragraph [ref=e1054]: Ages
+              - paragraph [ref=e1055]: 3-17
+            - generic [ref=e1056]:
+              - paragraph [ref=e1057]: Price
+              - paragraph [ref=e1058]: Varies by camp
+            - generic [ref=e1059]:
+              - paragraph [ref=e1060]: Hours
+              - paragraph [ref=e1061]: Varies by camp
+      - generic [ref=e1062] [cursor=pointer]:
+        - img "Santa Barbara Museum of Art Camp" [ref=e1064]
+        - generic [ref=e1066]:
+          - generic [ref=e1067]:
+            - heading "Santa Barbara Museum of Art Camp" [level=3] [ref=e1068]
+            - generic [ref=e1069]:
+              - button "Add to compare" [ref=e1070]:
+                - img [ref=e1071]
+              - button "Add to favorites" [ref=e1073]:
+                - img [ref=e1074]
+            - img [ref=e1076]
+          - generic [ref=e1079]: Arts
+          - paragraph [ref=e1081]: Museum art camps with drawing, painting, printmaking, ceramics, textiles. Visits to museum galleries for inspiration from original artworks.
+          - generic [ref=e1082]:
+            - generic [ref=e1083]:
+              - paragraph [ref=e1084]: Ages
+              - paragraph [ref=e1085]: 5-9 (varies by session)
+            - generic [ref=e1086]:
+              - paragraph [ref=e1087]: Price
+              - paragraph [ref=e1088]: $300–350/wk
+            - generic [ref=e1089]:
+              - paragraph [ref=e1090]: Hours
+              - paragraph [ref=e1091]: TBD
+      - generic [ref=e1092] [cursor=pointer]:
+        - img "Santa Barbara Soccer Club Camp" [ref=e1094]
+        - generic [ref=e1096]:
+          - generic [ref=e1097]:
+            - heading "Santa Barbara Soccer Club Camp" [level=3] [ref=e1098]
+            - generic [ref=e1099]:
+              - button "Add to compare" [ref=e1100]:
+                - img [ref=e1101]
+              - button "Add to favorites" [ref=e1103]:
+                - img [ref=e1104]
+            - img [ref=e1106]
+          - generic [ref=e1109]: Sports
+          - paragraph [ref=e1111]: Soccer skills development through drills and games. Professional coaching staff. Open to all abilities. Scholarships available.
+          - generic [ref=e1112]:
+            - generic [ref=e1113]:
+              - paragraph [ref=e1114]: Ages
+              - paragraph [ref=e1115]: 5-12
+            - generic [ref=e1116]:
+              - paragraph [ref=e1117]: Price
+              - paragraph [ref=e1118]: TBD
+            - generic [ref=e1119]:
+              - paragraph [ref=e1120]: Hours
+              - paragraph [ref=e1121]: Half & Full Day options
+          - generic [ref=e1123]: Extended Care
+      - generic [ref=e1124] [cursor=pointer]:
+        - img "Santa Barbara Zoo Camp" [ref=e1126]
+        - generic [ref=e1128]:
+          - generic [ref=e1129]:
+            - heading "Santa Barbara Zoo Camp" [level=3] [ref=e1130]
+            - generic [ref=e1131]:
+              - button "Add to compare" [ref=e1132]:
+                - img [ref=e1133]
+              - button "Add to favorites" [ref=e1135]:
+                - img [ref=e1136]
+            - img [ref=e1138]
+          - generic [ref=e1141]: Animals/Zoo
+          - paragraph [ref=e1143]: Animal-focused camp with behind-the-scenes visits, animal encounters, hands-on science.
+          - generic [ref=e1144]:
+            - generic [ref=e1145]:
+              - paragraph [ref=e1146]: Ages
+              - paragraph [ref=e1147]: 3-12
+            - generic [ref=e1148]:
+              - paragraph [ref=e1149]: Price
+              - paragraph [ref=e1150]: $300–400/wk
+            - generic [ref=e1151]:
+              - paragraph [ref=e1152]: Hours
+              - paragraph [ref=e1153]: 9am-3pm
+          - generic [ref=e1154]:
+            - img [ref=e1155]
+            - generic [ref=e1157]: Register Now
+      - generic [ref=e1158] [cursor=pointer]:
+        - img "SB Botanic Garden" [ref=e1160]
+        - generic [ref=e1162]:
+          - generic [ref=e1163]:
+            - heading "SB Botanic Garden" [level=3] [ref=e1164]
+            - generic [ref=e1165]:
+              - button "Add to compare" [ref=e1166]:
+                - img [ref=e1167]
+              - button "Add to favorites" [ref=e1169]:
+                - img [ref=e1170]
+            - img [ref=e1172]
+          - generic [ref=e1175]: Nature/Outdoor
+          - paragraph [ref=e1177]: Nature-based camps exploring 78-acre garden.
+          - generic [ref=e1178]:
+            - generic [ref=e1179]:
+              - paragraph [ref=e1180]: Ages
+              - paragraph [ref=e1181]: 5-12
+            - generic [ref=e1182]:
+              - paragraph [ref=e1183]: Price
+              - paragraph [ref=e1184]: $370/wk
+            - generic [ref=e1185]:
+              - paragraph [ref=e1186]: Hours
+              - paragraph [ref=e1187]: 9am-3pm
+      - generic [ref=e1188] [cursor=pointer]:
+        - img "SB Parks & Recreation" [ref=e1190]
+        - generic [ref=e1192]:
+          - generic [ref=e1193]:
+            - heading "SB Parks & Recreation" [level=3] [ref=e1194]
+            - generic [ref=e1195]:
+              - button "Add to compare" [ref=e1196]:
+                - img [ref=e1197]
+              - button "Add to favorites" [ref=e1199]:
+                - img [ref=e1200]
+            - img [ref=e1202]
+          - generic [ref=e1205]: Multi-Activity
+          - paragraph [ref=e1207]: "City-run camps: Jr Lifeguards, LEGO, Basketball, Art, Ocean Explorers, Nature Camp."
+          - generic [ref=e1208]:
+            - generic [ref=e1209]:
+              - paragraph [ref=e1210]: Ages
+              - paragraph [ref=e1211]: 5-17
+            - generic [ref=e1212]:
+              - paragraph [ref=e1213]: Price
+              - paragraph [ref=e1214]: $195–420/wk
+            - generic [ref=e1215]:
+              - paragraph [ref=e1216]: Hours
+              - paragraph [ref=e1217]: Varies
+          - generic [ref=e1218]:
+            - img [ref=e1219]
+            - generic [ref=e1221]: Register Now
+      - generic [ref=e1222] [cursor=pointer]:
+        - img "Sea League Excursion Camp" [ref=e1224]
+        - generic [ref=e1226]:
+          - generic [ref=e1227]:
+            - heading "Sea League Excursion Camp" [level=3] [ref=e1228]
+            - generic [ref=e1229]:
+              - button "Add to compare" [ref=e1230]:
+                - img [ref=e1231]
+              - button "Add to favorites" [ref=e1233]:
+                - img [ref=e1234]
+            - img [ref=e1236]
+          - generic [ref=e1239]: Beach & Water
+          - paragraph [ref=e1241]: Overnight coastal adventure at Dos Pueblos Ranch. Surfing, boogie boarding, giant SUP, Channel Islands trip with snorkeling.
+          - generic [ref=e1242]:
+            - generic [ref=e1243]:
+              - paragraph [ref=e1244]: Ages
+              - paragraph [ref=e1245]: 9-13
+            - generic [ref=e1246]:
+              - paragraph [ref=e1247]: Price
+              - paragraph [ref=e1248]: TBD
+            - generic [ref=e1249]:
+              - paragraph [ref=e1250]: Hours
+              - paragraph [ref=e1251]: 5-day overnight
+          - generic [ref=e1253]: Meals
+      - generic [ref=e1254] [cursor=pointer]:
+        - img "Surf Happens" [ref=e1256]
+        - generic [ref=e1258]:
+          - generic [ref=e1259]:
+            - heading "Surf Happens" [level=3] [ref=e1260]
+            - generic [ref=e1261]:
+              - button "Add to compare" [ref=e1262]:
+                - img [ref=e1263]
+              - button "Add to favorites" [ref=e1265]:
+                - img [ref=e1266]
+            - img [ref=e1268]
+          - generic [ref=e1271]: Beach & Water
+          - paragraph [ref=e1273]: Premier surf camp at Santa Claus Lane. Beginner to advanced instruction. Hot lunch included. CPR-certified instructors.
+          - generic [ref=e1274]:
+            - generic [ref=e1275]:
+              - paragraph [ref=e1276]: Ages
+              - paragraph [ref=e1277]: 4-17
+            - generic [ref=e1278]:
+              - paragraph [ref=e1279]: Price
+              - paragraph [ref=e1280]: $550–750/wk
+            - generic [ref=e1281]:
+              - paragraph [ref=e1282]: Hours
+              - paragraph [ref=e1283]: 9am-3pm
+          - generic [ref=e1284]:
+            - generic [ref=e1285]: Meals
+            - generic [ref=e1286]: Sibling $
+      - generic [ref=e1287] [cursor=pointer]:
+        - img "Terrific Scientific" [ref=e1289]
+        - generic [ref=e1291]:
+          - generic [ref=e1292]:
+            - heading "Terrific Scientific" [level=3] [ref=e1293]
+            - generic [ref=e1294]:
+              - button "Add to compare" [ref=e1295]:
+                - img [ref=e1296]
+              - button "Add to favorites" [ref=e1298]:
+                - img [ref=e1299]
+            - img [ref=e1301]
+          - generic [ref=e1304]: STEM
+          - paragraph [ref=e1306]: "STEAM camps: science experiments, engineering, technology, robotics. 65 different themed camps. Same org as Art Explorers."
+          - generic [ref=e1307]:
+            - generic [ref=e1308]:
+              - paragraph [ref=e1309]: Ages
+              - paragraph [ref=e1310]: K-8
+            - generic [ref=e1311]:
+              - paragraph [ref=e1312]: Price
+              - paragraph [ref=e1313]: $299/wk
+            - generic [ref=e1314]:
+              - paragraph [ref=e1315]: Hours
+              - paragraph [ref=e1316]: 8:30am-3:30pm
+          - generic [ref=e1317]:
+            - generic [ref=e1318]: Extended Care
+            - generic [ref=e1319]: Sibling $
+      - generic [ref=e1320] [cursor=pointer]:
+        - img "Twin Lakes Junior Golf" [ref=e1322]
+        - generic [ref=e1324]:
+          - generic [ref=e1325]:
+            - heading "Twin Lakes Junior Golf" [level=3] [ref=e1326]
+            - generic [ref=e1327]:
+              - button "Add to compare" [ref=e1328]:
+                - img [ref=e1329]
+              - button "Add to favorites" [ref=e1331]:
+                - img [ref=e1332]
+            - img [ref=e1334]
+          - generic [ref=e1337]: Sports
+          - paragraph [ref=e1339]: "Golf fundamentals: putting, chipping, full swing. Concepts valuable on and off the course. PGA instruction."
+          - generic [ref=e1340]:
+            - generic [ref=e1341]:
+              - paragraph [ref=e1342]: Ages
+              - paragraph [ref=e1343]: 4-14
+            - generic [ref=e1344]:
+              - paragraph [ref=e1345]: Price
+              - paragraph [ref=e1346]: TBD
+            - generic [ref=e1347]:
+              - paragraph [ref=e1348]: Hours
+              - paragraph [ref=e1349]: TBD
+      - generic [ref=e1350] [cursor=pointer]:
+        - img "UCSB Day Camp" [ref=e1352]
+        - generic [ref=e1354]:
+          - generic [ref=e1355]:
+            - heading "UCSB Day Camp" [level=3] [ref=e1356]
+            - generic [ref=e1357]:
+              - button "Add to compare" [ref=e1358]:
+                - img [ref=e1359]
+              - button "Add to favorites" [ref=e1361]:
+                - img [ref=e1362]
+            - img [ref=e1364]
+          - generic [ref=e1367]: Multi-Activity
+          - paragraph [ref=e1369]: University-run camp with swimming, gymnastics, adventure ropes course.
+          - generic [ref=e1370]:
+            - generic [ref=e1371]:
+              - paragraph [ref=e1372]: Ages
+              - paragraph [ref=e1373]: 5-14
+            - generic [ref=e1374]:
+              - paragraph [ref=e1375]: Price
+              - paragraph [ref=e1376]: $305–335/wk
+            - generic [ref=e1377]:
+              - paragraph [ref=e1378]: Hours
+              - paragraph [ref=e1379]: 8:15am-5:15pm
+          - generic [ref=e1380]:
+            - img [ref=e1381]
+            - generic [ref=e1383]: Register Now
+      - generic [ref=e1384] [cursor=pointer]:
+        - img "United Boys & Girls Club" [ref=e1386]
+        - generic [ref=e1388]:
+          - generic [ref=e1389]:
+            - heading "United Boys & Girls Club" [level=3] [ref=e1390]
+            - generic [ref=e1391]:
+              - button "Add to compare" [ref=e1392]:
+                - img [ref=e1393]
+              - button "Add to favorites" [ref=e1395]:
+                - img [ref=e1396]
+            - img [ref=e1398]
+          - generic [ref=e1401]: General
+          - paragraph [ref=e1403]: Affordable full-day camp at multiple locations. Sports, games, arts, STEM activities. Scholarships available.
+          - generic [ref=e1404]:
+            - generic [ref=e1405]:
+              - paragraph [ref=e1406]: Ages
+              - paragraph [ref=e1407]: 5-18
+            - generic [ref=e1408]:
+              - paragraph [ref=e1409]: Price
+              - paragraph [ref=e1410]: $75/wk
+            - generic [ref=e1411]:
+              - paragraph [ref=e1412]: Hours
+              - paragraph [ref=e1413]: 8am-6pm (included)
+          - generic [ref=e1415]: Extended Care
+      - generic [ref=e1416] [cursor=pointer]:
+        - img "Westmont Summer Sports Camps" [ref=e1418]
+        - generic [ref=e1420]:
+          - generic [ref=e1421]:
+            - heading "Westmont Summer Sports Camps" [level=3] [ref=e1422]
+            - generic [ref=e1423]:
+              - button "Add to compare" [ref=e1424]:
+                - img [ref=e1425]
+              - button "Add to favorites" [ref=e1427]:
+                - img [ref=e1428]
+            - img [ref=e1430]
+          - generic [ref=e1433]: Sports
+          - paragraph [ref=e1435]: "University sports camps: basketball, soccer, volleyball, and more. 35+ years of experience. Fun, safe environment."
+          - generic [ref=e1436]:
+            - generic [ref=e1437]:
+              - paragraph [ref=e1438]: Ages
+              - paragraph [ref=e1439]: 5-13
+            - generic [ref=e1440]:
+              - paragraph [ref=e1441]: Price
+              - paragraph [ref=e1442]: TBD
+            - generic [ref=e1443]:
+              - paragraph [ref=e1444]: Hours
+              - paragraph [ref=e1445]: TBD
+      - generic [ref=e1446] [cursor=pointer]:
+        - img "Wilderness Youth Project" [ref=e1448]
+        - generic [ref=e1450]:
+          - generic [ref=e1451]:
+            - heading "Wilderness Youth Project" [level=3] [ref=e1452]
+            - generic [ref=e1453]:
+              - button "Add to compare" [ref=e1454]:
+                - img [ref=e1455]
+              - button "Add to favorites" [ref=e1457]:
+                - img [ref=e1458]
+            - img [ref=e1460]
+          - generic [ref=e1463]: Nature/Outdoor
+          - paragraph [ref=e1465]: Small-group nature mentoring in creeks, beaches, and open spaces.
+          - generic [ref=e1466]:
+            - generic [ref=e1467]:
+              - paragraph [ref=e1468]: Ages
+              - paragraph [ref=e1469]: 6-12
+            - generic [ref=e1470]:
+              - paragraph [ref=e1471]: Price
+              - paragraph [ref=e1472]: $425–650/wk
+            - generic [ref=e1473]:
+              - paragraph [ref=e1474]: Hours
+              - paragraph [ref=e1475]: 9am-4pm
+      - generic [ref=e1476] [cursor=pointer]:
+        - img "WinShape Camps" [ref=e1478]
+        - generic [ref=e1480]:
+          - generic [ref=e1481]:
+            - heading "WinShape Camps" [level=3] [ref=e1482]
+            - generic [ref=e1483]:
+              - button "Add to compare" [ref=e1484]:
+                - img [ref=e1485]
+              - button "Add to favorites" [ref=e1487]:
+                - img [ref=e1488]
+            - img [ref=e1490]
+          - generic [ref=e1493]: General
+          - paragraph [ref=e1495]: Faith-based day camp hosted by Chick-fil-A. Activities include sports, games, worship, crafts. Friday family lunch with Chick-fil-A.
+          - generic [ref=e1496]:
+            - generic [ref=e1497]:
+              - paragraph [ref=e1498]: Ages
+              - paragraph [ref=e1499]: K-6 (entering)
+            - generic [ref=e1500]:
+              - paragraph [ref=e1501]: Price
+              - paragraph [ref=e1502]: $275/wk
+            - generic [ref=e1503]:
+              - paragraph [ref=e1504]: Hours
+              - paragraph [ref=e1505]: 8:15am-5pm
+          - generic [ref=e1506]:
+            - img [ref=e1507]
+            - generic [ref=e1509]: Opens march
+          - generic [ref=e1511]: Sibling $
+      - generic [ref=e1512] [cursor=pointer]:
+        - img "YMCA Summer Camp" [ref=e1514]
+        - generic [ref=e1516]:
+          - generic [ref=e1517]:
+            - heading "YMCA Summer Camp" [level=3] [ref=e1518]
+            - generic [ref=e1519]:
+              - button "Add to compare" [ref=e1520]:
+                - img [ref=e1521]
+              - button "Add to favorites" [ref=e1523]:
+                - img [ref=e1524]
+            - img [ref=e1526]
+          - generic [ref=e1529]: Multi-Activity
+          - paragraph [ref=e1531]: Traditional day camp with art, STEM, sports, outdoor recreation, field trips.
+          - generic [ref=e1532]:
+            - generic [ref=e1533]:
+              - paragraph [ref=e1534]: Ages
+              - paragraph [ref=e1535]: 2.5-18
+            - generic [ref=e1536]:
+              - paragraph [ref=e1537]: Price
+              - paragraph [ref=e1538]: $200–400/wk
+            - generic [ref=e1539]:
+              - paragraph [ref=e1540]: Hours
+              - paragraph [ref=e1541]: 8:30am-5pm
+          - generic [ref=e1542]:
+            - img [ref=e1543]
+            - generic [ref=e1545]: Register Now
+  - contentinfo [ref=e1546]:
+    - generic [ref=e1548]:
+      - generic [ref=e1549]:
+        - img [ref=e1550]
+        - generic [ref=e1555]: Santa Barbara Summer Camps
+      - generic [ref=e1556]:
+        - paragraph [ref=e1557]: Data sourced directly from camp websites • Last updated January 2026
+        - paragraph [ref=e1558]: Prices and availability may change. Always verify with camps directly before enrolling.
+```

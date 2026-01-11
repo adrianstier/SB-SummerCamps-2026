@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 import { personas } from './personas.js';
 import { testScenarios } from './test-scenarios.js';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
+const BASE_URL = 'http://localhost:5173';
 
 // Store all issues found
 const allIssues = [];
@@ -280,7 +280,7 @@ class PersonaTester {
     }
 
     // Check for buttons without accessible names
-    const buttonsWithoutLabel = await this.page.locator('button:not([aria-label]):not(:has-text(*))').count();
+    const buttonsWithoutLabel = await this.page.locator('button:not([aria-label]):empty').count();
     if (buttonsWithoutLabel > 0) {
       await this.reportIssue(`${buttonsWithoutLabel} buttons without accessible labels`, {
         severity: 'medium',

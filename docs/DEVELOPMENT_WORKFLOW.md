@@ -4,6 +4,20 @@
 
 This document defines the sequential development process for the Santa Barbara Summer Camps platform, based on industry best practices from the specialized role frameworks.
 
+> **Role Details**: For comprehensive role descriptions, responsibilities, and deliverables, see the [roles/](roles/) directory.
+
+| Role | Details |
+|------|---------|
+| Business Analyst | [roles/01-business-analyst.md](roles/01-business-analyst.md) |
+| Project Manager | [roles/02-project-manager.md](roles/02-project-manager.md) |
+| UX Engineer | [roles/03-ux-engineer.md](roles/03-ux-engineer.md) |
+| Tech Lead | [roles/04-tech-lead.md](roles/04-tech-lead.md) |
+| Database Engineer | [roles/05-database-engineer.md](roles/05-database-engineer.md) |
+| Frontend Engineer | [roles/06-frontend-engineer.md](roles/06-frontend-engineer.md) |
+| Backend Engineer | [roles/07-backend-engineer.md](roles/07-backend-engineer.md) |
+| Code Reviewer | [roles/08-code-reviewer.md](roles/08-code-reviewer.md) |
+| Security Reviewer | [roles/09-security-reviewer.md](roles/09-security-reviewer.md) |
+
 ---
 
 ## Development Pipeline Sequence
