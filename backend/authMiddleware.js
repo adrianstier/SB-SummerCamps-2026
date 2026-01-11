@@ -177,20 +177,49 @@ export function authorize(...allowedRoles) {
 
 /**
  * Rate limiting middleware
- * Simple in-memory rate limiter (use Redis in production)
+ * Supports both in-memory (development) and Redis (production) storage
+ *
+ * SECURITY: For production with multiple instances, configure REDIS_URL
+ * to enable distributed rate limiting that works across server instances.
  */
 const rateLimitStore = new Map();
+let redisClient = null;
+
+// Initialize Redis if available (for distributed rate limiting)
+async function getRedisClient() {
+  if (redisClient) return redisClient;
+
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) return null;
+
+  try {
+    // Dynamic import to avoid requiring redis in development
+    const { createClient } = await import('redis');
+    redisClient = createClient({ url: redisUrl });
+    redisClient.on('error', (err) => console.error('Redis error:', err));
+    await redisClient.connect();
+    console.log('Redis connected for distributed rate limiting');
+    return redisClient;
+  } catch (err) {
+    console.warn('Redis not available, falling back to in-memory rate limiting:', err.message);
+    return null;
+  }
+}
+
+// Initialize Redis on module load (non-blocking)
+getRedisClient().catch(() => {});
 
 export function rateLimit(options = {}) {
   const {
     windowMs = 60000,      // 1 minute
     maxRequests = 100,     // max requests per window
     keyGenerator = (req) => req.ip || 'unknown',
-    message = 'Too many requests, please try again later'
+    message = 'Too many requests, please try again later',
+    keyPrefix = 'rl:'      // Redis key prefix
   } = options;
 
-  // Cleanup old entries periodically
-  setInterval(() => {
+  // Cleanup old entries periodically (for in-memory store)
+  const cleanupInterval = setInterval(() => {
     const now = Date.now();
     for (const [key, value] of rateLimitStore.entries()) {
       if (now - value.windowStart > windowMs) {
@@ -199,29 +228,69 @@ export function rateLimit(options = {}) {
     }
   }, windowMs);
 
-  return (req, res, next) => {
+  // Prevent interval from keeping process alive
+  cleanupInterval.unref?.();
+
+  return async (req, res, next) => {
     const key = keyGenerator(req);
+    const fullKey = `${keyPrefix}${key}`;
     const now = Date.now();
 
-    let record = rateLimitStore.get(key);
+    let count;
+    let windowStart;
 
-    if (!record || now - record.windowStart > windowMs) {
-      record = { windowStart: now, count: 0 };
+    // Try Redis first, fall back to in-memory
+    const redis = await getRedisClient();
+
+    if (redis) {
+      try {
+        // Atomic increment with expiration in Redis
+        const multi = redis.multi();
+        multi.incr(fullKey);
+        multi.pTTL(fullKey);
+        const results = await multi.exec();
+
+        count = results[0];
+        const ttl = results[1];
+
+        // Set expiration on first request in window
+        if (ttl === -1) {
+          await redis.pExpire(fullKey, windowMs);
+          windowStart = now;
+        } else {
+          windowStart = now - (windowMs - ttl);
+        }
+      } catch (err) {
+        console.error('Redis rate limit error, falling back to memory:', err);
+        // Fall through to in-memory
+      }
     }
 
-    record.count++;
-    rateLimitStore.set(key, record);
+    // In-memory fallback
+    if (count === undefined) {
+      let record = rateLimitStore.get(key);
+
+      if (!record || now - record.windowStart > windowMs) {
+        record = { windowStart: now, count: 0 };
+      }
+
+      record.count++;
+      rateLimitStore.set(key, record);
+
+      count = record.count;
+      windowStart = record.windowStart;
+    }
 
     // Set rate limit headers
     res.setHeader('X-RateLimit-Limit', maxRequests);
-    res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - record.count));
-    res.setHeader('X-RateLimit-Reset', Math.ceil((record.windowStart + windowMs) / 1000));
+    res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - count));
+    res.setHeader('X-RateLimit-Reset', Math.ceil((windowStart + windowMs) / 1000));
 
-    if (record.count > maxRequests) {
+    if (count > maxRequests) {
       return res.status(429).json({
         error: 'Too Many Requests',
         message,
-        retryAfter: Math.ceil((record.windowStart + windowMs - now) / 1000)
+        retryAfter: Math.ceil((windowStart + windowMs - now) / 1000)
       });
     }
 
@@ -427,6 +496,84 @@ export function validateRequest(schema) {
   };
 }
 
+/**
+ * CSRF Protection middleware
+ * SECURITY: Protects against Cross-Site Request Forgery attacks
+ *
+ * For this app, CSRF risk is low because:
+ * 1. We use Bearer token auth (not cookies)
+ * 2. Tokens are stored in memory, not automatically sent
+ *
+ * However, this provides defense-in-depth by validating Origin header.
+ */
+const csrfTokenStore = new Map();
+
+export function csrfProtection(options = {}) {
+  const {
+    allowedOrigins = [],
+    tokenHeader = 'x-csrf-token',
+    tokenLength = 32,
+    ignoreMethods = ['GET', 'HEAD', 'OPTIONS']
+  } = options;
+
+  return (req, res, next) => {
+    // Skip for safe methods
+    if (ignoreMethods.includes(req.method)) {
+      return next();
+    }
+
+    // Check Origin header (primary defense)
+    const origin = req.headers.origin;
+    const referer = req.headers.referer;
+
+    if (origin) {
+      // Origin header present - validate it
+      const isAllowed = allowedOrigins.length === 0 ||
+        allowedOrigins.some(allowed => origin === allowed || origin.startsWith(allowed));
+
+      if (!isAllowed) {
+        console.warn(`CSRF: Blocked request from origin ${origin}`);
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Invalid request origin'
+        });
+      }
+    } else if (referer) {
+      // No origin but has referer - validate referer
+      try {
+        const refererOrigin = new URL(referer).origin;
+        const isAllowed = allowedOrigins.length === 0 ||
+          allowedOrigins.some(allowed => refererOrigin === allowed || refererOrigin.startsWith(allowed));
+
+        if (!isAllowed) {
+          console.warn(`CSRF: Blocked request from referer ${referer}`);
+          return res.status(403).json({
+            error: 'Forbidden',
+            message: 'Invalid request referer'
+          });
+        }
+      } catch (err) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Invalid referer header'
+        });
+      }
+    }
+    // Note: Requests with neither origin nor referer are allowed
+    // (e.g., server-to-server API calls with API key)
+
+    next();
+  };
+}
+
+/**
+ * Generate CSRF token for a session
+ */
+export function generateCsrfToken() {
+  const token = crypto.randomBytes(32).toString('hex');
+  return token;
+}
+
 export default {
   authenticate,
   authorize,
@@ -435,5 +582,7 @@ export default {
   corsConfig,
   requestLogger,
   errorHandler,
-  validateRequest
+  validateRequest,
+  csrfProtection,
+  generateCsrfToken
 };

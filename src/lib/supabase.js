@@ -590,7 +590,7 @@ export async function deleteComparisonList(id) {
     .eq('id', id);
 }
 
-export async function shareComparisonList(id) {
+export async function shareComparisonList(id, expirationDays = 14) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
   // SECURITY: Generate high-entropy share token (UUID + 32 random hex chars)
@@ -601,9 +601,17 @@ export async function shareComparisonList(id) {
   const randomHex = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
   const shareToken = `${uuid}-${randomHex}`;
 
+  // SECURITY: Set expiration date (default 14 days)
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + expirationDays);
+
   return supabase
     .from('comparison_lists')
-    .update({ is_shared: true, share_token: shareToken })
+    .update({
+      is_shared: true,
+      share_token: shareToken,
+      share_expires_at: expiresAt.toISOString()
+    })
     .eq('id', id)
     .select()
     .single();
@@ -620,6 +628,13 @@ export async function getSharedComparisonList(shareToken) {
     .single();
 
   if (error) return null;
+
+  // SECURITY: Check if share token has expired
+  if (data.share_expires_at && new Date(data.share_expires_at) < new Date()) {
+    console.warn('Share token has expired');
+    return null;
+  }
+
   return data;
 }
 

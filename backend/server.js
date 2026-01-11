@@ -18,7 +18,8 @@ import {
   rateLimit,
   apiKeyAuth,
   requestLogger,
-  errorHandler
+  errorHandler,
+  csrfProtection
 } from './authMiddleware.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -30,11 +31,18 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      // SECURITY: Removed 'unsafe-inline' - Vite/React apps don't need it in production
+      // If inline scripts are needed, use nonces or hashes instead
+      scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'", "https://*.supabase.co", "https://accounts.google.com"],
+      // Additional security directives
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"],
+      baseUri: ["'self'"],
+      objectSrc: ["'none'"],
     },
   },
   crossOriginEmbedderPolicy: false, // Needed for third-party images
@@ -42,7 +50,10 @@ app.use(helmet({
     maxAge: 31536000, // 1 year
     includeSubDomains: true,
     preload: true
-  }
+  },
+  // Additional security headers
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  permittedCrossDomainPolicies: { permittedPolicies: 'none' }
 }));
 
 // SECURITY: Configure CORS with explicit allowed origins
@@ -107,6 +118,19 @@ app.use('/api/scrape', rateLimit({
   windowMs: 300000,   // 5 minutes
   maxRequests: isProduction ? 5 : 20,
   message: 'Too many scrape requests, please try again later'
+}));
+
+// SECURITY: Rate limit for share token lookups (prevent enumeration)
+app.use('/api/shared', rateLimit({
+  windowMs: 60000,    // 1 minute
+  maxRequests: isProduction ? 30 : 100,
+  keyPrefix: 'rl:shared:',
+  message: 'Too many share requests, please try again later'
+}));
+
+// SECURITY: Apply CSRF protection to state-changing endpoints
+app.use('/api', csrfProtection({
+  allowedOrigins: ALLOWED_ORIGINS
 }));
 
 // Serve static files from dist in production

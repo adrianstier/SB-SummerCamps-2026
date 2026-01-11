@@ -1,0 +1,21 @@
+# Security Policy for Santa Barbara Summer Camps
+# https://securitytxt.org/
+
+Contact: mailto:security@sbsummercamps.com
+Expires: 2027-01-11T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://sb-summer-camps.vercel.app/.well-known/security.txt
+
+# Scope
+# This security policy covers the following domains:
+# - sb-summer-camps.vercel.app
+# - sb-summercamps.vercel.app
+
+# Acknowledgments
+# We appreciate security researchers who help keep our users safe.
+
+# Policy
+# We ask that you:
+# - Give us reasonable time to fix issues before public disclosure
+# - Make a good faith effort to avoid privacy violations and data destruction
+# - Do not access or modify data belonging to other users
