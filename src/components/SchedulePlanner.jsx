@@ -145,7 +145,10 @@ export function SchedulePlanner({ camps, onClose }) {
 
   async function handleAddCamp(camp, weekNum) {
     const week = summerWeeks.find(w => w.weekNum === weekNum);
-    if (!week || !selectedChild) return;
+    if (!week || !selectedChild) {
+      console.error('Missing week or child selection');
+      return;
+    }
 
     const campData = camps.find(c => c.id === camp.id);
 
@@ -169,19 +172,28 @@ export function SchedulePlanner({ camps, onClose }) {
       return;
     }
 
-    await addScheduledCamp({
-      camp_id: camp.id,
-      child_id: selectedChild,
-      start_date: week.startDate,
-      end_date: week.endDate,
-      price: campData?.min_price || null,
-      status: 'planned'
-    });
+    try {
+      // Add camp to schedule in database
+      await addScheduledCamp({
+        camp_id: camp.id,
+        child_id: selectedChild,
+        start_date: week.startDate,
+        end_date: week.endDate,
+        price: campData?.min_price || null,
+        status: 'planned'
+      });
 
-    await refreshSchedule();
-    setShowAddCamp(null);
-    setSearchQuery('');
-    setShowCampDrawer(false);
+      // Refresh schedule to show the new camp
+      await refreshSchedule();
+
+      // Close any open modals/drawers
+      setShowAddCamp(null);
+      setSearchQuery('');
+      setShowCampDrawer(false);
+    } catch (error) {
+      console.error('Error adding camp to schedule:', error);
+      alert('Failed to add camp. Please try again.');
+    }
   }
 
   // Preview mode functions
@@ -305,11 +317,22 @@ export function SchedulePlanner({ camps, onClose }) {
 
   function handleWeekDrop(weekNum, e) {
     e.preventDefault();
+
+    // Check if a child is selected
+    if (!selectedChild) {
+      alert('Please select a child first to add camps to their schedule.');
+      setDragOverWeek(null);
+      setDraggedCamp(null);
+      return;
+    }
+
     const campId = e.dataTransfer.getData('campId');
     if (campId) {
       const camp = camps.find(c => c.id === campId);
       if (camp) {
         handleAddCamp(camp, weekNum);
+      } else {
+        console.error('Camp not found:', campId);
       }
     }
     setDragOverWeek(null);
