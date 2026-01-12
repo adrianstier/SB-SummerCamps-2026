@@ -315,6 +315,30 @@ const ChevronIcon = ({ expanded }) => (
   </svg>
 );
 
+// Loading Spinner Component
+const LoadingSpinner = ({ className = "w-5 h-5" }) => (
+  <svg
+    className={`${className} animate-spin`}
+    fill="none"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    />
+  </svg>
+);
+
 // Brand Icon (California sun over wave)
 const BrandIcon = ({ className = "w-8 h-8" }) => (
   <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -351,6 +375,11 @@ export default function App() {
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('camp_name');
   const [sortDir, setSortDir] = useState('asc');
+
+  // Loading states
+  const [isPlannerLoading, setIsPlannerLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResultCount, setSearchResultCount] = useState(null);
 
   // Modal state
   const [showPlanner, setShowPlanner] = useState(false);
@@ -449,6 +478,7 @@ export default function App() {
   // Fetch camps when filters change
   const loadCamps = useCallback(async () => {
     setLoading(true);
+    setIsSearching(true);
     try {
       const data = await fetchCamps({
         search,
@@ -464,18 +494,23 @@ export default function App() {
         sortDir
       });
       setCamps(data.camps);
+      setSearchResultCount(data.total);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+      setIsSearching(false);
     }
   }, [search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount, sortBy, sortDir]);
 
   // Debounced search
   useEffect(() => {
+    if (search || selectedCategory !== 'All' || childAge || maxPrice || selectedKeywords.length > 0 || extendedCare || foodIncluded || hasTransport || siblingDiscount) {
+      setIsSearching(true);
+    }
     const timer = setTimeout(loadCamps, 300);
     return () => clearTimeout(timer);
-  }, [loadCamps]);
+  }, [loadCamps, search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount]);
 
   // Toggle keyword selection
   const toggleKeyword = (keyword) => {
@@ -614,11 +649,27 @@ export default function App() {
 
               {/* Plan My Summer button */}
               <button
-                onClick={() => setShowPlanner(true)}
+                onClick={() => {
+                  setIsPlannerLoading(true);
+                  setTimeout(() => {
+                    setShowPlanner(true);
+                    setIsPlannerLoading(false);
+                  }, 100);
+                }}
                 className="btn-primary hidden sm:flex"
+                disabled={isPlannerLoading}
               >
-                <CalendarPlanIcon />
-                <span>Plan My Summer</span>
+                {isPlannerLoading ? (
+                  <>
+                    <LoadingSpinner className="w-5 h-5" />
+                    <span>Loading...</span>
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlanIcon />
+                    <span>Plan My Summer</span>
+                  </>
+                )}
               </button>
 
               {/* View toggle */}
@@ -662,12 +713,40 @@ export default function App() {
               </div>
               <input
                 type="text"
-                placeholder="Search camps..."
+                placeholder="Search camps... (results update as you type)"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="search-input"
               />
+
+              {/* Clear button */}
+              {search && (
+                <button
+                  className="absolute right-5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-sand-200 transition-colors"
+                  onClick={() => setSearch('')}
+                  title="Clear search"
+                  style={{ color: 'var(--sand-400)' }}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Search status indicator */}
+              {isSearching && search && (
+                <div className="absolute right-14 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--sand-500)' }}>
+                  Searching...
+                </div>
+              )}
             </div>
+
+            {/* Results count below search */}
+            {searchResultCount !== null && search && (
+              <p className="text-center text-sm mb-4" style={{ color: 'var(--earth-700)' }}>
+                Found <strong>{searchResultCount}</strong> {searchResultCount === 1 ? 'camp' : 'camps'} matching "{search}"
+              </p>
+            )}
 
             {/* Trust Signals - Quick Stats with Data Freshness */}
             {stats && (
@@ -1364,6 +1443,8 @@ export default function App() {
             // Favorite toggle is handled by the FavoriteButton inside the modal
           }}
           isFavorite={favorites.some(f => f.camp_id === modalCamp.id)}
+          onToggleCompare={() => toggleCompare(modalCamp.id)}
+          isInCompare={compareList.includes(modalCamp.id)}
         />
       )}
     </div>
@@ -1436,11 +1517,27 @@ function FavoritesModal({ camps, onClose, onOpenPlanner }) {
               ))}
 
               <button
-                onClick={onOpenPlanner}
+                onClick={() => {
+                  setIsPlannerLoading(true);
+                  setTimeout(() => {
+                    onOpenPlanner();
+                    setIsPlannerLoading(false);
+                  }, 100);
+                }}
                 className="btn-primary w-full mt-4"
+                disabled={isPlannerLoading}
               >
-                <CalendarPlanIcon />
-                <span>Plan My Summer</span>
+                {isPlannerLoading ? (
+                  <>
+                    <LoadingSpinner className="w-5 h-5" />
+                    <span>Loading...</span>
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlanIcon />
+                    <span>Plan My Summer</span>
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -1875,7 +1972,7 @@ function DetailRow({ label, value }) {
 }
 
 // Camp Detail Modal - Editorial Magazine Style
-function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isFavorite }) {
+function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isFavorite, onToggleCompare, isInCompare }) {
   const [imageError, setImageError] = useState(false);
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
 
@@ -1935,16 +2032,33 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
           )}
           <div className="modal-hero-gradient" />
 
-          {/* Favorite Button */}
-          <button
-            className={`modal-favorite ${isFavorite ? 'is-active' : ''}`}
-            onClick={onToggleFavorite}
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
+          {/* Action Buttons - Favorite and Compare */}
+          <div style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', gap: '0.5rem', zIndex: 10 }}>
+            {/* Compare Button */}
+            {onToggleCompare && (
+              <button
+                className={`modal-favorite ${isInCompare ? 'is-active' : ''}`}
+                onClick={onToggleCompare}
+                aria-label={isInCompare ? 'Remove from comparison' : 'Add to comparison'}
+                title={isInCompare ? 'Remove from comparison' : 'Add to comparison'}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </button>
+            )}
+
+            {/* Favorite Button */}
+            <button
+              className={`modal-favorite ${isFavorite ? 'is-active' : ''}`}
+              onClick={onToggleFavorite}
+              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </button>
+          </div>
 
           {/* Title Block */}
           <div className="modal-hero-content">

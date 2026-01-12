@@ -1251,13 +1251,13 @@ body::before {
     0 0 0 5px var(--ocean-400);
 }
 
-/* Icon button */
+/* Icon button - WCAG 2.1 AA compliant (44x44px minimum) */
 .btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 12px;
   background: white;
   color: var(--earth-700);
@@ -1276,6 +1276,105 @@ body::before {
   background: var(--ocean-500);
   color: white;
   border-color: var(--ocean-500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPREHENSIVE FOCUS STYLES - WCAG 2.1 AA Compliance
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Focus ring utility - consistent across all interactive elements */
+.filter-preset-link:focus-visible,
+.category-browse-card:focus-visible,
+.camp-card:focus-visible,
+.favorite-btn:focus-visible,
+.compare-btn:focus-visible,
+.filter-control-btn:focus-visible,
+.featured-card:focus-visible,
+.modal-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px white,
+    0 0 0 5px var(--ocean-400);
+  position: relative;
+  z-index: 10; /* Ensure focus ring appears above adjacent elements */
+}
+
+/* Icon-only buttons - slightly tighter focus ring */
+button[title]:focus-visible:not(.btn-primary):not(.btn-secondary) {
+  outline: none;
+  box-shadow:
+    0 0 0 2px white,
+    0 0 0 4px var(--ocean-400);
+}
+
+/* Filter preset links - inline focus style */
+.filter-preset-link:focus-visible {
+  outline: none;
+  background: var(--ocean-50);
+  color: var(--ocean-600);
+  box-shadow: inset 0 0 0 2px var(--ocean-400);
+}
+
+/* Category browse cards - lift on focus */
+.category-browse-card:focus-visible {
+  outline: none;
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px -8px rgba(59, 168, 168, 0.3),
+    0 0 0 3px white,
+    0 0 0 5px var(--ocean-400);
+}
+
+/* Camp cards - subtle focus glow */
+.camp-card:focus-visible {
+  outline: none;
+  box-shadow:
+    0 12px 40px -12px rgba(59, 168, 168, 0.25),
+    0 0 0 3px white,
+    0 0 0 5px var(--ocean-400);
+}
+
+/* Remove default focus outline globally (replaced with custom styles above) */
+*:focus {
+  outline: none;
+}
+
+/* Ensure focus is visible even if :focus-visible not supported (progressive enhancement) */
+@supports not selector(:focus-visible) {
+  .filter-preset-link:focus,
+  .category-browse-card:focus,
+  .camp-card:focus,
+  .favorite-btn:focus,
+  .compare-btn:focus {
+    box-shadow: 0 0 0 3px var(--ocean-400);
+  }
+}
+
+/* Disabled state for primary button */
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-primary:disabled:hover {
+  transform: none;
+  box-shadow:
+    0 4px 15px -3px rgba(232, 90, 53, 0.3),
+    0 2px 8px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Active filter preset state */
+.filter-preset-link.active {
+  background: var(--ocean-500);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px -2px rgba(59, 168, 168, 0.4);
+}
+
+.filter-preset-link.active:hover {
+  background: var(--ocean-600);
+  transform: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1800,6 +1899,17 @@ body::before {
 .category-browse-icon {
   font-size: 2rem;
   margin-bottom: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+/* Increase emoji size slightly on hover for delight */
+.category-browse-card:hover .category-browse-icon {
+  transform: scale(1.1);
+}
+
+.category-browse-card:active {
+  transform: translateY(0);
+  transition-duration: 0.1s;
 }
 
 .category-browse-name {
@@ -1959,6 +2069,96 @@ body::before {
    RESPONSIVE ADJUSTMENTS
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* Tablet-optimized grid */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Tighten grid gaps for better space utilization */
+  main > .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  /* Featured grid also optimized */
+  .featured-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  /* Category browse - show 3 columns on tablet */
+  .category-browse-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  /* Camp cards slightly more compact */
+  .camp-card .p-6 {
+    padding: 1.25rem;
+  }
+}
+
+/* iPad Pro landscape (1024px+) - can show 3 columns */
+@media (min-width: 1024px) and (max-width: 1280px) {
+  main > .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Mobile hero optimizations */
+@media (max-width: 640px) {
+  .hero-section {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+  }
+
+  .hero-title h1 {
+    font-size: 2.5rem; /* Down from 3rem+ */
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem; /* Down from 1.125rem */
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .hero-stats {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0 0.5rem;
+  }
+
+  .hero-stats > div {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .hero-search {
+    margin-bottom: 2rem;
+  }
+
+  /* Adjust search input for mobile */
+  .search-input {
+    font-size: 1rem;
+    padding: 1rem 1rem 1rem 3rem;
+  }
+}
+
+/* Extra small devices (iPhone SE) */
+@media (max-width: 375px) {
+  .hero-title h1 {
+    font-size: 2.25rem;
+  }
+
+  .hero-title p {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+}
+
 @media (max-width: 768px) {
   .hero-section::before {
     width: 150%;
@@ -1972,6 +2172,25 @@ body::before {
 
   .camp-card {
     border-radius: 16px;
+  }
+
+  /* WCAG 2.1 AA: Ensure all touch targets are at least 44x44px on mobile */
+  button:not(.btn-primary):not(.btn-secondary) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .favorite-btn,
+  .compare-btn,
+  .modal-close {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+
+  .filter-preset-link {
+    min-height: 44px;
+    padding: 10px 16px;
   }
 
   .hero-editorial {
