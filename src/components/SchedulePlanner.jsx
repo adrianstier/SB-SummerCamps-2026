@@ -46,6 +46,7 @@ export function SchedulePlanner({ camps, onClose }) {
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const weekScrollRef = useRef(null);
+  const [draggedScheduledCamp, setDraggedScheduledCamp] = useState(null); // For status board drag
 
   // What-If Planning Preview mode
   const [previewMode, setPreviewMode] = useState(false);
@@ -239,6 +240,24 @@ export function SchedulePlanner({ camps, onClose }) {
   async function handleStatusChange(scheduleId, newStatus) {
     await updateScheduledCamp(scheduleId, { status: newStatus });
     await refreshSchedule();
+  }
+
+  // Status board drag handlers
+  function handleStatusDragStart(scheduledCamp, e) {
+    setDraggedScheduledCamp(scheduledCamp);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function handleStatusDragEnd() {
+    setDraggedScheduledCamp(null);
+  }
+
+  async function handleStatusDrop(newStatus, e) {
+    e.preventDefault();
+    if (draggedScheduledCamp && draggedScheduledCamp.status !== newStatus) {
+      await handleStatusChange(draggedScheduledCamp.id, newStatus);
+    }
+    setDraggedScheduledCamp(null);
   }
 
   // Block week functions
@@ -613,6 +632,15 @@ export function SchedulePlanner({ camps, onClose }) {
           Schedule
         </button>
         <button
+          onClick={() => setActiveTab('status')}
+          className={`planner-tab ${activeTab === 'status' ? 'active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          Status
+        </button>
+        <button
           onClick={() => setActiveTab('squads')}
           className={`planner-tab ${activeTab === 'squads' ? 'active' : ''}`}
         >
@@ -666,6 +694,94 @@ export function SchedulePlanner({ camps, onClose }) {
         <div className="planner-main" style={{ padding: 0 }}>
           <SquadsPanel onClose={onClose} />
         </div>
+      ) : activeTab === 'status' ? (
+        <main className="planner-main">
+          {/* Status Board View */}
+          {children.length === 0 ? (
+            <div className="planner-empty">
+              <div className="planner-empty-icon">👨‍👩‍👧‍👦</div>
+              <h2 className="planner-empty-title">Add your children first</h2>
+              <p className="planner-empty-text">Create profiles for each child to start planning their summer adventure.</p>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }))}
+                className="btn-primary"
+              >
+                Add Children
+              </button>
+            </div>
+          ) : (
+            <div className="status-board">
+              {/* Status columns: planned, registered, confirmed, waitlisted, cancelled */}
+              {[
+                { status: 'planned', label: 'Planned', color: '#94a3b8', icon: '📋' },
+                { status: 'registered', label: 'Registered', color: '#3b82f6', icon: '✍️' },
+                { status: 'confirmed', label: 'Confirmed', color: '#22c55e', icon: '✅' },
+                { status: 'waitlisted', label: 'Waitlisted', color: '#f59e0b', icon: '⏳' },
+                { status: 'cancelled', label: 'Cancelled', color: '#ef4444', icon: '❌' }
+              ].map(column => {
+                const columnCamps = scheduledCamps
+                  .filter(sc => sc.child_id === selectedChild && sc.status === column.status)
+                  .map(sc => ({
+                    ...sc,
+                    camp: camps.find(c => c.id === sc.camp_id),
+                    child: children.find(c => c.id === sc.child_id)
+                  }));
+
+                return (
+                  <div
+                    key={column.status}
+                    className="status-column"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => handleStatusDrop(column.status, e)}
+                  >
+                    <div className="status-column-header" style={{ '--status-color': column.color }}>
+                      <span className="status-column-icon">{column.icon}</span>
+                      <h3 className="status-column-title">{column.label}</h3>
+                      <span className="status-column-count">{columnCamps.length}</span>
+                    </div>
+                    <div className="status-column-content">
+                      {columnCamps.length === 0 ? (
+                        <div className="status-column-empty">
+                          <p>No {column.label.toLowerCase()} camps</p>
+                        </div>
+                      ) : (
+                        columnCamps.map(sc => (
+                          <div
+                            key={sc.id}
+                            className="status-card"
+                            draggable
+                            onDragStart={(e) => handleStatusDragStart(sc, e)}
+                            onDragEnd={handleStatusDragEnd}
+                          >
+                            <div className="status-card-header">
+                              <h4 className="status-card-title">{sc.camp?.camp_name || 'Unknown Camp'}</h4>
+                              <button
+                                onClick={() => handleRemoveCamp(sc.id)}
+                                className="status-card-remove"
+                                aria-label="Remove camp"
+                              >
+                                <XIcon />
+                              </button>
+                            </div>
+                            <div className="status-card-meta">
+                              <span className="status-card-category">{sc.camp?.category}</span>
+                              <span className="status-card-price">{sc.price ? `$${sc.price}` : 'TBD'}</span>
+                            </div>
+                            <div className="status-card-dates">
+                              {new Date(sc.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              {' - '}
+                              {new Date(sc.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </main>
       ) : (
       <main className="planner-main">
         {/* Sample Data Banner */}
@@ -3442,6 +3558,173 @@ export function SchedulePlanner({ camps, onClose }) {
           text-align: center;
           padding: 40px 20px;
           color: var(--sand-400);
+        }
+
+        /* ─────────────────────────────────────────────────────────────────────
+           STATUS BOARD VIEW
+           ───────────────────────────────────────────────────────────────────── */
+
+        .status-board {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 1rem;
+          padding: 1.5rem;
+          height: 100%;
+          overflow-x: auto;
+        }
+
+        @media (max-width: 1280px) {
+          .status-board {
+            grid-template-columns: repeat(3, minmax(250px, 1fr));
+          }
+        }
+
+        @media (max-width: 768px) {
+          .status-board {
+            grid-template-columns: repeat(2, minmax(200px, 1fr));
+            padding: 1rem;
+            gap: 0.75rem;
+          }
+        }
+
+        .status-column {
+          display: flex;
+          flex-direction: column;
+          background: white;
+          border-radius: 12px;
+          border: 2px solid var(--sand-200);
+          overflow: hidden;
+          min-height: 400px;
+        }
+
+        .status-column-header {
+          background: var(--status-color);
+          color: white;
+          padding: 1rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex-shrink: 0;
+        }
+
+        .status-column-icon {
+          font-size: 1.25rem;
+        }
+
+        .status-column-title {
+          font-family: var(--font-serif);
+          font-size: 1rem;
+          font-weight: 600;
+          flex: 1;
+        }
+
+        .status-column-count {
+          background: rgba(255, 255, 255, 0.25);
+          padding: 0.25rem 0.5rem;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .status-column-content {
+          flex: 1;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          overflow-y: auto;
+        }
+
+        .status-column-empty {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--sand-400);
+          font-size: 0.875rem;
+          text-align: center;
+          padding: 2rem 1rem;
+        }
+
+        .status-card {
+          background: var(--sand-50);
+          border: 1px solid var(--sand-200);
+          border-radius: 8px;
+          padding: 0.75rem;
+          cursor: grab;
+          transition: all 0.2s ease;
+        }
+
+        .status-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          border-color: var(--ocean-400);
+        }
+
+        .status-card:active {
+          cursor: grabbing;
+          transform: scale(1.02);
+        }
+
+        .status-card-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .status-card-title {
+          font-family: var(--font-serif);
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: var(--earth-800);
+          line-height: 1.3;
+          flex: 1;
+        }
+
+        .status-card-remove {
+          padding: 0.25rem;
+          color: var(--sand-400);
+          cursor: pointer;
+          border-radius: 4px;
+          flex-shrink: 0;
+          transition: all 0.2s;
+        }
+
+        .status-card-remove:hover {
+          color: var(--red-500);
+          background: var(--red-50);
+        }
+
+        .status-card-remove svg {
+          width: 14px;
+          height: 14px;
+        }
+
+        .status-card-meta {
+          display: flex;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+          font-size: 0.75rem;
+        }
+
+        .status-card-category {
+          background: var(--ocean-100);
+          color: var(--ocean-700);
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-weight: 500;
+        }
+
+        .status-card-price {
+          color: var(--earth-700);
+          font-weight: 600;
+        }
+
+        .status-card-dates {
+          font-size: 0.75rem;
+          color: var(--sand-500);
         }
 
         /* ─────────────────────────────────────────────────────────────────────
