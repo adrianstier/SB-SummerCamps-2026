@@ -203,20 +203,39 @@ export function SchedulePlanner({ camps, onClose }) {
   }
 
   async function handleCommitPreviewCamps() {
-    // Save all preview camps to database
+    const results = { succeeded: [], failed: [] };
+
+    // Save all preview camps to database with individual error handling
     for (const pc of previewCamps) {
-      await addScheduledCamp({
-        camp_id: pc.camp_id,
-        child_id: pc.child_id,
-        start_date: pc.start_date,
-        end_date: pc.end_date,
-        price: pc.price,
-        status: 'planned'
-      });
+      try {
+        await addScheduledCamp({
+          camp_id: pc.camp_id,
+          child_id: pc.child_id,
+          start_date: pc.start_date,
+          end_date: pc.end_date,
+          price: pc.price,
+          status: 'planned'
+        });
+        results.succeeded.push(pc);
+      } catch (error) {
+        console.error('Failed to add preview camp:', pc, error);
+        results.failed.push({ camp: pc, error });
+      }
     }
+
+    // Refresh schedule to show successfully added camps
     await refreshSchedule();
+
+    // Clear preview mode
     setPreviewCamps([]);
     setPreviewMode(false);
+
+    // Show user feedback about results
+    if (results.failed.length > 0) {
+      const failedCount = results.failed.length;
+      const successCount = results.succeeded.length;
+      alert(`Added ${successCount} camp${successCount !== 1 ? 's' : ''}. ${failedCount} failed - please try adding them individually.`);
+    }
   }
 
   function handleCancelPreview() {

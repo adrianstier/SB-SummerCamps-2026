@@ -1315,32 +1315,12 @@ export async function clearSampleData() {
   if (!supabase) throw new Error('Supabase not configured');
 
   try {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No user logged in');
+    // Use RPC function for atomic deletion (prevents race conditions)
+    const { data, error } = await supabase.rpc('clear_sample_data');
 
-    // Delete sample children (CASCADE will delete associated scheduled_camps)
-    const { error: childrenError } = await supabase
-      .from('children')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('is_sample', true);
+    if (error) throw error;
 
-    if (childrenError) throw childrenError;
-
-    // Also delete any orphaned sample scheduled_camps (shouldn't exist due to CASCADE, but just in case)
-    const { error: campsError } = await supabase
-      .from('scheduled_camps')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('is_sample', true);
-
-    if (campsError) throw campsError;
-
-    // Mark tour as completed
-    await updateProfile({ tour_completed: true });
-
-    return { success: true };
+    return data || { success: true };
   } catch (error) {
     console.error('Error clearing sample data:', error);
     throw error;

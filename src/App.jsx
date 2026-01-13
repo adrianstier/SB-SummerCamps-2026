@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from './contexts/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Custom hook for scroll-triggered reveal animations
 function useScrollReveal(options = {}) {
@@ -137,6 +138,8 @@ async function fetchStats() {
 
   const prices = active.filter(c => c.min_price).map(c => c.min_price);
   const ages = active.filter(c => c.min_age);
+  const maxPrices = active.filter(c => c.max_price).map(c => c.max_price);
+  const maxAges = ages.filter(c => c.max_age).map(c => c.max_age);
 
   return {
     total: camps.length,
@@ -145,11 +148,11 @@ async function fetchStats() {
     categories,
     priceRange: {
       min: prices.length ? Math.min(...prices) : null,
-      max: prices.length ? Math.max(...active.filter(c => c.max_price).map(c => c.max_price)) : null
+      max: maxPrices.length ? Math.max(...maxPrices) : null
     },
     ageRange: {
       min: ages.length ? Math.min(...ages.map(c => c.min_age)) : null,
-      max: ages.length ? Math.max(...ages.filter(c => c.max_age).map(c => c.max_age)) : null
+      max: maxAges.length ? Math.max(...maxAges) : null
     }
   };
 }
