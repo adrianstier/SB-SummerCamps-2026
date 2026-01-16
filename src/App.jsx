@@ -1,42 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './contexts/AuthContext';
+import { useScrollReveal } from './hooks/useScrollReveal';
 import { ErrorBoundary } from './components/ErrorBoundary';
-
-// Custom hook for scroll-triggered reveal animations
-function useScrollReveal(options = {}) {
-  const ref = useRef(null);
-  const [isRevealed, setIsRevealed] = useState(false);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      setIsRevealed(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsRevealed(true);
-          observer.unobserve(element); // Only animate once
-        }
-      },
-      {
-        threshold: options.threshold || 0.1,
-        rootMargin: options.rootMargin || '0px 0px -50px 0px'
-      }
-    );
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [options.threshold, options.rootMargin]);
-
-  return [ref, isRevealed];
-}
 import { AuthButton } from './components/AuthButton';
 import { FavoriteButton } from './components/FavoriteButton';
 import { SchedulePlanner } from './components/SchedulePlanner';
@@ -51,6 +16,8 @@ import { Settings } from './components/Settings';
 import { CostDashboard } from './components/CostDashboard';
 import { Wishlist } from './components/Wishlist';
 import { supabase, getRegistrationStatus, checkWorkScheduleCoverage } from './lib/supabase';
+import { sanitizeString } from './lib/validation';
+import { formatPrice } from './lib/formatters';
 
 // Fetch camps from Supabase
 async function fetchCamps(filters = {}) {
@@ -61,8 +28,10 @@ async function fetchCamps(filters = {}) {
   let query = supabase.from('camps').select('*');
 
   // Apply filters
+  // SECURITY: Sanitize search input to prevent SQL injection
   if (filters.search) {
-    query = query.or(`camp_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+    const sanitizedSearch = sanitizeString(filters.search);
+    query = query.or(`camp_name.ilike.%${sanitizedSearch}%,description.ilike.%${sanitizedSearch}%`);
   }
 
   if (filters.category && filters.category !== 'All') {
@@ -155,25 +124,6 @@ async function fetchStats() {
       max: maxAges.length ? Math.max(...maxAges) : null
     }
   };
-}
-
-// Format price for display
-function formatPrice(camp) {
-  const minPrice = camp.price_min || camp.min_price;
-  const maxPrice = camp.price_max || camp.max_price;
-
-  if (!minPrice || minPrice === '0' || minPrice === 0) {
-    if (camp.price_week && /free/i.test(camp.price_week)) return 'Free';
-    if (camp.price_week && camp.price_week !== '$TBD') return camp.price_week;
-    return 'TBD';
-  }
-
-  const min = parseInt(minPrice);
-  const max = parseInt(maxPrice);
-
-  if (isNaN(min)) return camp.price_week || 'TBD';
-  if (min === max || isNaN(max)) return `$${min}/wk`;
-  return `$${min}–${max}/wk`;
 }
 
 // Get registration urgency status

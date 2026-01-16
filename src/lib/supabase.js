@@ -7,6 +7,7 @@ import {
   QuestionSchema,
   AnswerSchema,
   ScheduledCampSchema,
+  ScheduledCampUpdateSchema,
   sanitizeString
 } from './validation.js';
 
@@ -324,9 +325,15 @@ export async function addScheduledCamp(schedule) {
 export async function updateScheduledCamp(id, updates) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input
+  const validation = validate(ScheduledCampUpdateSchema, updates);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('scheduled_camps')
-    .update(updates)
+    .update(validation.data)
     .eq('id', id)
     .select()
     .single();

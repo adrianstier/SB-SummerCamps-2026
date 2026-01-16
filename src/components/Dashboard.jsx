@@ -2,25 +2,7 @@ import React, { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FavoriteButton } from './FavoriteButton';
 import { getSummerWeeks2026 } from '../lib/supabase';
-
-// Format price for display
-function formatPrice(camp) {
-  const minPrice = camp.price_min || camp.min_price;
-  const maxPrice = camp.price_max || camp.max_price;
-
-  if (!minPrice || minPrice === '0' || minPrice === 0) {
-    if (camp.price_week && /free/i.test(camp.price_week)) return 'Free';
-    if (camp.price_week && camp.price_week !== '$TBD') return camp.price_week;
-    return 'TBD';
-  }
-
-  const min = parseInt(minPrice);
-  const max = parseInt(maxPrice);
-
-  if (isNaN(min)) return camp.price_week || 'TBD';
-  if (min === max || isNaN(max)) return `$${min}`;
-  return `$${min}–${max}`;
-}
+import { formatPriceShort } from '../lib/formatters';
 
 export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
   const {
@@ -624,7 +606,7 @@ function RecoCard({ camp, score, onSelect }) {
       <div className="reco-card-info">
         <p className="reco-card-name">{camp.camp_name}</p>
         <p className="reco-card-meta">
-          {camp.category} · {formatPrice(camp)}
+          {camp.category} · {formatPriceShort(camp)}
         </p>
       </div>
       <div className="reco-card-fav" onClick={e => e.stopPropagation()}>

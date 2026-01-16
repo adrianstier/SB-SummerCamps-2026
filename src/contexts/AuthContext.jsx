@@ -61,7 +61,6 @@ export function AuthProvider({ children }) {
       if (error) {
         console.error('Error getting session:', error);
       }
-      console.log('Initial session:', session ? 'User logged in' : 'No session');
       setUser(session?.user ?? null);
       if (session?.user) {
         loadUserData(session.user.id);
@@ -72,7 +71,6 @@ export function AuthProvider({ children }) {
 
     // Listen for auth changes
     const { data: { subscription } } = onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session ? 'User present' : 'No user');
       setUser(session?.user ?? null);
       if (session?.user) {
         loadUserData(session.user.id);
@@ -279,20 +277,31 @@ export function AuthProvider({ children }) {
     });
   }
 
+  // Recommendation scoring weights
+  const SCORE_WEIGHTS = {
+    CATEGORY_MATCH: 30,
+    AGE_MATCH: 25,
+    FAVORITED: 15,
+    HAS_DESCRIPTION: 5,
+    HAS_CONTACT: 5,
+    HAS_WEBSITE: 5,
+    HAS_EXTENDED_CARE: 5,
+    FOOD_INCLUDED: 3,
+  };
+
   // Get recommended camps based on preferences and children
   function getRecommendationScores(camps) {
     if (!profile || familyChildren.length === 0) return [];
 
     const preferredCategories = profile.preferred_categories || [];
     const childAges = familyChildren.map(c => c.age_as_of_summer).filter(Boolean);
-    const childInterests = familyChildren.flatMap(c => c.interests || []);
 
     return camps.map(camp => {
       let score = 0;
 
       // Category match (high weight)
       if (preferredCategories.includes(camp.category)) {
-        score += 30;
+        score += SCORE_WEIGHTS.CATEGORY_MATCH;
       }
 
       // Age match
@@ -301,23 +310,23 @@ export function AuthProvider({ children }) {
         const campMaxAge = parseInt(camp.max_age) || 18;
         const hasMatchingAge = childAges.some(age => age >= campMinAge && age <= campMaxAge);
         if (hasMatchingAge) {
-          score += 25;
+          score += SCORE_WEIGHTS.AGE_MATCH;
         }
       }
 
       // Already favorited (boost)
       if (favorites.some(f => f.camp_id === camp.id)) {
-        score += 15;
+        score += SCORE_WEIGHTS.FAVORITED;
       }
 
       // Has good data (boost)
-      if (camp.description && camp.description.length > 100) score += 5;
-      if (camp.contact_email || camp.contact_phone) score += 5;
-      if (camp.website_url && camp.website_url !== 'N/A') score += 5;
+      if (camp.description && camp.description.length > 100) score += SCORE_WEIGHTS.HAS_DESCRIPTION;
+      if (camp.contact_email || camp.contact_phone) score += SCORE_WEIGHTS.HAS_CONTACT;
+      if (camp.website_url && camp.website_url !== 'N/A') score += SCORE_WEIGHTS.HAS_WEBSITE;
 
       // Features boost
-      if (camp.has_extended_care) score += 5;
-      if (camp.food_included) score += 3;
+      if (camp.has_extended_care) score += SCORE_WEIGHTS.HAS_EXTENDED_CARE;
+      if (camp.food_included) score += SCORE_WEIGHTS.FOOD_INCLUDED;
 
       return { camp, score };
     })

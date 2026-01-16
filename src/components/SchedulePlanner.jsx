@@ -47,6 +47,7 @@ export function SchedulePlanner({ camps, onClose }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const weekScrollRef = useRef(null);
   const [draggedScheduledCamp, setDraggedScheduledCamp] = useState(null); // For status board drag
+  const [addingCamp, setAddingCamp] = useState(false); // Prevent duplicate submissions
 
   // What-If Planning Preview mode
   const [previewMode, setPreviewMode] = useState(false);
@@ -145,9 +146,11 @@ export function SchedulePlanner({ camps, onClose }) {
   }
 
   async function handleAddCamp(camp, weekNum) {
+    // Prevent duplicate submissions
+    if (addingCamp) return;
+
     const week = summerWeeks.find(w => w.weekNum === weekNum);
     if (!week || !selectedChild) {
-      console.error('Missing week or child selection');
       return;
     }
 
@@ -156,7 +159,7 @@ export function SchedulePlanner({ camps, onClose }) {
     // In preview mode, add to preview camps instead of database
     if (previewMode) {
       const previewCamp = {
-        id: `preview-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `preview-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         camp_id: camp.id,
         child_id: selectedChild,
         start_date: week.startDate,
@@ -173,6 +176,7 @@ export function SchedulePlanner({ camps, onClose }) {
       return;
     }
 
+    setAddingCamp(true);
     try {
       // Add camp to schedule in database
       await addScheduledCamp({
@@ -192,8 +196,9 @@ export function SchedulePlanner({ camps, onClose }) {
       setSearchQuery('');
       setShowCampDrawer(false);
     } catch (error) {
-      console.error('Error adding camp to schedule:', error);
       alert('Failed to add camp. Please try again.');
+    } finally {
+      setAddingCamp(false);
     }
   }
 
@@ -1102,10 +1107,11 @@ export function SchedulePlanner({ camps, onClose }) {
                   onDragStart={(e) => handleDragStart(camp, e)}
                   onDragEnd={handleDragEnd}
                   onClick={() => {
-                    if (showAddCamp) {
+                    if (showAddCamp && !addingCamp) {
                       handleAddCamp(camp, showAddCamp.weekNum);
                     }
                   }}
+                  style={{ opacity: addingCamp ? 0.6 : 1, pointerEvents: addingCamp ? 'none' : 'auto' }}
                 >
                   {camp.image_url ? (
                     <img src={camp.image_url} alt="" className="planner-drawer-camp-img" />
@@ -1119,7 +1125,7 @@ export function SchedulePlanner({ camps, onClose }) {
                     </span>
                   </div>
                   {showAddCamp ? (
-                    <span className="planner-drawer-camp-add">Add</span>
+                    <span className="planner-drawer-camp-add">{addingCamp ? 'Adding...' : 'Add'}</span>
                   ) : (
                     <span className="planner-drawer-camp-drag">
                       <GripIcon />

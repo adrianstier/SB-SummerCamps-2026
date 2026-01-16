@@ -100,10 +100,19 @@ export const ScheduledCampSchema = z.object({
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   camp_name: shortText,
-  price: z.number().min(0).max(10000).optional(),
-  status: z.enum(['tentative', 'confirmed', 'registered', 'paid', 'cancelled']).optional(),
+  price: z.number().min(0).max(10000).optional().nullable(),
+  status: z.enum(['tentative', 'confirmed', 'registered', 'paid', 'cancelled', 'planned']).optional(),
   notes: safeText.max(2000).optional(),
   is_sample: z.boolean().optional(),
+});
+
+// Schema for updating scheduled camps (all fields optional)
+export const ScheduledCampUpdateSchema = z.object({
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  price: z.number().min(0).max(10000).optional().nullable(),
+  status: z.enum(['tentative', 'confirmed', 'registered', 'paid', 'cancelled', 'planned']).optional(),
+  notes: safeText.max(2000).optional(),
 });
 
 // ============================================================================
@@ -185,6 +194,7 @@ export default {
   AnswerSchema,
   ProfileUpdateSchema,
   ScheduledCampSchema,
+  ScheduledCampUpdateSchema,
   FavoriteSchema,
   SquadSchema,
   SquadMembershipSchema,
