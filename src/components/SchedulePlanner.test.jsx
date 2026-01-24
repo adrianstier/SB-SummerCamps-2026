@@ -576,25 +576,25 @@ describe('SchedulePlanner', () => {
 
     it('calls clearSampleData when Clear clicked', async () => {
       mockAuthContext.children[0].is_sample = true;
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
       fireEvent.click(screen.getByText('Clear'));
+      // Confirmation dialog appears - click Confirm
+      fireEvent.click(screen.getByText('Confirm'));
 
       await waitFor(() => {
         expect(mockClearSampleData).toHaveBeenCalled();
         expect(mockRefreshChildren).toHaveBeenCalled();
         expect(mockRefreshSchedule).toHaveBeenCalled();
       });
-      window.confirm.mockRestore();
     });
 
     it('does not clear when confirm is cancelled', () => {
       mockAuthContext.children[0].is_sample = true;
-      vi.spyOn(window, 'confirm').mockReturnValue(false);
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
       fireEvent.click(screen.getByText('Clear'));
+      // Confirmation dialog appears - click Cancel
+      fireEvent.click(screen.getByText('Cancel'));
       expect(mockClearSampleData).not.toHaveBeenCalled();
-      window.confirm.mockRestore();
     });
 
     it('does not show banner when no sample data', () => {
@@ -693,26 +693,26 @@ describe('SchedulePlanner', () => {
     });
 
     it('calls deleteScheduledCamp when confirmed', async () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
       // Find and click the remove button on the camp card
       const removeBtn = document.querySelector('.camp-card-remove');
       fireEvent.click(removeBtn);
+      // Confirmation dialog appears - click Confirm
+      fireEvent.click(screen.getByText('Confirm'));
 
       await waitFor(() => {
         expect(mockDeleteScheduledCamp).toHaveBeenCalledWith('sc-1');
         expect(mockRefreshSchedule).toHaveBeenCalled();
       });
-      window.confirm.mockRestore();
     });
 
     it('does not delete when confirm is cancelled', () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(false);
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
       const removeBtn = document.querySelector('.camp-card-remove');
       fireEvent.click(removeBtn);
+      // Confirmation dialog appears - click Cancel
+      fireEvent.click(screen.getByText('Cancel'));
       expect(mockDeleteScheduledCamp).not.toHaveBeenCalled();
-      window.confirm.mockRestore();
     });
   });
 

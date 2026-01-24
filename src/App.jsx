@@ -372,6 +372,9 @@ export default function App() {
   // Track initial load to prevent double-fetch
   const initialLoadDone = useRef(false);
 
+  // Ref for table view scroll-to
+  const tableRef = useRef(null);
+
   // Auth context
   const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user, friendInterestCounts, squads } = useAuth();
 
@@ -406,6 +409,43 @@ export default function App() {
     window.addEventListener('navigate', handleNavigate);
     return () => window.removeEventListener('navigate', handleNavigate);
   }, []);
+
+  // Focus trap for camp detail modal
+  useEffect(() => {
+    if (!modalCamp) return;
+    const modal = document.querySelector('[role="dialog"]');
+    if (!modal) return;
+    const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const firstEl = focusableElements[0];
+    const lastEl = focusableElements[focusableElements.length - 1];
+
+    const handleTab = (e) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === firstEl) {
+        e.preventDefault();
+        lastEl.focus();
+      } else if (!e.shiftKey && document.activeElement === lastEl) {
+        e.preventDefault();
+        firstEl.focus();
+      }
+    };
+
+    firstEl?.focus();
+    modal.addEventListener('keydown', handleTab);
+
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        setModalCamp(null);
+        document.body.classList.remove('modal-open');
+      }
+    };
+    document.addEventListener('keydown', handleEsc);
+
+    return () => {
+      modal.removeEventListener('keydown', handleTab);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [modalCamp]);
 
   // Comparison functions
   const toggleCompare = (campId) => {
@@ -585,6 +625,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--sand-50)' }}>
+      <a href="#main-content" className="skip-to-content">Skip to content</a>
       {/* Hero Section */}
       <header className="hero-section relative pt-8 pb-24 md:pt-12 md:pb-32">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
@@ -651,7 +692,15 @@ export default function App() {
 
               {/* View toggle */}
               <button
-                onClick={() => setViewMode(viewMode === 'grid' ? 'table' : 'grid')}
+                onClick={() => {
+                  const newView = viewMode === 'grid' ? 'table' : 'grid';
+                  setViewMode(newView);
+                  if (newView === 'table') {
+                    setTimeout(() => {
+                      tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                  }
+                }}
                 className="btn-secondary"
                 title={viewMode === 'grid' ? 'Switch to table view' : 'Switch to grid view'}
               >
@@ -1145,7 +1194,7 @@ export default function App() {
                   >
                     <span className="category-browse-icon">{emoji}</span>
                     <span className="category-browse-name">{name}</span>
-                    <span className="category-browse-count">{count} camps</span>
+                    <span className="category-browse-count">{count} {count === 1 ? 'camp' : 'camps'}</span>
                   </button>
                 );
               })}
@@ -1165,24 +1214,30 @@ export default function App() {
       )}
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         {/* Results Count */}
-        {!loading && filteredCamps.length > 0 && (
-          <p className="results-count">
-            Showing <strong>{filteredCamps.length}</strong> {filteredCamps.length === 1 ? 'camp' : 'camps'}
-            {selectedCategory !== 'All' && <> in <strong>{selectedCategory}</strong></>}
-            {childAge && <> for age <strong>{childAge}</strong></>}
-            {maxPrice && <> under <strong>${maxPrice}</strong></>}
-            {matchWorkSchedule && <> that fit your schedule</>}
-          </p>
-        )}
+        <div aria-live="polite" aria-atomic="true">
+          {!loading && filteredCamps.length > 0 && (
+            <p className="results-count">
+              Showing <strong>{filteredCamps.length}</strong> {filteredCamps.length === 1 ? 'camp' : 'camps'}
+              {selectedCategory !== 'All' && <> in <strong>{selectedCategory}</strong></>}
+              {childAge && <> for age <strong>{childAge}</strong></>}
+              {maxPrice && <> under <strong>${maxPrice}</strong></>}
+              {matchWorkSchedule && <> that fit your schedule</>}
+            </p>
+          )}
+        </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="loader mb-4"></div>
-            <p className="font-sans text-base" style={{ color: 'var(--earth-700)' }}>
-              Loading camps...
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Loading camps">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="skeleton-card" aria-hidden="true">
+                <div className="skeleton-image" />
+                <div className="skeleton-text" />
+                <div className="skeleton-text short" />
+                <div className="skeleton-text" style={{width: '40%'}} />
+              </div>
+            ))}
           </div>
         ) : filteredCamps.length === 0 ? (
           <div className="text-center py-20">
@@ -1227,21 +1282,23 @@ export default function App() {
             ))}
           </div>
         ) : (
-          <CampTable
-            camps={filteredCamps}
-            sortBy={sortBy}
-            sortDir={sortDir}
-            onSort={(field) => {
-              if (sortBy === field) {
-                setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-              } else {
-                setSortBy(field);
-                setSortDir('asc');
-              }
-            }}
-            expandedCamp={expandedCamp}
-            onToggle={(id) => setExpandedCamp(expandedCamp === id ? null : id)}
-          />
+          <div ref={tableRef}>
+            <CampTable
+              camps={filteredCamps}
+              sortBy={sortBy}
+              sortDir={sortDir}
+              onSort={(field) => {
+                if (sortBy === field) {
+                  setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+                } else {
+                  setSortBy(field);
+                  setSortDir('asc');
+                }
+              }}
+              expandedCamp={expandedCamp}
+              onToggle={(id) => setExpandedCamp(expandedCamp === id ? null : id)}
+            />
+          </div>
         )}
       </main>
 
@@ -1617,13 +1674,17 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
   const friendCount = friendInterestCounts[camp.id] || 0;
 
   return (
-    <div
+    <article
       id={`camp-${camp.id}`}
       ref={cardRef}
-      className={`camp-card cursor-pointer scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`}
+      className={`camp-card scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`}
       style={isComparing ? { ringColor: 'var(--ocean-500)' } : undefined}
-      onClick={onToggle}
     >
+      <button
+        className="camp-card-button"
+        onClick={onToggle}
+        aria-label={`View details for ${camp.camp_name}`}
+      >
       {/* Camp Image or Category color bar */}
       {camp.image_url && !imageError ? (
         <div className="camp-card-image">
@@ -1654,6 +1715,7 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
                 background: isComparing ? 'var(--ocean-100)' : 'transparent'
               }}
               title={isComparing ? 'Remove from compare' : 'Add to compare'}
+              aria-label={isComparing ? 'Remove from compare' : 'Add to compare'}
             >
               <svg className="w-5 h-5" fill={isComparing ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -1753,6 +1815,7 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
           )}
         </div>
       </div>
+      </button>
 
       {/* Expanded Details */}
       {expanded && (
@@ -1933,7 +1996,7 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
           )}
         </div>
       )}
-    </div>
+    </article>
   );
 }
 
@@ -1953,18 +2016,13 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
   const [imageError, setImageError] = useState(false);
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
 
-  // Close on escape key
+  // Manage body overflow when modal is open
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
     document.body.style.overflow = 'hidden';
     return () => {
-      document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
-  }, [onClose]);
+  }, []);
 
   const regStatus = getRegistrationStatus(camp);
 
@@ -1986,7 +2044,7 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
   if (camp.fsa_eligible) featurePills.push({ icon: '💳', label: 'FSA Eligible', key: 'fsa', type: 'fsa' });
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={`${camp.camp_name} details`}>
       <article className="modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Close Button */}
         <button className="modal-close" onClick={onClose} aria-label="Close">
@@ -2298,6 +2356,7 @@ function CampTable({ camps, sortBy, sortDir, onSort, expandedCamp, onToggle }) {
                 key={col.key}
                 onClick={() => onSort(col.key)}
                 className="select-none"
+                aria-sort={sortBy === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
                 <span className="flex items-center gap-2">
                   {col.label}

@@ -28,8 +28,16 @@ const CAMP_CATEGORIES = [
 const CHILD_EMOJIS = ['👧', '👦', '🧒', '👶', '🧒🏻', '👧🏻', '👦🏻', '🧒🏽', '👧🏽', '👦🏽', '🧒🏿', '👧🏿', '👦🏿'];
 
 const CHILD_COLORS = [
-  '#3b82f6', '#8b5cf6', '#ec4899', '#ef4444', '#f97316',
-  '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#6366f1'
+  { hex: '#3b82f6', name: 'blue' },
+  { hex: '#8b5cf6', name: 'purple' },
+  { hex: '#ec4899', name: 'pink' },
+  { hex: '#ef4444', name: 'red' },
+  { hex: '#f97316', name: 'orange' },
+  { hex: '#eab308', name: 'yellow' },
+  { hex: '#22c55e', name: 'green' },
+  { hex: '#14b8a6', name: 'teal' },
+  { hex: '#06b6d4', name: 'cyan' },
+  { hex: '#6366f1', name: 'indigo' }
 ];
 
 export function OnboardingWizard({ onComplete }) {
@@ -88,7 +96,7 @@ export function OnboardingWizard({ onComplete }) {
       age_as_of_summer: '',
       interests: [],
       avatar_emoji: CHILD_EMOJIS[Math.floor(Math.random() * CHILD_EMOJIS.length)],
-      color: CHILD_COLORS[(children.length + 1) % CHILD_COLORS.length]
+      color: CHILD_COLORS[(children.length + 1) % CHILD_COLORS.length].hex
     });
     setError(null);
   };
@@ -239,6 +247,8 @@ export function OnboardingWizard({ onComplete }) {
           {STEPS.map((step, index) => (
             <div
               key={step.id}
+              aria-current={index === currentStep ? 'step' : undefined}
+              aria-label={`Step ${index + 1} of ${STEPS.length}: ${step.title}`}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 index === currentStep
                   ? 'w-8 bg-ocean-500'
@@ -386,10 +396,11 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
               </div>
               <button
                 onClick={() => removeChild(child.id)}
+                aria-label={`Remove ${child.name}`}
                 className="p-2 rounded-lg hover:bg-red-50 transition-colors"
                 style={{ color: 'var(--terra-500)' }}
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
@@ -413,10 +424,11 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
+            <label htmlFor="child-name" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
               Name
             </label>
             <input
+              id="child-name"
               type="text"
               value={currentChild.name}
               onChange={(e) => setCurrentChild({ ...currentChild, name: e.target.value })}
@@ -428,10 +440,11 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
 
           {/* Age */}
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
+            <label htmlFor="child-age" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
               Age (as of Summer 2026)
             </label>
             <select
+              id="child-age"
               value={currentChild.age_as_of_summer}
               onChange={(e) => setCurrentChild({ ...currentChild, age_as_of_summer: parseInt(e.target.value) })}
               className="w-full px-4 py-2.5 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all"
@@ -455,6 +468,7 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
               <button
                 key={emoji}
                 onClick={() => setCurrentChild({ ...currentChild, avatar_emoji: emoji })}
+                aria-label={`Select ${emoji} avatar`}
                 className={`w-10 h-10 rounded-lg text-xl transition-all ${
                   currentChild.avatar_emoji === emoji ? 'ring-2 ring-offset-2' : ''
                 }`}
@@ -475,14 +489,15 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
             Pick a color (for calendar)
           </label>
           <div className="flex flex-wrap gap-2">
-            {CHILD_COLORS.map(color => (
+            {CHILD_COLORS.map(({ hex, name }) => (
               <button
-                key={color}
-                onClick={() => setCurrentChild({ ...currentChild, color })}
+                key={hex}
+                onClick={() => setCurrentChild({ ...currentChild, color: hex })}
+                aria-label={`Select ${name} color`}
                 className={`w-8 h-8 rounded-full transition-all ${
-                  currentChild.color === color ? 'ring-2 ring-offset-2' : ''
+                  currentChild.color === hex ? 'ring-2 ring-offset-2' : ''
                 }`}
-                style={{ background: color, ringColor: color }}
+                style={{ background: hex, ringColor: hex }}
               />
             ))}
           </div>
@@ -558,10 +573,11 @@ function PreferencesStep({ preferences, setPreferences, toggleCategory }) {
       <div className="space-y-4">
         {/* Zip code */}
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
+          <label htmlFor="zip-code" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
             Your zip code (optional)
           </label>
           <input
+            id="zip-code"
             type="text"
             value={preferences.zip_code}
             onChange={(e) => setPreferences({ ...preferences, zip_code: e.target.value })}

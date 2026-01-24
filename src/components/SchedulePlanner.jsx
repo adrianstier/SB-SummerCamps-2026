@@ -60,6 +60,8 @@ export function SchedulePlanner({ camps, onClose }) {
   const weekScrollRef = useRef(null);
   const [draggedScheduledCamp, setDraggedScheduledCamp] = useState(null); // For status board drag
   const [addingCamp, setAddingCamp] = useState(false); // Prevent duplicate submissions
+  const [statusMessage, setStatusMessage] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   // What-If Planning Preview mode
   const [previewMode, setPreviewMode] = useState(false);
@@ -71,6 +73,38 @@ export function SchedulePlanner({ camps, onClose }) {
       setSelectedChild(children[0].id);
     }
   }, [children, selectedChild]);
+
+  // Auto-dismiss status message after 4 seconds
+  useEffect(() => {
+    if (!statusMessage) return;
+    const timer = setTimeout(() => setStatusMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [statusMessage]);
+
+  // Helper to show inline status messages
+  function showStatus(message) {
+    setStatusMessage(message);
+  }
+
+  // Focus trap for mobile camp drawer
+  useEffect(() => {
+    if (!showCampDrawer) return;
+    const drawer = document.querySelector('.planner-drawer');
+    if (!drawer) return;
+    const focusable = drawer.querySelectorAll('button, [href], input, select, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const handleTab = (e) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    };
+    first?.focus();
+    drawer.addEventListener('keydown', handleTab);
+    const handleEsc = (e) => { if (e.key === 'Escape') setShowCampDrawer(false); };
+    document.addEventListener('keydown', handleEsc);
+    return () => { drawer.removeEventListener('keydown', handleTab); document.removeEventListener('keydown', handleEsc); };
+  }, [showCampDrawer]);
 
   const campLookup = useMemo(() => {
     const map = new Map();
@@ -224,7 +258,7 @@ export function SchedulePlanner({ camps, onClose }) {
       setShowCampDrawer(false);
     } catch (error) {
       console.error('Failed to add camp:', error);
-      alert('Failed to add camp. Please try again.');
+      showStatus('Failed to add camp. Please try again.');
     } finally {
       setAddingCamp(false);
     }
@@ -267,7 +301,9 @@ export function SchedulePlanner({ camps, onClose }) {
     if (results.failed.length > 0) {
       const failedCount = results.failed.length;
       const successCount = results.succeeded.length;
-      alert(`Added ${successCount} camp${successCount !== 1 ? 's' : ''}. ${failedCount} failed - please try adding them individually.`);
+      showStatus(`Added ${successCount} camp${successCount !== 1 ? 's' : ''}. ${failedCount} failed - please try adding them individually.`);
+    } else if (results.succeeded.length > 0) {
+      showStatus(`Added ${results.succeeded.length} camp${results.succeeded.length !== 1 ? 's' : ''} to schedule.`);
     }
   }
 
@@ -283,15 +319,18 @@ export function SchedulePlanner({ camps, onClose }) {
       handleRemovePreviewCamp(scheduleId);
       return;
     }
-    if (confirm('Remove this camp from your schedule?')) {
-      try {
-        await deleteScheduledCamp(scheduleId);
-        await refreshSchedule();
-      } catch (error) {
-        console.error('Failed to remove camp:', error);
-        alert('Failed to remove camp. Please try again.');
+    setConfirmAction({
+      message: 'Remove this camp from your schedule?',
+      onConfirm: async () => {
+        try {
+          await deleteScheduledCamp(scheduleId);
+          await refreshSchedule();
+        } catch (error) {
+          console.error('Failed to remove camp:', error);
+          showStatus('Failed to remove camp. Please try again.');
+        }
       }
-    }
+    });
   }
 
   async function handleStatusChange(scheduleId, newStatus) {
@@ -300,7 +339,7 @@ export function SchedulePlanner({ camps, onClose }) {
       await refreshSchedule();
     } catch (error) {
       console.error('Failed to update status:', error);
-      alert('Failed to update status. Please try again.');
+      showStatus('Failed to update status. Please try again.');
     }
   }
 
@@ -322,7 +361,7 @@ export function SchedulePlanner({ camps, onClose }) {
       }
     } catch (error) {
       console.error('Failed to update status on drop:', error);
-      alert('Failed to update status. Please try again.');
+      showStatus('Failed to update status. Please try again.');
     } finally {
       setDraggedScheduledCamp(null);
     }
@@ -375,19 +414,22 @@ export function SchedulePlanner({ camps, onClose }) {
   }, [showBlockMenu]);
 
   async function handleClearSampleData() {
-    if (!confirm('Clear sample data? Your real children and camps will remain.')) return;
-
-    setClearingSampleData(true);
-    try {
-      await clearSampleData();
-      await refreshChildren();
-      await refreshSchedule();
-    } catch (error) {
-      console.error('Error clearing sample data:', error);
-      alert('Failed to clear sample data. Please try again.');
-    } finally {
-      setClearingSampleData(false);
-    }
+    setConfirmAction({
+      message: 'Clear sample data? Your real children and camps will remain.',
+      onConfirm: async () => {
+        setClearingSampleData(true);
+        try {
+          await clearSampleData();
+          await refreshChildren();
+          await refreshSchedule();
+        } catch (error) {
+          console.error('Error clearing sample data:', error);
+          showStatus('Failed to clear sample data. Please try again.');
+        } finally {
+          setClearingSampleData(false);
+        }
+      }
+    });
   }
 
   // Handle drag events
@@ -407,7 +449,7 @@ export function SchedulePlanner({ camps, onClose }) {
 
     // Check if a child is selected
     if (!selectedChild) {
-      alert('Please select a child first to add camps to their schedule.');
+      showStatus('Please select a child first to add camps to their schedule.');
       setDragOverWeek(null);
       setDraggedCamp(null);
       return;
@@ -445,7 +487,7 @@ export function SchedulePlanner({ camps, onClose }) {
       await refreshCampInterests();
     } catch (error) {
       console.error('Failed to toggle looking for friends:', error);
-      alert('Failed to update. Please try again.');
+      showStatus('Failed to update. Please try again.');
     }
   }
 
@@ -628,6 +670,27 @@ export function SchedulePlanner({ camps, onClose }) {
 
   return (
     <div className="planner-container">
+      {/* Inline Status Message Banner */}
+      {statusMessage && (
+        <div className="planner-status-message" role="alert" aria-live="assertive">
+          <span>{statusMessage}</span>
+          <button onClick={() => setStatusMessage(null)} aria-label="Dismiss message">&times;</button>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmAction && (
+        <div className="planner-confirm-dialog" role="alertdialog" aria-modal="true" aria-label="Confirm action">
+          <div className="planner-confirm-content">
+            <p>{confirmAction.message}</p>
+            <div className="planner-confirm-actions">
+              <button onClick={() => setConfirmAction(null)} className="planner-confirm-cancel">Cancel</button>
+              <button onClick={() => { confirmAction.onConfirm(); setConfirmAction(null); }} className="planner-confirm-ok">Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Elegant Header */}
       <header className="planner-header">
         <div className="planner-header-inner">
@@ -967,6 +1030,10 @@ export function SchedulePlanner({ camps, onClose }) {
                     <span>Drag to schedule</span>
                   </div>
 
+                  <p className="sr-only">
+                    To add a camp to your schedule using keyboard, select a camp and press Enter, then use arrow keys to choose a week.
+                  </p>
+
                   <div className="planner-sidebar-list">
                     {sidebarCamps.map(camp => {
                       const catColor = CATEGORY_COLORS[camp.category] || 'var(--ocean-500)';
@@ -974,8 +1041,19 @@ export function SchedulePlanner({ camps, onClose }) {
                         <div
                           key={camp.id}
                           draggable
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`${camp.camp_name}, ${camp.category}, ${camp.min_price ? '$' + camp.min_price : 'price TBD'}. Press Enter to add to schedule.`}
                           onDragStart={(e) => handleDragStart(camp, e)}
                           onDragEnd={handleDragEnd}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              // Open the add camp modal so user can pick a week
+                              setShowAddCamp({ weekNum: summerWeeks[0]?.weekNum });
+                              setSearchQuery(camp.camp_name);
+                            }
+                          }}
                           className={`planner-sidebar-camp ${draggedCamp?.id === camp.id ? 'dragging' : ''}`}
                           style={{ '--cat-color': catColor }}
                         >
@@ -1166,7 +1244,7 @@ export function SchedulePlanner({ camps, onClose }) {
       )}
 
       {/* Sticky Bottom Summary Bar */}
-      <div className="planner-bottom-bar">
+      <div className="planner-bottom-bar" aria-live="polite" aria-atomic="true">
         <div className="planner-bottom-bar-inner">
           {/* Stats */}
           <div className="planner-bottom-stats">

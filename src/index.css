@@ -14,6 +14,7 @@
   --sand-300: #e4d4b9;
   --sand-400: #d4bc94;
   --sand-500: #c4a473;
+  --sand-600: #a89070;
 
   /* Ocean Blues */
   --ocean-50: #f0f9f9;
@@ -42,6 +43,7 @@
   --sun-500: #e8b310;
 
   /* Deep Earth */
+  --earth-600: #5c4f42;
   --earth-700: #4a3f35;
   --earth-800: #342c25;
   --earth-900: #1f1a16;
@@ -354,11 +356,11 @@ body::before {
 }
 
 .camp-quick-info-label {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--sand-400);
+  color: var(--earth-600);
   margin-bottom: 4px;
 }
 
@@ -369,7 +371,7 @@ body::before {
 }
 
 .camp-quick-info-value.price {
-  color: var(--terra-500);
+  color: var(--terra-600);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -502,7 +504,7 @@ body::before {
   font-size: 0.875rem;
   font-weight: 500;
   font-style: italic;
-  color: var(--sand-400);
+  color: var(--earth-600);
   letter-spacing: 0.01em;
 }
 
@@ -714,7 +716,7 @@ body::before {
   font-family: 'Fraunces', Georgia, serif;
   font-size: 0.875rem;
   font-style: italic;
-  color: var(--sand-400);
+  color: var(--earth-600);
   flex-shrink: 0;
 }
 
@@ -1334,9 +1336,10 @@ button[title]:focus-visible:not(.btn-primary):not(.btn-secondary) {
     0 0 0 5px var(--ocean-400);
 }
 
-/* Remove default focus outline globally (replaced with custom styles above) */
-*:focus {
-  outline: none;
+/* Global focus-visible style for keyboard navigation accessibility */
+*:focus-visible {
+  outline: 2px solid var(--ocean-500);
+  outline-offset: 2px;
 }
 
 /* Ensure focus is visible even if :focus-visible not supported (progressive enhancement) */
@@ -1738,7 +1741,7 @@ button[title]:focus-visible:not(.btn-primary):not(.btn-secondary) {
 .featured-subtitle {
   font-family: 'Outfit', sans-serif;
   font-size: 0.875rem;
-  color: var(--sand-400);
+  color: var(--earth-600);
   font-style: italic;
 }
 
@@ -1923,7 +1926,7 @@ button[title]:focus-visible:not(.btn-primary):not(.btn-secondary) {
 .category-browse-count {
   font-family: 'Outfit', sans-serif;
   font-size: 0.8125rem; /* 13px - slightly larger */
-  color: var(--sand-400);
+  color: var(--earth-600);
 }
 
 /* Testimonial Banner */
@@ -2060,7 +2063,7 @@ button[title]:focus-visible:not(.btn-primary):not(.btn-secondary) {
 .quick-stat-label {
   font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
-  color: var(--sand-400);
+  color: var(--earth-600);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -2473,7 +2476,7 @@ button[title]:focus-visible:not(.btn-primary):not(.btn-secondary) {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--sand-400);
+  color: var(--earth-600);
   margin-top: 0.125rem;
 }
 
@@ -3857,4 +3860,104 @@ body.modal-open {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-radius: 0.25rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+}
+.skip-to-content:focus {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: auto;
+  height: auto;
+  padding: 12px 24px;
+  background: var(--ocean-600);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.camp-card-button {
+  appearance: none;
+  border: none;
+  background: none;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+/* Skeleton loading cards */
+.skeleton-card {
+  background: var(--sand-100);
+  border-radius: 20px;
+  overflow: hidden;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-card .skeleton-image {
+  height: 180px;
+  background: linear-gradient(90deg, var(--sand-100) 25%, var(--sand-200) 50%, var(--sand-100) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+.skeleton-card .skeleton-text {
+  height: 14px;
+  margin: 12px 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--sand-100) 25%, var(--sand-200) 50%, var(--sand-100) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+.skeleton-card .skeleton-text.short {
+  width: 60%;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE OVERFLOW FIXES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .filter-presets-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+  }
+  .filter-presets-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .planner-status-board {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }

@@ -231,8 +231,8 @@ describe('App', () => {
 
   describe('initial render', () => {
     it('shows loading state initially', () => {
-      render(<App />);
-      expect(screen.getByText('Loading camps...')).toBeInTheDocument();
+      const { container } = render(<App />);
+      expect(container.querySelector('.skeleton-card')).toBeInTheDocument();
     });
 
     it('fetches camps on mount via Supabase', async () => {
@@ -453,14 +453,14 @@ describe('App', () => {
 
     it('opens camp modal on click (desktop)', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      const { container } = render(<App />);
 
       await waitFor(() => {
-        expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
+        expect(container.querySelector('.skeleton-card')).not.toBeInTheDocument();
       });
 
-      const campCard = screen.getByText('Adventure Surf Camp').closest('.camp-card');
-      await user.click(campCard);
+      const campButton = screen.getByLabelText('View details for Adventure Surf Camp');
+      await user.click(campButton);
 
       await waitFor(() => {
         // On desktop (default), clicking opens a modal overlay

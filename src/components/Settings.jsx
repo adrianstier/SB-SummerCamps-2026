@@ -109,9 +109,10 @@ export function Settings({ onClose }) {
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close settings"
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -129,7 +130,9 @@ export function Settings({ onClose }) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               role="tab"
+              id={`tab-${tab.id}`}
               aria-selected={activeTab === tab.id}
+              aria-controls={`panel-${tab.id}`}
               className={`px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'border-b-2'
@@ -149,7 +152,7 @@ export function Settings({ onClose }) {
         <div className="flex-1 overflow-y-auto p-6">
           {/* School Dates Tab */}
           {activeTab === 'school' && (
-            <div className="space-y-6">
+            <div role="tabpanel" id="panel-school" aria-labelledby="tab-school" className="space-y-6">
               <div>
                 <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>School Calendar</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
@@ -180,10 +183,11 @@ export function Settings({ onClose }) {
                 {/* Date inputs */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
+                    <label htmlFor="school-end-date" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
                       Last Day of School
                     </label>
                     <input
+                      id="school-end-date"
                       type="date"
                       value={schoolEndDate}
                       onChange={(e) => {
@@ -198,10 +202,11 @@ export function Settings({ onClose }) {
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
+                    <label htmlFor="school-start-date" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
                       First Day of School
                     </label>
                     <input
+                      id="school-start-date"
                       type="date"
                       value={schoolStartDate}
                       onChange={(e) => {
@@ -238,7 +243,7 @@ export function Settings({ onClose }) {
 
           {/* Work Hours Tab */}
           {activeTab === 'work' && (
-            <div className="space-y-6">
+            <div role="tabpanel" id="panel-work" aria-labelledby="tab-work" className="space-y-6">
               <div>
                 <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>Work Schedule</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
@@ -247,10 +252,11 @@ export function Settings({ onClose }) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
+                    <label htmlFor="work-start-time" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
                       Work Starts
                     </label>
                     <input
+                      id="work-start-time"
                       type="time"
                       value={workStart}
                       onChange={(e) => setWorkStart(e.target.value)}
@@ -259,10 +265,11 @@ export function Settings({ onClose }) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
+                    <label htmlFor="work-end-time" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
                       Work Ends
                     </label>
                     <input
+                      id="work-end-time"
                       type="time"
                       value={workEnd}
                       onChange={(e) => setWorkEnd(e.target.value)}
@@ -315,7 +322,7 @@ export function Settings({ onClose }) {
 
           {/* Budget Tab */}
           {activeTab === 'budget' && (
-            <div className="space-y-6">
+            <div role="tabpanel" id="panel-budget" aria-labelledby="tab-budget" className="space-y-6">
               <div>
                 <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>Summer Budget</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
@@ -323,12 +330,13 @@ export function Settings({ onClose }) {
                 </p>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
+                  <label htmlFor="summer-budget" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
                     Total Summer Budget
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true">$</span>
                     <input
+                      id="summer-budget"
                       type="number"
                       value={budget}
                       onChange={(e) => setBudget(e.target.value)}
@@ -378,7 +386,7 @@ export function Settings({ onClose }) {
 
           {/* Notifications Tab */}
           {activeTab === 'notifications' && (
-            <div className="space-y-6">
+            <div role="tabpanel" id="panel-notifications" aria-labelledby="tab-notifications" className="space-y-6">
               <div>
                 <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>Notification Preferences</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
