@@ -345,216 +345,102 @@
    SUMMER AT A GLANCE - Hero Visualization
    ───────────────────────────────────────────────────────────────────── */
 
-.summer-glance {
-  background: linear-gradient(135deg, white 0%, var(--sand-50) 100%);
-  border: 1px solid var(--sand-200);
-  border-radius: 20px;
-  padding: 24px 28px;
-  margin-bottom: 28px;
-  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.06);
-}
-
-.summer-glance-header {
+/* Compact coverage strip */
+.summer-strip {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 20px;
-}
-
-.summer-glance-label {
-  display: block;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--ocean-600);
-  margin-bottom: 6px;
-}
-
-.summer-glance-child {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--earth-800);
-  line-height: 1.2;
-}
-
-.summer-glance-stats {
-  display: flex;
-  gap: 20px;
-}
-
-.glance-stat {
-  text-align: center;
-  padding: 12px 20px;
+  align-items: center;
+  gap: 16px;
   background: white;
-  border-radius: 12px;
   border: 1px solid var(--sand-200);
-  min-width: 80px;
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
 }
 
-.glance-stat-value {
-  display: block;
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 1.5rem;
+.summer-strip-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  color: var(--earth-600);
+}
+
+.summer-strip-child {
   font-weight: 700;
   color: var(--earth-800);
-  line-height: 1;
-}
-
-.glance-stat-weeks .glance-stat-value {
-  color: var(--ocean-600);
-}
-
-.glance-stat-coverage .glance-stat-value {
-  color: var(--forest-600);
-}
-
-.glance-stat-label {
-  display: block;
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--earth-500);
-  margin-top: 4px;
-}
-
-.summer-glance-timeline {
-  position: relative;
-}
-
-.glance-months {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  padding: 0 4px;
-}
-
-.glance-month {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--earth-600);
-}
-
-.glance-bar {
-  display: flex;
-  gap: 4px;
-  height: 48px;
-  padding: 4px;
-  background: var(--sand-100);
-  border-radius: 12px;
-}
-
-.glance-segment {
-  flex: 1;
-  border-radius: 8px;
-  background: var(--sand-200);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-
-.glance-segment:hover {
-  transform: scaleY(1.1);
-}
-
-.glance-segment.filled {
-  background: linear-gradient(135deg, var(--segment-color) 0%, color-mix(in srgb, var(--segment-color) 80%, black) 100%);
-  box-shadow: 0 2px 8px -2px var(--segment-color);
-}
-
-.glance-segment.blocked {
-  background: linear-gradient(135deg, var(--segment-color) 0%, color-mix(in srgb, var(--segment-color) 70%, black) 100%);
-}
-
-.glance-segment.gap {
-  background: var(--terra-100);
-  border: 2px dashed var(--terra-300);
-}
-
-.glance-segment-pip {
-  width: 6px;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-}
-
-.glance-segment-icon {
   font-size: 0.875rem;
 }
 
-.glance-segment-warning {
-  font-size: 0.75rem;
+.summer-strip-stat strong {
+  color: var(--earth-800);
   font-weight: 700;
-  color: var(--terra-600);
 }
 
-.glance-legend {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-top: 12px;
+.summer-strip-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--sand-300);
 }
 
-.glance-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.summer-strip-gaps {
   font-size: 0.75rem;
-  color: var(--earth-600);
+  font-weight: 600;
+  color: var(--terra-600);
+  background: var(--terra-50);
+  border: 1px solid var(--terra-200);
+  border-radius: 10px;
+  padding: 2px 8px;
 }
 
-.legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
+.summer-strip-bar {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  height: 24px;
+  padding: 3px;
+  background: var(--sand-100);
+  border-radius: 8px;
+  min-width: 0;
 }
 
-.legend-dot.legend-blocked {
-  background: var(--purple-400);
+.strip-segment {
+  flex: 1;
+  border-radius: 5px;
+  background: var(--sand-200);
+  transition: transform 0.2s ease;
+  cursor: default;
 }
 
-.legend-dot.legend-gap {
-  background: var(--terra-200);
-  border: 1px dashed var(--terra-400);
+.strip-segment:hover {
+  transform: scaleY(1.2);
+}
+
+.strip-segment.filled {
+  background: var(--segment-color, var(--ocean-500));
+  box-shadow: 0 1px 4px -1px var(--segment-color, var(--ocean-500));
+}
+
+.strip-segment.blocked {
+  background: var(--segment-color, var(--purple-400));
+  opacity: 0.7;
+}
+
+.strip-segment.gap {
+  background: var(--terra-100);
+  border: 1.5px dashed var(--terra-300);
 }
 
 @media (max-width: 767px) {
-  .summer-glance {
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-
-  .summer-glance-header {
+  .summer-strip {
     flex-direction: column;
-    gap: 16px;
-  }
-
-  .summer-glance-child {
-    font-size: 1.25rem;
-  }
-
-  .summer-glance-stats {
-    width: 100%;
-  }
-
-  .glance-stat {
-    flex: 1;
+    align-items: stretch;
+    gap: 8px;
     padding: 10px 12px;
   }
 
-  .glance-stat-value {
-    font-size: 1.25rem;
-  }
-
-  .glance-bar {
-    height: 36px;
+  .summer-strip-bar {
+    height: 20px;
   }
 }
 

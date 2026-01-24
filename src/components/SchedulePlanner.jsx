@@ -894,66 +894,36 @@ export function SchedulePlanner({ camps, onClose }) {
           </div>
         ) : (
           <div className="planner-layout">
-            {/* Summer at a Glance - Hero Visualization */}
-            <div className="summer-glance">
-              <div className="summer-glance-header">
-                <div className="summer-glance-title">
-                  <span className="summer-glance-label">Summer at a Glance</span>
-                  <h2 className="summer-glance-child">
-                    {selectedChildData?.name}'s Adventure
-                  </h2>
-                </div>
-                <div className="summer-glance-stats">
-                  <div className="glance-stat glance-stat-weeks">
-                    <span className="glance-stat-value">{scheduledCamps.filter(sc => sc.child_id === selectedChild).length}</span>
-                    <span className="glance-stat-label">Camps</span>
-                  </div>
-                  <div className="glance-stat glance-stat-coverage">
-                    <span className="glance-stat-value">{Math.round(((11 - gaps.length) / 11) * 100)}%</span>
-                    <span className="glance-stat-label">Coverage</span>
-                  </div>
-                </div>
+            {/* Compact Summer Coverage Strip */}
+            <div className="summer-strip">
+              <div className="summer-strip-info">
+                <span className="summer-strip-child">{selectedChildData?.name}</span>
+                <span className="summer-strip-stat">
+                  <strong>{scheduledCamps.filter(sc => sc.child_id === selectedChild).length}</strong> camps
+                </span>
+                <span className="summer-strip-divider" />
+                <span className="summer-strip-stat">
+                  <strong>{Math.round(((11 - gaps.length) / 11) * 100)}%</strong> covered
+                </span>
+                {gaps.length > 0 && (
+                  <span className="summer-strip-gaps">{gaps.length} gap{gaps.length > 1 ? 's' : ''}</span>
+                )}
               </div>
-              <div className="summer-glance-timeline">
-                <div className="glance-months">
-                  <span className="glance-month">June</span>
-                  <span className="glance-month">July</span>
-                  <span className="glance-month">August</span>
-                </div>
-                <div className="glance-bar">
-                  {summerWeeks.map((week) => {
-                    const weekCamps = currentChildSchedule[week.weekNum] || [];
-                    const blocked = getBlockedWeek(week.weekNum);
-                    const isGap = gaps.some(g => g.weekNum === week.weekNum) && !blocked;
-                    const campInfo = weekCamps[0] ? campLookup.get(weekCamps[0].camp_id) : null;
-                    return (
-                      <div
-                        key={week.weekNum}
-                        className={`glance-segment ${weekCamps.length > 0 ? 'filled' : ''} ${blocked ? 'blocked' : ''} ${isGap ? 'gap' : ''}`}
-                        style={weekCamps.length > 0 ? { '--segment-color': selectedChildData?.color } : blocked ? { '--segment-color': blocked.color } : {}}
-                        title={`${week.label}: ${weekCamps.length > 0 ? campInfo?.camp_name || 'Camp' : blocked ? blocked.label : isGap ? 'Coverage gap' : 'Open'}`}
-                      >
-                        {weekCamps.length > 0 && <span className="glance-segment-pip" />}
-                        {blocked && <span className="glance-segment-icon">{blocked.icon}</span>}
-                        {isGap && <span className="glance-segment-warning">!</span>}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="glance-legend">
-                  <span className="glance-legend-item">
-                    <span className="legend-dot legend-filled" style={{ background: selectedChildData?.color }} />
-                    Scheduled
-                  </span>
-                  <span className="glance-legend-item">
-                    <span className="legend-dot legend-blocked" />
-                    Blocked
-                  </span>
-                  <span className="glance-legend-item">
-                    <span className="legend-dot legend-gap" />
-                    Gap
-                  </span>
-                </div>
+              <div className="summer-strip-bar">
+                {summerWeeks.map((week) => {
+                  const weekCamps = currentChildSchedule[week.weekNum] || [];
+                  const blocked = getBlockedWeek(week.weekNum);
+                  const isGap = gaps.some(g => g.weekNum === week.weekNum) && !blocked;
+                  const campInfo = weekCamps[0] ? campLookup.get(weekCamps[0].camp_id) : null;
+                  return (
+                    <div
+                      key={week.weekNum}
+                      className={`strip-segment ${weekCamps.length > 0 ? 'filled' : ''} ${blocked ? 'blocked' : ''} ${isGap ? 'gap' : ''}`}
+                      style={weekCamps.length > 0 ? { '--segment-color': selectedChildData?.color } : blocked ? { '--segment-color': blocked.color } : {}}
+                      title={`Wk ${week.weekNum}: ${weekCamps.length > 0 ? campInfo?.camp_name || 'Camp' : blocked ? blocked.label : isGap ? 'Gap' : 'Open'}`}
+                    />
+                  );
+                })}
               </div>
             </div>
 
