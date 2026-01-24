@@ -21,6 +21,27 @@ vi.stubGlobal('import', {
   }
 });
 
+// Mock IntersectionObserver
+class MockIntersectionObserver {
+  constructor(callback) {
+    this.callback = callback;
+    this.elements = new Set();
+  }
+  observe(el) { this.elements.add(el); }
+  unobserve(el) { this.elements.delete(el); }
+  disconnect() { this.elements.clear(); }
+}
+
+Object.defineProperty(window, 'IntersectionObserver', {
+  writable: true,
+  value: MockIntersectionObserver
+});
+
+Object.defineProperty(global, 'IntersectionObserver', {
+  writable: true,
+  value: MockIntersectionObserver
+});
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

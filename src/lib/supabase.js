@@ -8,6 +8,9 @@ import {
   AnswerSchema,
   ScheduledCampSchema,
   ScheduledCampUpdateSchema,
+  SquadSchema,
+  SquadMembershipSchema,
+  ComparisonListSchema,
   sanitizeString
 } from './validation.js';
 
@@ -197,10 +200,15 @@ export async function updateChild(id, updates) {
 export async function deleteChild(id) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Ownership check - only delete own children
   return supabase
     .from('children')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
 }
 
 // ============================================================================
@@ -342,10 +350,15 @@ export async function updateScheduledCamp(id, updates) {
 export async function deleteScheduledCamp(id) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Ownership check - only delete own scheduled camps
   return supabase
     .from('scheduled_camps')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
 }
 
 // Check for conflicts
@@ -441,10 +454,28 @@ export async function addReview(review) {
 export async function updateReview(id, updates) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Validate input - only allow review content fields
+  const ReviewUpdateSchema = ReviewSchema.partial().omit({ camp_id: true });
+  const validation = validate(ReviewUpdateSchema, updates);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  // SECURITY: Sanitize text fields
+  const sanitizedUpdates = { ...validation.data };
+  if (sanitizedUpdates.review_text) sanitizedUpdates.review_text = sanitizeString(sanitizedUpdates.review_text);
+  if (sanitizedUpdates.pros) sanitizedUpdates.pros = sanitizeString(sanitizedUpdates.pros);
+  if (sanitizedUpdates.cons) sanitizedUpdates.cons = sanitizeString(sanitizedUpdates.cons);
+
+  // SECURITY: Ownership check - users can only update their own reviews
   return supabase
     .from('reviews')
-    .update(updates)
+    .update(sanitizedUpdates)
     .eq('id', id)
+    .eq('user_id', user.id)
     .select()
     .single();
 }
@@ -580,9 +611,16 @@ export async function createComparisonList(name, campIds, childId = null) {
 export async function updateComparisonList(id, updates) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input - only allow name, camp_ids, child_id
+  const ComparisonListUpdateSchema = ComparisonListSchema.partial();
+  const validation = validate(ComparisonListUpdateSchema, updates);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('comparison_lists')
-    .update(updates)
+    .update(validation.data)
     .eq('id', id)
     .select()
     .single();
@@ -670,12 +708,19 @@ export async function addToWatchlist(campId, options = {}) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Allowlist permitted options fields
+  const safeOptions = {};
+  if (options.notify_registration !== undefined) safeOptions.notify_registration = options.notify_registration;
+  if (options.notify_price_change !== undefined) safeOptions.notify_price_change = options.notify_price_change;
+  if (options.notes !== undefined) safeOptions.notes = options.notes;
+
   return supabase
     .from('camp_watchlist')
     .insert({
-      user_id: user.id,
+      ...safeOptions,
       camp_id: campId,
-      ...options
+      // SECURITY: user_id placed AFTER spread so it cannot be overridden
+      user_id: user.id,
     })
     .select()
     .single();
@@ -985,9 +1030,15 @@ export async function createSquad(name, revealIdentity = false) {
 export async function updateSquad(id, updates) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input - only allow 'name' field
+  const validation = validate(SquadSchema, updates);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('squads')
-    .update(updates)
+    .update(validation.data)
     .eq('id', id)
     .select()
     .single();
@@ -1069,9 +1120,15 @@ export async function updateSquadMembership(squadId, updates) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Validate input - only allow reveal_identity, share_schedule
+  const validation = validate(SquadMembershipSchema, updates);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
   return supabase
     .from('squad_members')
-    .update(updates)
+    .update(validation.data)
     .eq('squad_id', squadId)
     .eq('user_id', user.id)
     .select()
@@ -1169,9 +1226,18 @@ export async function getSquadCampInterests(squadId) {
 export async function updateCampInterest(id, updates) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
+  // SECURITY: Only allow looking_for_friends field
+  const safeUpdates = {};
+  if (updates.looking_for_friends !== undefined) {
+    if (typeof updates.looking_for_friends !== 'boolean') {
+      return { error: { message: 'looking_for_friends must be a boolean' } };
+    }
+    safeUpdates.looking_for_friends = updates.looking_for_friends;
+  }
+
   return supabase
     .from('camp_interests')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update({ ...safeUpdates, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
     .single();

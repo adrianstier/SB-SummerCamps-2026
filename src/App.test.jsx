@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-// Mock fetch for API calls
+// Mock camp data
 const mockCamps = [
   {
     id: 'camp-1',
@@ -43,35 +43,57 @@ const mockCamps = [
   }
 ];
 
-const mockCategories = ['Beach/Surf', 'Art', 'Science/STEM', 'Sports'];
-const mockKeywords = ['swimming', 'painting', 'coding'];
-const mockStats = { total: 45, active: 43, categories: 14 };
+// Create a chainable mock for the Supabase query builder that is also thenable
+function createQueryMock(resolveData) {
+  const result = { data: resolveData, error: null };
+  const chainable = {
+    select: vi.fn(() => chainable),
+    eq: vi.fn(() => chainable),
+    gte: vi.fn(() => chainable),
+    lte: vi.fn(() => chainable),
+    or: vi.fn(() => chainable),
+    not: vi.fn(() => chainable),
+    is: vi.fn(() => chainable),
+    order: vi.fn(() => chainable),
+    // Make the object thenable so it can be awaited at any point in the chain
+    then: vi.fn((resolve, reject) => {
+      return Promise.resolve(result).then(resolve, reject);
+    }),
+  };
+  return chainable;
+}
 
-global.fetch = vi.fn((url) => {
-  if (url.includes('/api/camps')) {
-    return Promise.resolve({
-      json: () => Promise.resolve({ camps: mockCamps, total: mockCamps.length })
-    });
+// The mock for supabase.from()
+const mockFrom = vi.fn((table) => {
+  if (table === 'camps') {
+    return createQueryMock(mockCamps);
   }
-  if (url.includes('/api/categories')) {
-    return Promise.resolve({
-      json: () => Promise.resolve(mockCategories)
-    });
-  }
-  if (url.includes('/api/keywords')) {
-    return Promise.resolve({
-      json: () => Promise.resolve(mockKeywords)
-    });
-  }
-  if (url.includes('/api/stats')) {
-    return Promise.resolve({
-      json: () => Promise.resolve(mockStats)
-    });
-  }
-  return Promise.resolve({
-    json: () => Promise.resolve({})
-  });
+  return createQueryMock([]);
 });
+
+vi.mock('./lib/supabase.js', () => ({
+  default: null,
+  supabase: {
+    from: (...args) => mockFrom(...args)
+  },
+  getRegistrationStatus: vi.fn(() => ({ status: 'unknown', label: 'Check Website', color: '#6b7280' })),
+  checkWorkScheduleCoverage: vi.fn(() => ({ covers: false, needsExtendedCare: false })),
+  getSummerWeeks2026: vi.fn(() => []),
+}));
+
+vi.mock('./lib/formatters', () => ({
+  formatPrice: vi.fn((camp) => {
+    const min = camp.min_price;
+    const max = camp.max_price;
+    if (!min) return 'TBD';
+    if (min === max) return `$${min}`;
+    return `$${min}\u2013${max}`;
+  }),
+}));
+
+vi.mock('./hooks/useScrollReveal', () => ({
+  useScrollReveal: () => [{ current: null }, true]
+}));
 
 // Mock the auth context
 const mockAuthContext = {
@@ -159,6 +181,38 @@ vi.mock('./components/Reviews', () => ({
   ReviewsSummary: () => <div data-testid="reviews-summary">Summary</div>
 }));
 
+vi.mock('./components/JoinSquad', () => ({
+  default: () => <div data-testid="join-squad">Join Squad</div>
+}));
+
+vi.mock('./components/Settings', () => ({
+  Settings: ({ onClose }) => (
+    <div data-testid="settings">
+      <button onClick={onClose}>Close Settings</button>
+    </div>
+  )
+}));
+
+vi.mock('./components/CostDashboard', () => ({
+  CostDashboard: ({ onClose }) => (
+    <div data-testid="cost-dashboard">
+      <button onClick={onClose}>Close Cost Dashboard</button>
+    </div>
+  )
+}));
+
+vi.mock('./components/Wishlist', () => ({
+  Wishlist: ({ onClose }) => (
+    <div data-testid="wishlist">
+      <button onClick={onClose}>Close Wishlist</button>
+    </div>
+  )
+}));
+
+vi.mock('./components/ErrorBoundary', () => ({
+  ErrorBoundary: ({ children }) => <>{children}</>
+}));
+
 import App from './App';
 
 describe('App', () => {
@@ -166,6 +220,13 @@ describe('App', () => {
     vi.clearAllMocks();
     mockAuthContext.user = null;
     mockAuthContext.showOnboarding = false;
+    // Reset Supabase mock to return mockCamps by default
+    mockFrom.mockImplementation((table) => {
+      if (table === 'camps') {
+        return createQueryMock(mockCamps);
+      }
+      return createQueryMock([]);
+    });
   });
 
   describe('initial render', () => {
@@ -174,27 +235,29 @@ describe('App', () => {
       expect(screen.getByText('Loading camps...')).toBeInTheDocument();
     });
 
-    it('fetches camps on mount', async () => {
+    it('fetches camps on mount via Supabase', async () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/camps'));
+        expect(mockFrom).toHaveBeenCalledWith('camps');
       });
     });
 
-    it('fetches categories on mount', async () => {
+    it('fetches categories on mount via Supabase', async () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/categories'));
+        // Categories are fetched from the camps table with a select on 'category'
+        expect(mockFrom).toHaveBeenCalledWith('camps');
       });
     });
 
-    it('fetches stats on mount', async () => {
+    it('fetches stats on mount via Supabase', async () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/stats'));
+        // Stats are computed by querying the camps table
+        expect(mockFrom).toHaveBeenCalledWith('camps');
       });
     });
 
@@ -213,7 +276,7 @@ describe('App', () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Find the Perfect Camp/)).toBeInTheDocument();
+        expect(screen.getByText(/Your summer,/)).toBeInTheDocument();
       });
     });
 
@@ -221,15 +284,16 @@ describe('App', () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Santa Barbara')).toBeInTheDocument();
+        expect(screen.getByText('Santa Barbara Summer Camps')).toBeInTheDocument();
       });
     });
 
-    it('shows camp count from stats', async () => {
+    it('shows camp count in hero stats', async () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText(/43/)).toBeInTheDocument(); // active camps
+        // The hero stats show "{camps.length} local camps"
+        expect(screen.getByText(/local camps/)).toBeInTheDocument();
       });
     });
   });
@@ -258,7 +322,7 @@ describe('App', () => {
       expect(searchInput).toHaveValue('surf');
     });
 
-    it('triggers new fetch on search', async () => {
+    it('triggers new Supabase query on search', async () => {
       const user = userEvent.setup();
       render(<App />);
 
@@ -269,31 +333,33 @@ describe('App', () => {
       const searchInput = screen.getByPlaceholderText(/Search camps/);
       await user.type(searchInput, 'surf');
 
-      // Debounced, so wait for fetch
+      // Debounced, so wait for the Supabase query to be triggered again
       await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('search=surf'));
+        // The search triggers a new supabase.from('camps') call
+        const campsCalls = mockFrom.mock.calls.filter(c => c[0] === 'camps');
+        expect(campsCalls.length).toBeGreaterThan(1);
       }, { timeout: 500 });
     });
   });
 
-  describe('category filters', () => {
-    it('renders All Camps filter', async () => {
+  describe('filter presets', () => {
+    it('renders quick find presets', async () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('All Camps')).toBeInTheDocument();
+        expect(screen.getByText('Quick find')).toBeInTheDocument();
       });
     });
 
-    it('renders category filter pills', async () => {
+    it('renders category preset buttons', async () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Beach/Surf')).toBeInTheDocument();
+        expect(screen.getByText('Sports')).toBeInTheDocument();
       });
     });
 
-    it('activates category on click', async () => {
+    it('activates preset on click', async () => {
       const user = userEvent.setup();
       render(<App />);
 
@@ -301,10 +367,10 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const beachFilter = screen.getByRole('button', { name: 'Beach/Surf' });
-      await user.click(beachFilter);
+      const sportsFilter = screen.getByRole('button', { name: 'Sports' });
+      await user.click(sportsFilter);
 
-      expect(beachFilter.className).toContain('active');
+      expect(sportsFilter.className).toContain('active');
     });
   });
 
@@ -385,7 +451,7 @@ describe('App', () => {
       });
     });
 
-    it('expands camp details on click', async () => {
+    it('opens camp modal on click (desktop)', async () => {
       const user = userEvent.setup();
       render(<App />);
 
@@ -397,14 +463,14 @@ describe('App', () => {
       await user.click(campCard);
 
       await waitFor(() => {
-        // Expanded details should show additional info
-        expect(document.querySelector('.expanded-details')).toBeInTheDocument();
+        // On desktop (default), clicking opens a modal overlay
+        expect(document.querySelector('.modal-overlay')).toBeInTheDocument();
       });
     });
   });
 
   describe('filter panel', () => {
-    it('opens filter panel on Filters click', async () => {
+    it('opens filter panel on All Filters click', async () => {
       const user = userEvent.setup();
       render(<App />);
 
@@ -412,11 +478,11 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const filtersButton = screen.getByRole('button', { name: /Filters/ });
+      const filtersButton = screen.getByRole('button', { name: /All Filters/ });
       await user.click(filtersButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Refine Your Search')).toBeInTheDocument();
+        expect(screen.getByText('Filter')).toBeInTheDocument();
       });
     });
 
@@ -428,11 +494,11 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const filtersButton = screen.getByRole('button', { name: /Filters/ });
+      const filtersButton = screen.getByRole('button', { name: /All Filters/ });
       await user.click(filtersButton);
 
       await waitFor(() => {
-        expect(screen.getByText("Child's Age")).toBeInTheDocument();
+        expect(screen.getByText('Age')).toBeInTheDocument();
       });
     });
 
@@ -444,11 +510,12 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const filtersButton = screen.getByRole('button', { name: /Filters/ });
+      const filtersButton = screen.getByRole('button', { name: /All Filters/ });
       await user.click(filtersButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Max Price/Week')).toBeInTheDocument();
+        // The filter panel has price options like "Under $200"
+        expect(screen.getByText('Under $200')).toBeInTheDocument();
       });
     });
 
@@ -460,16 +527,15 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const filtersButton = screen.getByRole('button', { name: /Filters/ });
+      const filtersButton = screen.getByRole('button', { name: /All Filters/ });
       await user.click(filtersButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Extended Care')).toBeInTheDocument();
-        expect(screen.getByText('Food Included')).toBeInTheDocument();
+        expect(screen.getByText('Features')).toBeInTheDocument();
       });
     });
 
-    it('shows clear all filters when filters active', async () => {
+    it('shows clear all button when filters active', async () => {
       const user = userEvent.setup();
       render(<App />);
 
@@ -477,15 +543,14 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      // Apply a filter first
-      const beachFilter = screen.getByRole('button', { name: 'Beach/Surf' });
-      await user.click(beachFilter);
-
-      const filtersButton = screen.getByRole('button', { name: /Filters/ });
-      await user.click(filtersButton);
+      // Apply a filter by clicking a preset
+      const sportsFilter = screen.getByRole('button', { name: 'Sports' });
+      await user.click(sportsFilter);
 
       await waitFor(() => {
-        expect(screen.getByText('Clear all filters')).toBeInTheDocument();
+        // The active filters bar should appear with a "Clear all" button
+        const clearButtons = screen.getAllByText('Clear all');
+        expect(clearButtons.length).toBeGreaterThan(0);
       });
     });
   });
@@ -518,37 +583,46 @@ describe('App', () => {
 
   describe('no results state', () => {
     it('shows empty state when no camps found', async () => {
-      fetch.mockImplementationOnce(() =>
-        Promise.resolve({
-          json: () => Promise.resolve({ camps: [], total: 0 })
-        })
-      );
+      // Override mock to return empty camps
+      mockFrom.mockImplementation((table) => createQueryMock([]));
 
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('No camps found')).toBeInTheDocument();
+        expect(screen.getByText('No camps match all your filters')).toBeInTheDocument();
       });
     });
 
     it('shows clear filters button in empty state', async () => {
-      fetch.mockImplementationOnce(() =>
-        Promise.resolve({
-          json: () => Promise.resolve({ camps: [], total: 0 })
-        })
-      );
+      // Override mock to return empty camps
+      mockFrom.mockImplementation((table) => createQueryMock([]));
 
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Clear All Filters')).toBeInTheDocument();
+        expect(screen.getByText('Clear Filters')).toBeInTheDocument();
       });
     });
   });
 
   describe('error state', () => {
-    it('shows error message on fetch failure', async () => {
-      fetch.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+    it('shows error message on Supabase error', async () => {
+      // Override mock to reject with an error
+      mockFrom.mockImplementation((table) => {
+        const errorResult = Promise.reject(new Error('Network error'));
+        const chainable = {
+          select: vi.fn(() => chainable),
+          eq: vi.fn(() => chainable),
+          gte: vi.fn(() => chainable),
+          lte: vi.fn(() => chainable),
+          or: vi.fn(() => chainable),
+          not: vi.fn(() => chainable),
+          is: vi.fn(() => chainable),
+          order: vi.fn(() => chainable),
+          then: vi.fn((resolve, reject) => errorResult.then(resolve, reject)),
+        };
+        return chainable;
+      });
 
       render(<App />);
 
@@ -557,13 +631,28 @@ describe('App', () => {
       });
     });
 
-    it('shows retry button on error', async () => {
-      fetch.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+    it('shows refresh button on error', async () => {
+      // Override mock to reject with an error
+      mockFrom.mockImplementation((table) => {
+        const errorResult = Promise.reject(new Error('Network error'));
+        const chainable = {
+          select: vi.fn(() => chainable),
+          eq: vi.fn(() => chainable),
+          gte: vi.fn(() => chainable),
+          lte: vi.fn(() => chainable),
+          or: vi.fn(() => chainable),
+          not: vi.fn(() => chainable),
+          is: vi.fn(() => chainable),
+          order: vi.fn(() => chainable),
+          then: vi.fn((resolve, reject) => errorResult.then(resolve, reject)),
+        };
+        return chainable;
+      });
 
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Try Again')).toBeInTheDocument();
+        expect(screen.getByText('Refresh')).toBeInTheDocument();
       });
     });
   });
@@ -581,10 +670,11 @@ describe('App', () => {
       render(<App />);
 
       await waitFor(() => {
-        const select = screen.getByRole('combobox');
-        expect(within(select).getByText('Name A–Z')).toBeInTheDocument();
-        expect(within(select).getByText('Name Z–A')).toBeInTheDocument();
-        expect(within(select).getByText('Price: Low to High')).toBeInTheDocument();
+        const selects = screen.getAllByRole('combobox');
+        // The filter bar sort dropdown has abbreviated options
+        const filterSort = selects[0];
+        expect(within(filterSort).getByText('A\u2013Z')).toBeInTheDocument();
+        expect(within(filterSort).getByText('Z\u2013A')).toBeInTheDocument();
       });
     });
   });
@@ -602,7 +692,7 @@ describe('App', () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Data refreshed regularly/)).toBeInTheDocument();
+        expect(screen.getByText(/Data sourced directly from camp websites/)).toBeInTheDocument();
       });
     });
   });

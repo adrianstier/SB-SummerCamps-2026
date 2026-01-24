@@ -18,6 +18,7 @@ function StarRating({ rating, onChange, readonly = false, size = 'md' }) {
           onMouseEnter={() => !readonly && setHover(star)}
           onMouseLeave={() => !readonly && setHover(0)}
           className={`${readonly ? 'cursor-default' : 'cursor-pointer'} transition-transform hover:scale-110`}
+          aria-label={`Rate ${star} out of 5 stars`}
         >
           <svg
             className={sizeClass}

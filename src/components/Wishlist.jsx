@@ -55,14 +55,22 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
   }, [favorites, camps, selectedChild, sortBy]);
 
   async function handleRemove(campId) {
-    await removeFavorite(campId);
-    await refreshFavorites();
+    try {
+      await removeFavorite(campId);
+      await refreshFavorites();
+    } catch (err) {
+      console.error('Error removing favorite:', err);
+    }
   }
 
   async function handleSaveNotes(campId) {
-    await updateFavorite(campId, { notes: noteText });
-    await refreshFavorites();
-    setEditingNotes(null);
+    try {
+      await updateFavorite(campId, { notes: noteText });
+      await refreshFavorites();
+      setEditingNotes(null);
+    } catch (err) {
+      console.error('Error saving notes:', err);
+    }
   }
 
   function toggleCompare(campId) {
@@ -106,6 +114,7 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
             <button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Close"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

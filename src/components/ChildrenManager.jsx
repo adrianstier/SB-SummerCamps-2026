@@ -22,6 +22,8 @@ export function ChildrenManager({ onClose }) {
     notes: ''
   });
   const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [error, setError] = useState(null);
 
   if (!isConfigured || !user) {
     return (
@@ -49,6 +51,7 @@ export function ChildrenManager({ onClose }) {
     if (!formData.name.trim()) return;
 
     setLoading(true);
+    setError(null);
     try {
       if (editingChild) {
         await updateChild(editingChild.id, {
@@ -68,22 +71,24 @@ export function ChildrenManager({ onClose }) {
 
       await refreshChildren();
       resetForm();
-    } catch (error) {
-      console.error('Error saving child:', error);
+    } catch (err) {
+      console.error('Error saving child:', err);
+      setError('Failed to save. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm('Remove this child? Their schedule will also be deleted.')) return;
-
     setLoading(true);
+    setError(null);
     try {
       await deleteChild(id);
       await refreshChildren();
-    } catch (error) {
-      console.error('Error deleting child:', error);
+      setConfirmDelete(null);
+    } catch (err) {
+      console.error('Error deleting child:', err);
+      setError('Failed to remove child. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -122,10 +127,9 @@ export function ChildrenManager({ onClose }) {
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-full transition-colors"
+              className="p-2 rounded-full transition-colors hover:bg-[var(--sand-100)]"
               style={{ color: 'var(--sand-400)' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sand-100)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              aria-label="Close"
             >
               <XIcon className="w-5 h-5" />
             </button>
@@ -150,7 +154,7 @@ export function ChildrenManager({ onClose }) {
                     className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
                     style={{ background: child.color }}
                   >
-                    {child.name[0].toUpperCase()}
+                    {(child.name || '?')[0].toUpperCase()}
                   </div>
 
                   <div className="flex-1">
@@ -167,25 +171,48 @@ export function ChildrenManager({ onClose }) {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => startEdit(child)}
-                      className="p-2 rounded-lg transition-colors"
+                      className="p-2 rounded-lg transition-colors hover:bg-[var(--sand-200)]"
                       style={{ color: 'var(--earth-700)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sand-200)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      aria-label={`Edit ${child.name}`}
                     >
                       <EditIcon className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => handleDelete(child.id)}
-                      className="p-2 rounded-lg transition-colors"
-                      style={{ color: 'var(--terra-500)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--terra-50)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
+                    {confirmDelete === child.id ? (
+                      <span className="flex items-center gap-1 text-xs">
+                        <button
+                          onClick={() => handleDelete(child.id)}
+                          className="px-2 py-1 rounded bg-red-500 text-white font-medium"
+                          disabled={loading}
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(null)}
+                          className="px-2 py-1 rounded bg-gray-200 font-medium"
+                        >
+                          Cancel
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDelete(child.id)}
+                        className="p-2 rounded-lg transition-colors hover:bg-[var(--terra-50)]"
+                        style={{ color: 'var(--terra-500)' }}
+                        aria-label={`Delete ${child.name}`}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: 'var(--terra-50)', color: 'var(--terra-600)' }}>
+              {error}
             </div>
           )}
 
@@ -282,16 +309,8 @@ export function ChildrenManager({ onClose }) {
           ) : (
             <button
               onClick={() => setShowAddForm(true)}
-              className="w-full p-4 rounded-xl border-2 border-dashed flex items-center justify-center gap-2 transition-colors"
+              className="w-full p-4 rounded-xl border-2 border-dashed flex items-center justify-center gap-2 transition-colors hover:border-[var(--ocean-400)] hover:bg-[var(--ocean-50)]"
               style={{ borderColor: 'var(--sand-300)', color: 'var(--earth-700)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--ocean-400)';
-                e.currentTarget.style.background = 'var(--ocean-50)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--sand-300)';
-                e.currentTarget.style.background = 'transparent';
-              }}
             >
               <PlusIcon className="w-5 h-5" />
               <span className="font-medium">Add a Child</span>

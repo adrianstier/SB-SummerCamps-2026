@@ -128,7 +128,9 @@ export function generateICalFile(events) {
     }
 
     if (event.url) {
-      lines.push(`URL:${event.url}`);
+      // Escape the URL to prevent iCal injection (strip newlines/carriage returns)
+      const safeUrl = event.url.replace(/[\r\n]/g, '');
+      lines.push(`URL:${safeUrl}`);
     }
 
     lines.push('END:VEVENT');

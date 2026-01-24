@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import {
   supabase,
   signInWithGoogle,
@@ -154,65 +154,106 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function refreshProfile() {
+  const refreshProfile = useCallback(async function refreshProfile() {
     if (user) {
-      const data = await getProfile(user.id);
-      setProfile(data);
+      try {
+        const data = await getProfile(user.id);
+        setProfile(data || null);
+      } catch (error) {
+        console.error('Failed to refresh profile:', error);
+      }
     }
-  }
+  }, [user]);
 
-  async function refreshFavorites() {
-    const data = await getFavorites();
-    setFavorites(data);
-  }
+  const refreshFavorites = useCallback(async function refreshFavorites() {
+    try {
+      const data = await getFavorites();
+      setFavorites(data || []);
+    } catch (error) {
+      console.error('Failed to refresh favorites:', error);
+    }
+  }, []);
 
-  async function refreshSchedule() {
-    const data = await getScheduledCamps();
-    setScheduledCamps(data);
-  }
+  const refreshSchedule = useCallback(async function refreshSchedule() {
+    try {
+      const data = await getScheduledCamps();
+      setScheduledCamps(data || []);
+    } catch (error) {
+      console.error('Failed to refresh schedule:', error);
+    }
+  }, []);
 
-  async function refreshChildren() {
-    const data = await getChildren();
-    setFamilyChildren(data);
-  }
+  const refreshChildren = useCallback(async function refreshChildren() {
+    try {
+      const data = await getChildren();
+      setFamilyChildren(data || []);
+    } catch (error) {
+      console.error('Failed to refresh children:', error);
+    }
+  }, []);
 
-  async function refreshNotifications() {
-    const [notificationsData, unreadCountData] = await Promise.all([
-      getNotifications(),
-      getUnreadNotificationCount()
-    ]);
-    setNotifications(notificationsData);
-    setUnreadCount(unreadCountData);
-  }
+  const refreshNotifications = useCallback(async function refreshNotifications() {
+    try {
+      const [notificationsData, unreadCountData] = await Promise.all([
+        getNotifications(),
+        getUnreadNotificationCount()
+      ]);
+      setNotifications(notificationsData || []);
+      setUnreadCount(unreadCountData || 0);
+    } catch (error) {
+      console.error('Failed to refresh notifications:', error);
+    }
+  }, []);
 
-  async function refreshSquads() {
-    const data = await getSquads();
-    setSquads(data);
-  }
+  const refreshSquads = useCallback(async function refreshSquads() {
+    try {
+      const data = await getSquads();
+      setSquads(data || []);
+    } catch (error) {
+      console.error('Failed to refresh squads:', error);
+    }
+  }, []);
 
-  async function refreshSquadNotifications() {
-    const [notificationsData, unreadCountData] = await Promise.all([
-      getSquadNotifications(),
-      getUnreadSquadNotificationCount()
-    ]);
-    setSquadNotifications(notificationsData);
-    setSquadUnreadCount(unreadCountData);
-  }
+  const refreshSquadNotifications = useCallback(async function refreshSquadNotifications() {
+    try {
+      const [notificationsData, unreadCountData] = await Promise.all([
+        getSquadNotifications(),
+        getUnreadSquadNotificationCount()
+      ]);
+      setSquadNotifications(notificationsData || []);
+      setSquadUnreadCount(unreadCountData || 0);
+    } catch (error) {
+      console.error('Failed to refresh squad notifications:', error);
+    }
+  }, []);
 
-  async function refreshCampInterests() {
-    const [interestsData, countsData] = await Promise.all([
-      getCampInterests(),
-      getFriendInterestCounts()
-    ]);
-    setCampInterests(interestsData);
-    setFriendInterestCounts(countsData);
-  }
+  const refreshCampInterests = useCallback(async function refreshCampInterests() {
+    try {
+      const [interestsData, countsData] = await Promise.all([
+        getCampInterests(),
+        getFriendInterestCounts()
+      ]);
+      setCampInterests(interestsData || []);
+      setFriendInterestCounts(countsData || {});
+    } catch (error) {
+      console.error('Failed to refresh camp interests:', error);
+    }
+  }, []);
 
-  async function signIn() {
+  const refreshFriendInterests = useCallback(async function refreshFriendInterests() {
+    try {
+      const data = await getFriendInterestCounts();
+      setFriendInterestCounts(data || {});
+    } catch (error) {
+      console.error('Failed to refresh friend interests:', error);
+    }
+  }, []);
+
+  const signIn = useCallback(async function signIn() {
     return signInWithGoogle();
-  }
+  }, []);
 
-  async function signOut() {
+  const signOut = useCallback(async function signOut() {
     await supabaseSignOut();
     setUser(null);
     setProfile(null);
@@ -227,21 +268,21 @@ export function AuthProvider({ children }) {
     setCampInterests([]);
     setFriendInterestCounts({});
     setShowOnboarding(false);
-  }
+  }, []);
 
-  function completeOnboarding() {
+  const completeOnboarding = useCallback(function completeOnboarding() {
     setShowOnboarding(false);
     refreshProfile();
     refreshChildren();
-  }
+  }, [refreshProfile, refreshChildren]);
 
   // Check if a camp is favorited
-  function isFavorited(campId) {
+  const isFavorited = useCallback(function isFavorited(campId) {
     return favorites.some(f => f.camp_id === campId);
-  }
+  }, [favorites]);
 
   // Get scheduled camps for a specific week
-  function getScheduleForWeek(startDate, endDate) {
+  const getScheduleForWeek = useCallback(function getScheduleForWeek(startDate, endDate) {
     return scheduledCamps.filter(sc => {
       const scStart = new Date(sc.start_date);
       const scEnd = new Date(sc.end_date);
@@ -250,17 +291,17 @@ export function AuthProvider({ children }) {
 
       return (scStart <= weekEnd && scEnd >= weekStart);
     });
-  }
+  }, [scheduledCamps]);
 
   // Calculate total cost
-  function getTotalCost() {
+  const getTotalCost = useCallback(function getTotalCost() {
     return scheduledCamps
       .filter(sc => sc.status !== 'cancelled')
       .reduce((sum, sc) => sum + (parseFloat(sc.price) || 0), 0);
-  }
+  }, [scheduledCamps]);
 
   // Get coverage gaps
-  function getCoverageGaps(childId, summerWeeks) {
+  const getCoverageGaps = useCallback(function getCoverageGaps(childId, summerWeeks) {
     const childSchedule = scheduledCamps.filter(
       sc => sc.child_id === childId && sc.status !== 'cancelled'
     );
@@ -275,7 +316,7 @@ export function AuthProvider({ children }) {
         return (scStart <= weekEnd && scEnd >= weekStart);
       });
     });
-  }
+  }, [scheduledCamps]);
 
   // Recommendation scoring weights
   const SCORE_WEIGHTS = {
@@ -290,7 +331,7 @@ export function AuthProvider({ children }) {
   };
 
   // Get recommended camps based on preferences and children
-  function getRecommendationScores(camps) {
+  const getRecommendationScores = useCallback(function getRecommendationScores(camps) {
     if (!profile || familyChildren.length === 0) return [];
 
     const preferredCategories = profile.preferred_categories || [];
@@ -332,12 +373,14 @@ export function AuthProvider({ children }) {
     })
     .filter(item => item.score > 0)
     .sort((a, b) => b.score - a.score);
-  }
+  }, [profile, familyChildren, favorites]);
 
   // Get dashboard stats
-  function getDashboardStats() {
+  const getDashboardStats = useCallback(function getDashboardStats() {
     const totalScheduled = scheduledCamps.filter(sc => sc.status !== 'cancelled').length;
-    const totalCost = getTotalCost();
+    const totalCost = scheduledCamps
+      .filter(sc => sc.status !== 'cancelled')
+      .reduce((sum, sc) => sum + (parseFloat(sc.price) || 0), 0);
     const weeksWithCamps = new Set(scheduledCamps.map(sc => sc.start_date)).size;
     const favoritesCount = favorites.length;
 
@@ -348,9 +391,9 @@ export function AuthProvider({ children }) {
       favoritesCount,
       childrenCount: familyChildren.length
     };
-  }
+  }, [scheduledCamps, favorites, familyChildren]);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     profile,
     loading,
@@ -388,10 +431,45 @@ export function AuthProvider({ children }) {
     refreshSquads,
     refreshSquadNotifications,
     refreshCampInterests,
+    refreshFriendInterests,
     // Recommendations
     getRecommendationScores,
     getDashboardStats
-  };
+  }), [
+    user,
+    profile,
+    loading,
+    isConfigured,
+    signIn,
+    signOut,
+    showOnboarding,
+    completeOnboarding,
+    refreshProfile,
+    familyChildren,
+    refreshChildren,
+    favorites,
+    refreshFavorites,
+    isFavorited,
+    scheduledCamps,
+    refreshSchedule,
+    getScheduleForWeek,
+    getTotalCost,
+    getCoverageGaps,
+    notifications,
+    unreadCount,
+    refreshNotifications,
+    squads,
+    squadNotifications,
+    squadUnreadCount,
+    campInterests,
+    friendInterestCounts,
+    refreshSquads,
+    refreshSquadNotifications,
+    refreshCampInterests,
+    refreshFriendInterests,
+    getRecommendationScores,
+    getDashboardStats
+  ]);
 
   return (
     <AuthContext.Provider value={value}>

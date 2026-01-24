@@ -2,6 +2,7 @@
  * Global Error Handling Utilities
  * Provides consistent error handling, user-friendly messages, and error tracking
  */
+import { useState, useCallback } from 'react';
 
 export class AppError extends Error {
   constructor(message, code = 'UNKNOWN', originalError = null) {
@@ -127,15 +128,15 @@ export function withErrorHandling(fn, context) {
  * React hook for handling errors with state
  */
 export function useErrorHandler() {
-  const [error, setError] = React.useState(null);
+  const [error, setError] = useState(null);
 
-  const handleError = (err, context = '') => {
+  const handleError = useCallback((err, context = '') => {
     const handled = handleAsyncError(err, context);
     setError(handled);
     return handled;
-  };
+  }, []);
 
-  const clearError = () => setError(null);
+  const clearError = useCallback(() => setError(null), []);
 
   return { error, handleError, clearError };
 }

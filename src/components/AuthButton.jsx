@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function AuthButton() {
   const { user, profile, loading, isConfigured, signIn, signOut } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleEscape(e) {
+      if (e.key === 'Escape') setShowMenu(false);
+    }
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showMenu]);
 
   if (!isConfigured) {
     return null; // Don't show auth if not configured
@@ -19,19 +28,11 @@ export function AuthButton() {
     return (
       <button
         onClick={signIn}
-        className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all"
+        className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all hover:border-[var(--ocean-400)] hover:bg-[var(--ocean-50)]"
         style={{
           background: 'white',
           color: 'var(--earth-700)',
           border: '2px solid var(--sand-200)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = 'var(--ocean-400)';
-          e.currentTarget.style.background = 'var(--ocean-50)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'var(--sand-200)';
-          e.currentTarget.style.background = 'white';
         }}
       >
         <GoogleIcon />
@@ -46,6 +47,9 @@ export function AuthButton() {
         onClick={() => setShowMenu(!showMenu)}
         className="flex items-center gap-2 p-1 rounded-full transition-all"
         style={{ background: showMenu ? 'var(--sand-100)' : 'transparent' }}
+        aria-label="User menu"
+        aria-expanded={showMenu}
+        aria-haspopup="true"
       >
         {profile?.avatar_url ? (
           <img
@@ -89,10 +93,8 @@ export function AuthButton() {
                   setShowMenu(false);
                   window.dispatchEvent(new CustomEvent('navigate', { detail: 'dashboard' }));
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)]"
                 style={{ color: 'var(--earth-700)' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sand-50)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <DashboardIcon />
                 <span>Dashboard</span>
@@ -104,10 +106,8 @@ export function AuthButton() {
                   // Navigate to schedule planner
                   window.dispatchEvent(new CustomEvent('navigate', { detail: 'planner' }));
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)]"
                 style={{ color: 'var(--earth-700)' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sand-50)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <CalendarIcon />
                 <span>My Schedule</span>
@@ -118,10 +118,8 @@ export function AuthButton() {
                   setShowMenu(false);
                   window.dispatchEvent(new CustomEvent('navigate', { detail: 'favorites' }));
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)]"
                 style={{ color: 'var(--earth-700)' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sand-50)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <HeartIcon />
                 <span>Favorites</span>
@@ -132,10 +130,8 @@ export function AuthButton() {
                   setShowMenu(false);
                   window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }));
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)]"
                 style={{ color: 'var(--earth-700)' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--sand-50)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <ChildIcon />
                 <span>My Children</span>
@@ -149,10 +145,8 @@ export function AuthButton() {
                     setShowMenu(false);
                     window.dispatchEvent(new CustomEvent('navigate', { detail: 'admin' }));
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--ocean-50)]"
                   style={{ color: 'var(--ocean-600)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ocean-50)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <AdminIcon />
                   <span>Admin Dashboard</span>
@@ -166,10 +160,8 @@ export function AuthButton() {
                   setShowMenu(false);
                   signOut();
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--terra-50)]"
                 style={{ color: 'var(--terra-500)' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--terra-50)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <LogoutIcon />
                 <span>Sign Out</span>

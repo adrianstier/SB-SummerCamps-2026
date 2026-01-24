@@ -118,7 +118,7 @@ export function Settings({ onClose }) {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b" style={{ borderColor: 'var(--earth-200)' }}>
+        <div className="flex border-b" style={{ borderColor: 'var(--earth-200)' }} role="tablist">
           {[
             { id: 'school', label: 'School Dates' },
             { id: 'work', label: 'Work Hours' },
@@ -128,6 +128,8 @@ export function Settings({ onClose }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
+              role="tab"
+              aria-selected={activeTab === tab.id}
               className={`px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'border-b-2'

@@ -170,7 +170,7 @@ export function AdminDashboard({ camps, onClose }) {
           </p>
         </div>
 
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1" role="tablist">
           {[
             { id: 'overview', icon: '📊', label: 'Overview' },
             { id: 'camps', icon: '🏕️', label: 'Camps' },
@@ -183,6 +183,9 @@ export function AdminDashboard({ camps, onClose }) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-label={`${tab.label} tab`}
               style={{
                 background: activeTab === tab.id ? 'var(--ocean-50)' : 'transparent',
                 color: activeTab === tab.id ? 'var(--ocean-600)' : 'var(--earth-700)'

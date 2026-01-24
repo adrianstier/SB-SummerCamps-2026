@@ -62,9 +62,13 @@ export default function SquadDetail({ squad, onBack, onClose }) {
   const inviteUrl = `${window.location.origin}/join/${squad.invite_code}`;
 
   async function handleCopyLink() {
-    await navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
   }
 
   async function handleShare() {
@@ -114,6 +118,7 @@ export default function SquadDetail({ squad, onBack, onClose }) {
           <button
             onClick={onBack}
             className="p-1.5 rounded-lg hover:bg-sand-100 transition-colors"
+            aria-label="Go back"
           >
             <svg className="w-5 h-5 text-earth-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -545,8 +550,11 @@ function ConfirmModal({ title, message, confirmText, danger, onConfirm, onCancel
 
   async function handleConfirm() {
     setLoading(true);
-    await onConfirm();
-    setLoading(false);
+    try {
+      await onConfirm();
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

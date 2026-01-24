@@ -118,8 +118,11 @@ export function OnboardingWizard({ onComplete }) {
 
         // Add sample children to database
         for (const child of sampleChildren) {
-          const addedChild = await addChild(child);
-          createdChildren.push(addedChild);
+          const { data, error } = await addChild(child);
+          if (error) throw new Error(error.message || 'Failed to add child');
+          if (data && data.length > 0) {
+            createdChildren.push(data[0]);
+          }
         }
 
         // Fetch camps for schedule generation

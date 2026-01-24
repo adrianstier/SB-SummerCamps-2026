@@ -15,7 +15,9 @@ const uuid = z.string().uuid();
 const safeText = z.string()
   .max(10000)
   .refine(
-    (val) => !/<script|javascript:|on\w+=/i.test(val),
+    (val) => !/<(script|iframe|object|embed|form|input|button|textarea|select|style|link|meta|base)\b/i.test(val) &&
+             !/\b(javascript|vbscript|data):/i.test(val) &&
+             !/on(load|error|click|mouse|focus|blur|key|submit|change|input|drag|drop|touch|pointer|animation|transition)\s*=/i.test(val),
     { message: 'Text contains potentially unsafe content' }
   );
 
@@ -177,13 +179,13 @@ export function validate(schema, data) {
  */
 export function sanitizeString(str) {
   if (typeof str !== 'string') return str;
-  return str
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+  // Strip HTML tags
+  str = str.replace(/<[^>]*>/g, '');
+  // Remove null bytes
+  str = str.replace(/\0/g, '');
+  // Escape PostgREST special characters that could manipulate filter expressions
+  str = str.replace(/[,.()\[\]]/g, '');
+  return str.trim();
 }
 
 export default {

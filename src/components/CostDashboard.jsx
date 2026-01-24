@@ -106,6 +106,7 @@ export function CostDashboard({ camps, onClose }) {
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -154,7 +155,15 @@ export function CostDashboard({ camps, onClose }) {
                   {formatCurrency(costBreakdown.total)} of {formatCurrency(budget)}
                 </span>
               </div>
-              <div className="h-3 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--earth-200)' }}>
+              <div
+                className="h-3 rounded-full overflow-hidden"
+                style={{ backgroundColor: 'var(--earth-200)' }}
+                role="progressbar"
+                aria-valuenow={Math.round(Math.min(costBreakdown.percentUsed, 100))}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Budget usage"
+              >
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
