@@ -225,6 +225,7 @@ export function SchedulePlanner({ camps, onClose }) {
         child_id: selectedChild,
         start_date: week.startDate,
         end_date: week.endDate,
+        camp_name: campData?.camp_name || camp.camp_name || camp.id,
         price: campData?.min_price || null,
         status: 'preview',
         isPreview: true,
@@ -240,14 +241,19 @@ export function SchedulePlanner({ camps, onClose }) {
 
     try {
       // Add camp to schedule in database
-      await addScheduledCamp({
+      const result = await addScheduledCamp({
         camp_id: camp.id,
         child_id: selectedChild,
         start_date: week.startDate,
         end_date: week.endDate,
+        camp_name: campData?.camp_name || camp.camp_name || camp.id,
         price: campData?.min_price || null,
         status: 'planned'
       });
+
+      if (result?.error) {
+        throw new Error(result.error.message || 'Failed to save camp');
+      }
 
       // Refresh schedule to show the new camp
       await refreshSchedule();
@@ -258,7 +264,8 @@ export function SchedulePlanner({ camps, onClose }) {
       setShowCampDrawer(false);
     } catch (error) {
       console.error('Failed to add camp:', error);
-      showStatus('Failed to add camp. Please try again.');
+      const errorMsg = error.message || 'Unknown error';
+      showStatus(`Failed to add camp: ${errorMsg}`);
     } finally {
       setAddingCamp(false);
     }
@@ -275,14 +282,18 @@ export function SchedulePlanner({ camps, onClose }) {
     // Save all preview camps to database with individual error handling
     for (const pc of previewCamps) {
       try {
-        await addScheduledCamp({
+        const result = await addScheduledCamp({
           camp_id: pc.camp_id,
           child_id: pc.child_id,
           start_date: pc.start_date,
           end_date: pc.end_date,
+          camp_name: pc.camps?.camp_name || pc.camp_id,
           price: pc.price,
           status: 'planned'
         });
+        if (result?.error) {
+          throw new Error(result.error.message || 'Failed to save camp');
+        }
         results.succeeded.push(pc);
       } catch (error) {
         console.error('Failed to add preview camp:', pc, error);

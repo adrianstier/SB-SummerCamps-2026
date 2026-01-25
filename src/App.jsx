@@ -608,7 +608,7 @@ export default function App() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h1 className="font-serif text-2xl font-semibold mb-3" style={{ color: 'var(--earth-800)' }}>
+          <h1 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>
             Something went wrong
           </h1>
           <p className="text-base mb-6" style={{ color: 'var(--earth-700)' }}>Refresh to try again.</p>
@@ -716,15 +716,15 @@ export default function App() {
           {/* Hero Content */}
           <div className="text-center max-w-3xl mx-auto">
             <div className="hero-title">
-              <p className="font-sans text-sm font-medium uppercase tracking-widest mb-4" style={{ color: 'var(--terra-500)' }}>
+              <p className="font-sans text-xs sm:text-sm font-medium uppercase tracking-widest mb-4" style={{ color: 'var(--terra-500)', letterSpacing: '0.15em' }}>
                 Summer 2026
               </p>
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-semibold leading-tight mb-6" style={{ color: 'var(--earth-800)' }}>
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display leading-tight mb-6" style={{ color: 'var(--earth-800)' }}>
                 Your summer,{' '}
                 <span className="text-gradient">sorted.</span>
               </h1>
             </div>
-            <p className="hero-subtitle font-sans text-lg md:text-xl mb-10" style={{ color: 'var(--earth-700)', opacity: 0.85 }}>
+            <p className="hero-subtitle font-sans text-lg md:text-xl font-body mb-10" style={{ color: 'var(--earth-700)', opacity: 0.9 }}>
               {stats ? (
                 <>Stop juggling spreadsheets. <strong>{stats.active}</strong> camps, one plan, zero scrambling.</>
               ) : (
@@ -739,7 +739,7 @@ export default function App() {
               </div>
               <input
                 type="text"
-                placeholder="Search camps... (results update as you type)"
+                placeholder="Search camps by name or activity"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="search-input"
@@ -813,7 +813,7 @@ export default function App() {
           <div className="filter-bar-inner">
             {/* Left: Quick Presets as elegant text links */}
             <div className="filter-presets">
-              <span className="filter-presets-label">Quick find</span>
+              <span className="filter-presets-label">Quick filters</span>
               <div className="filter-presets-divider" />
               <button
                 onClick={() => {
@@ -880,7 +880,7 @@ export default function App() {
                 className={`filter-control-btn ${showFilters ? 'active' : ''}`}
               >
                 <FilterIcon />
-                <span>All Filters</span>
+                <span>Filters</span>
                 {activeFilterCount > 0 && (
                   <span className="filter-count">{activeFilterCount}</span>
                 )}
@@ -895,6 +895,7 @@ export default function App() {
                   setSortDir(dir);
                 }}
                 className="filter-sort-select"
+                aria-label="Sort camps by"
               >
                 <option value="camp_name-asc">A–Z</option>
                 <option value="camp_name-desc">Z–A</option>
@@ -1002,7 +1003,7 @@ export default function App() {
         <section style={{ background: 'white', borderBottom: '1px solid var(--sand-200)' }}>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-serif text-xl font-semibold" style={{ color: 'var(--earth-800)' }}>
+              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
                 Filter
               </h3>
               {activeFilterCount > 0 && (
@@ -1092,7 +1093,7 @@ export default function App() {
                   <option value="camp_name-desc">Name Z–A</option>
                   <option value="min_price-asc">Price: Low to High</option>
                   <option value="min_price-desc">Price: High to Low</option>
-                  <option value="min_age-asc">Age: Youngest First</option>
+                  <option value="min_age-asc">Age: Youngest</option>
                 </select>
               </div>
             </div>
@@ -1106,7 +1107,7 @@ export default function App() {
                   { key: 'foodIncluded', label: 'Food Included', state: foodIncluded, setter: setFoodIncluded },
                   { key: 'hasTransport', label: 'Transportation', state: hasTransport, setter: setHasTransport },
                   { key: 'siblingDiscount', label: 'Sibling Discount', state: siblingDiscount, setter: setSiblingDiscount },
-                  ...(user ? [{ key: 'matchWorkSchedule', label: 'Fits My Schedule', state: matchWorkSchedule, setter: setMatchWorkSchedule }] : []),
+                  ...(user ? [{ key: 'matchWorkSchedule', label: 'Fits My Hours', state: matchWorkSchedule, setter: setMatchWorkSchedule }] : []),
                 ].map(({ key, label, state, setter }) => (
                   <button
                     key={key}
@@ -1127,7 +1128,7 @@ export default function App() {
             {/* Keywords */}
             {keywords.length > 0 && (
               <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--sand-100)' }}>
-                <p className="text-sm font-medium mb-4" style={{ color: 'var(--earth-700)' }}>Activities & Interests</p>
+                <p className="text-sm font-medium mb-4" style={{ color: 'var(--earth-700)' }}>Activities</p>
                 <div className="flex flex-wrap gap-2">
                   {keywords.slice(0, 20).map(keyword => (
                     <button
@@ -1150,8 +1151,8 @@ export default function App() {
         <section className="featured-section">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="featured-header">
-              <h2 className="featured-title">Editor's Picks</h2>
-              <span className="featured-subtitle">Hand-picked for Santa Barbara families</span>
+              <h2 className="featured-title">Top Picks</h2>
+              <span className="featured-subtitle">Curated for local families</span>
             </div>
             <div className="featured-grid">
               {camps
@@ -1207,9 +1208,9 @@ export default function App() {
       {!loading && camps.length > 0 && activeFilterCount === 0 && (
         <section className="testimonial-banner">
           <p className="testimonial-quote">
-            "Found the perfect STEM camp for my 10-year-old in under 5 minutes. This site is a lifesaver for busy parents."
+            "Found the right STEM camp for my 10-year-old in under 5 minutes."
           </p>
-          <p className="testimonial-author">— Sarah M., Goleta Mom</p>
+          <p className="testimonial-author">— Sarah M., Goleta</p>
         </section>
       )}
 
@@ -1246,11 +1247,11 @@ export default function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <h2 className="font-serif text-2xl font-semibold mb-3" style={{ color: 'var(--earth-800)' }}>
-              No camps match all your filters
+            <h2 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>
+              No camps match these filters
             </h2>
             <p className="text-base mb-6" style={{ color: 'var(--earth-700)' }}>
-              Try loosening one filter to see more options—or clear all and start fresh.
+              Try adjusting age or price range.
             </p>
             <button onClick={clearFilters} className="btn-primary">
               Clear Filters
@@ -1314,10 +1315,10 @@ export default function App() {
             </div>
             <div className="text-center md:text-right">
               <p className="text-sm mb-1" style={{ color: 'var(--sand-200)' }}>
-                Data sourced directly from camp websites • Last updated January 2026
+                Data from camp websites • Updated Jan 2026
               </p>
               <p className="text-xs" style={{ color: 'var(--sand-400)' }}>
-                Prices and availability may change. Always verify with camps directly before enrolling.
+                Verify prices and availability directly with camps before enrolling.
               </p>
             </div>
           </div>
@@ -1438,7 +1439,7 @@ export default function App() {
                 );
               })}
               {compareList.length < 4 && (
-                <span className="compare-bar-hint">+ Add up to {4 - compareList.length} more</span>
+                <span className="compare-bar-hint">Add {4 - compareList.length} more</span>
               )}
             </div>
             <div className="compare-bar-actions">
@@ -1501,7 +1502,7 @@ function FavoritesModal({ camps, onClose, onOpenPlanner }) {
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
         <div className="p-6" style={{ borderBottom: '1px solid var(--sand-200)' }}>
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl font-semibold" style={{ color: 'var(--earth-800)' }}>
+            <h2 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
               My Favorites
             </h2>
             <button
@@ -1518,11 +1519,11 @@ function FavoritesModal({ camps, onClose, onOpenPlanner }) {
           {favoriteCamps.length === 0 ? (
             <div className="text-center py-12">
               <HeartOutlineIcon className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--sand-300)' }} />
-              <h3 className="font-serif text-lg font-semibold mb-2" style={{ color: 'var(--earth-800)' }}>
+              <h3 className="font-serif text-lg font-heading mb-2" style={{ color: 'var(--earth-800)' }}>
                 No favorites yet
               </h3>
               <p style={{ color: 'var(--earth-700)' }}>
-                Heart camps to save them here.
+                Tap the heart on any camp to save it.
               </p>
             </div>
           ) : (
@@ -1625,10 +1626,16 @@ const VerifiedIcon = () => (
 
 // Featured Card Component for Editor's Picks section
 function FeaturedCard({ camp, badge, onClick }) {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  };
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div className="featured-card cursor-pointer" onClick={onClick}>
+    <div className="featured-card cursor-pointer" onClick={onClick} role="button" tabIndex={0} onKeyDown={handleKeyDown} aria-label={`View details for ${camp.camp_name}`}>
       <div className="featured-card-image">
         {camp.image_url && !imageError ? (
           <img
@@ -1703,7 +1710,7 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
       <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-4">
-          <h3 className="font-serif text-xl font-semibold leading-tight flex-1" style={{ color: 'var(--earth-800)' }}>
+          <h3 className="font-serif text-xl font-heading leading-tight flex-1" style={{ color: 'var(--earth-800)' }}>
             {camp.camp_name}
           </h3>
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -1904,7 +1911,7 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
           {camp.extracted?.testimonials && camp.extracted.testimonials.length > 0 && (
             <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--sun-50)', border: '1px solid var(--sun-200)' }}>
               <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--sun-600)' }}>
-                <span>💬</span> What Parents Say
+                <span>💬</span> Parent Review
               </p>
               <p className="text-sm italic" style={{ color: 'var(--earth-700)' }}>
                 "{camp.extracted.testimonials[0]}"
@@ -2131,7 +2138,7 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
           <div className="modal-grid">
             {/* Location & Schedule */}
             <section className="modal-section">
-              <h2 className="modal-section-title">Location & Schedule</h2>
+              <h2 className="modal-section-title">Where & When</h2>
               <dl className="modal-dl">
                 {camp.address && (
                   <>
@@ -2162,7 +2169,7 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
 
             {/* Contact & Pricing */}
             <section className="modal-section">
-              <h2 className="modal-section-title">Contact & Pricing</h2>
+              <h2 className="modal-section-title">Contact & Cost</h2>
               <dl className="modal-dl">
                 {camp.contact_phone && (
                   <>
@@ -2206,6 +2213,79 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
             </section>
           </div>
 
+          {/* Pricing Tiers */}
+          {camp.extracted?.pricing_tiers && (camp.extracted.pricing_tiers.earlyBird || camp.extracted.pricing_tiers.regular || camp.extracted.pricing_tiers.halfDay || camp.extracted.pricing_tiers.fullDay || camp.extracted.pricing_tiers.perSession) && (
+            <section className="modal-section modal-section--full">
+              <h2 className="modal-section-title">Pricing</h2>
+              <dl className="modal-dl modal-dl--pricing">
+                {camp.extracted.pricing_tiers.earlyBird && (
+                  <>
+                    <dt>Early Bird</dt>
+                    <dd>${camp.extracted.pricing_tiers.earlyBird}/week</dd>
+                  </>
+                )}
+                {camp.extracted.pricing_tiers.regular && (
+                  <>
+                    <dt>Regular</dt>
+                    <dd>${camp.extracted.pricing_tiers.regular}/week</dd>
+                  </>
+                )}
+                {camp.extracted.pricing_tiers.halfDay && (
+                  <>
+                    <dt>Half Day</dt>
+                    <dd>${camp.extracted.pricing_tiers.halfDay}</dd>
+                  </>
+                )}
+                {camp.extracted.pricing_tiers.fullDay && (
+                  <>
+                    <dt>Full Day</dt>
+                    <dd>${camp.extracted.pricing_tiers.fullDay}</dd>
+                  </>
+                )}
+                {camp.extracted.pricing_tiers.perSession && (
+                  <>
+                    <dt>Per Session</dt>
+                    <dd>${camp.extracted.pricing_tiers.perSession}</dd>
+                  </>
+                )}
+              </dl>
+            </section>
+          )}
+
+          {/* Sessions / Dates */}
+          {camp.extracted?.sessions && camp.extracted.sessions.length > 0 && (
+            <section className="modal-section modal-section--full">
+              <h2 className="modal-section-title">2026 Sessions</h2>
+              <div className="modal-sessions">
+                {camp.extracted.sessions.map((session, i) => {
+                  const text = (session.raw || '').replace(/[\n\t]+/g, ' ').trim();
+                  return text ? (
+                    <div key={i} className="modal-session-row">
+                      <span className="modal-session-text">{text}</span>
+                    </div>
+                  ) : null;
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Availability */}
+          {camp.extracted?.availability && (camp.extracted.availability.isOpen || camp.extracted.availability.hasWaitlist || (camp.extracted.availability.soldOutSessions && camp.extracted.availability.soldOutSessions.length > 0)) && (
+            <div className="modal-callout modal-callout--availability">
+              <span className="modal-callout-icon">{camp.extracted.availability.isOpen ? '✅' : '⏳'}</span>
+              <div>
+                <strong>{camp.extracted.availability.isOpen ? 'Open Now' : 'Limited Spots'}</strong>
+                {camp.extracted.availability.hasWaitlist && <p>Waitlist open</p>}
+                {camp.extracted.availability.soldOutSessions && camp.extracted.availability.soldOutSessions.length > 0 && (
+                  <p>Sold out: {camp.extracted.availability.soldOutSessions.join(', ')}</p>
+                )}
+                {camp.extracted.availability.openingDate && (
+                  <p>Opens: {camp.extracted.availability.openingDate}</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Food Info */}
           {(camp.food_provided || camp.food_included) && camp.food_provided !== 'Unknown' && (
             <div className="modal-callout modal-callout--ocean">
@@ -2247,11 +2327,33 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
             </div>
           )}
 
-          {/* Testimonial */}
+          {/* Testimonials */}
           {camp.extracted?.testimonials && camp.extracted.testimonials.length > 0 && (
-            <blockquote className="modal-quote">
-              <p>{camp.extracted.testimonials[0]}</p>
-            </blockquote>
+            <div className="modal-testimonials">
+              {camp.extracted.testimonials.slice(0, 3).map((quote, i) => (
+                <blockquote key={i} className="modal-quote">
+                  <p>"{quote}"</p>
+                </blockquote>
+              ))}
+            </div>
+          )}
+
+          {/* PDF Links */}
+          {camp.pdf_links && camp.pdf_links.length > 0 && (
+            <section className="modal-section modal-section--full">
+              <h2 className="modal-section-title">Documents</h2>
+              <div className="modal-pdf-links">
+                {camp.pdf_links.slice(0, 5).map((pdf, i) => safeUrl(pdf.url) && (
+                  <a key={i} href={safeUrl(pdf.url)} target="_blank" rel="noopener noreferrer" className="modal-pdf-link">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    {pdf.text || pdf.type || 'Document'}
+                  </a>
+                ))}
+              </div>
+            </section>
           )}
 
           {/* Notes */}
@@ -2282,7 +2384,7 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
             </a>
           )}
           <button onClick={onAddToSchedule} className="modal-btn modal-btn--secondary">
-            Add to Schedule
+            Schedule This Camp
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />

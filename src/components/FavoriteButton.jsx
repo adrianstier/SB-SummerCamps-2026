@@ -66,6 +66,7 @@ export function FavoriteButton({ campId, size = 'md', showLabel = false }) {
         border: `2px solid ${isFav ? 'var(--terra-200)' : 'var(--sand-200)'}`
       }}
       title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+      aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
       onMouseEnter={(e) => {
         if (!isFav) {
           e.currentTarget.style.color = 'var(--terra-400)';
