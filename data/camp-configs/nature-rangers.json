@@ -1,0 +1,127 @@
+{
+  "id": "nature-rangers",
+  "name": "Nature Rangers Wilderness Programs",
+  "organization_type": "Non-profit public charity 501(c)(3)",
+  "website": "https://naturerangers.org",
+  "pages": {
+    "main": "https://naturerangers.org",
+    "camp": "https://naturerangers.org/camp/",
+    "programs": "https://naturerangers.org/programs/",
+    "santa_barbara_hub": "https://naturerangers.org/santabarbara/",
+    "register": "https://naturerangers.org/register/",
+    "about": "https://naturerangers.org/about/",
+    "mission": "https://naturerangers.org/mission/",
+    "testimonials": "https://naturerangers.org/feedback/",
+    "faq": "https://naturerangers.org/program-faq/",
+    "terms": "https://naturerangers.org/terms-and-conditions/",
+    "privacy": "https://naturerangers.org/privacy-policy/",
+    "contact": "https://naturerangers.org/contact/",
+    "blog": "https://naturerangers.org/blog/",
+    "get_involved": "https://naturerangers.org/get-involved/"
+  },
+  "data_hints": {
+    "pricing_location": "Camp page lists holiday camp prices. Thanksgiving: $160 (2 days), Winter: $312 (4 days), MLK: $80 (1 day), President's: $160 (2 days), Spring Break: $390 (5 days)",
+    "hours_location": "All camps 9am-2pm with optional 2 hour aftercare",
+    "extended_care": "Optional 2 hour aftercare available",
+    "sessions": "Summer 2026 opens February 1st. Holiday camps currently open for registration.",
+    "ages": "TK-3rd Grade (Young Explorers), 4th-6th Grade (Young Naturalists - Summer Only)"
+  },
+  "program_types": {
+    "santa_barbara_hub_programs": [
+      "Homeschool Programs 2025-2026",
+      "School Break Camps 2025-26",
+      "After-School Programs Fall 2025",
+      "Summer Camps 2025 (view last year)"
+    ],
+    "holiday_camps": {
+      "thanksgiving": "Nov 24-25 ($160)",
+      "winter": "Dec 29-Jan 2 ($312) - 4 day camp",
+      "mlk": "Monday, Jan 19th ($80)",
+      "presidents": "Fri & Mon, Feb 13 & 16 ($160)",
+      "spring_break": "March 30-April 3 ($390)"
+    }
+  },
+  "age_groups": {
+    "young_explorers": {
+      "grades": "TK-3rd Grade",
+      "ratio": "6:1 student ratio",
+      "focus": "Curiosity and foundational social-emotional skills through play-based nature immersion",
+      "activities": "Hands-on science, nature-based arts and crafts, guided games, child-led exploration"
+    },
+    "young_naturalists": {
+      "grades": "4th-6th Grade",
+      "availability": "Summer Only",
+      "focus": "Scientific inquiry, wilderness skill-building, leadership",
+      "activities": "Group problem-solving, nature quests, Socratic discussions, mentoring younger Explorers"
+    }
+  },
+  "program_activities": [
+    "Nature and Problem Solving Quests",
+    "Scientific Exploration",
+    "Self Awareness Activities",
+    "Nature Journaling",
+    "Wilderness Skills",
+    "Nature Specialist Badges",
+    "Resilience Challenges",
+    "Nature Immersion Games",
+    "Leadership Games",
+    "Nature Crafts"
+  ],
+  "benefits_outcomes": [
+    "Increased Self-Confidence",
+    "Greater Independence & Accountability",
+    "Reduced Stress & ADHD Symptoms",
+    "Greater Focus to Complete Tasks",
+    "Greater Sense of Environmental Stewardship",
+    "Increased Ability to Self-Regulate",
+    "Increased Resilience & Adaptability",
+    "Increased Emotional Intelligence",
+    "Increased Problem Solving Skills",
+    "Increased Ability for Teamwork & Collaboration"
+  ],
+  "faq_topics": [
+    "What does a typical day look like?",
+    "Can I request kids being together?",
+    "What are your student to staff ratios?",
+    "What are your wilderness safety protocols?",
+    "What are your water safety protocols?",
+    "What are your bathroom protocols?",
+    "What types of nature activities do you do?",
+    "What are specialist badges?",
+    "Does my child have to participate in every activity?",
+    "What should my child wear and bring?",
+    "What if I am late to dropoff or pickup?",
+    "What is your cancellation policy?"
+  ],
+  "special_notes": "Site type: Nonprofit 501(c)(3). WordPress site with modern design and embedded YouTube videos. Focus on outdoor education, resilience, and nature connection. Low staff ratios (6:1 for young explorers). Summer 2026 registration opens February 1st. Currently accepting holiday/school break camp registrations. Offers after-school and homeschool programs year-round. Strong emphasis on mental wellness and screen-free outdoor time. Young Naturalists (older kids) program is summer-only.",
+  "scraping_challenges": [
+    "Embedded YouTube video content",
+    "FAQ section with expandable accordions",
+    "Registration forms likely on external platform",
+    "Some pages may require navigation through hub pages"
+  ],
+  "contact": {
+    "email": "hello@nature-rangers.org",
+    "form": "https://naturerangers.org/contact/"
+  },
+  "social_media": {
+    "facebook": "https://www.facebook.com/nature.rangers.sb",
+    "instagram": "https://www.instagram.com/we.are.nature.rangers/"
+  },
+  "mission_statement": "Nature Rangers equips children to face challenges, embrace uncertainty, and connect deeply with nature through FUN games, play, and hands-on scientific discovery.",
+  "summer_2026_sessions": [
+    {"dates": "June 8-12", "location": "Rocky Nook Park"},
+    {"dates": "June 15-19", "location": "Tucker's Grove"},
+    {"dates": "June 22-26", "location": "Rocky Nook Park"},
+    {"dates": "June 29-July 3", "location": "Steven's Park"},
+    {"dates": "July 6-10", "location": "Lake Los Carneros"},
+    {"dates": "July 13-17", "location": "Steven's Park"},
+    {"dates": "July 20-24", "location": "Lake Los Carneros"},
+    {"dates": "July 27-31", "location": "Steven's Park"},
+    {"dates": "Aug 3-7", "location": "Rocky Nook Park"},
+    {"dates": "Aug 10-14", "location": "Ellwood"}
+  ],
+  "summer_2026_registration": "Opens February 2nd, 2026",
+  "last_verified": "2026-01-28",
+  "playwright_verified": true
+}

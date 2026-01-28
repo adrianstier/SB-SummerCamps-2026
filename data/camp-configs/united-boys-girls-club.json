@@ -1,0 +1,38 @@
+{
+  "id": "united-boys-girls-club",
+  "name": "United Boys & Girls Clubs of Santa Barbara County",
+  "organization_type": "Nonprofit",
+  "website": "https://www.unitedbg.org/",
+  "pages": {
+    "main": "https://www.unitedbg.org/",
+    "programs": "https://www.unitedbg.org/programs/",
+    "camp_whittier": "https://www.unitedbg.org/camp-whittier",
+    "join": "https://www.unitedbg.org/join"
+  },
+  "data_hints": {
+    "pricing_location": "$75/week with scholarships available",
+    "hours_location": "8:00 AM - 6:00 PM, Monday-Friday"
+  },
+  "programs": {
+    "summer_spectacular": {
+      "duration": "9 weeks",
+      "description": "Activities, field trips, hikes, athletics, camping trip for older members"
+    },
+    "summer_brain_gain": {
+      "description": "One-week themed modules aligned with common core standards (Disney supported)",
+      "focus": "Project-based learning, creative expression, group work"
+    },
+    "camp_whittier": {
+      "location": "San Ynez, traditional Chumash Land near Lake Cachuma",
+      "size": "94 acres in Santa Ynez Mountains",
+      "programs": ["Elings Science and Math Camp", "Outdoor Education"]
+    }
+  },
+  "pricing": {
+    "weekly": 75,
+    "scholarships": true
+  },
+  "hours": "8:00 AM - 6:00 PM",
+  "ages": "5-18 years",
+  "last_verified": "2026-01-28"
+}

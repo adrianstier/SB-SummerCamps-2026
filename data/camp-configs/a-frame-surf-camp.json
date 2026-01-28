@@ -1,0 +1,68 @@
+{
+  "id": "a-frame-surf-camp",
+  "name": "A-Frame Surf Camp",
+  "organization_type": "Surf School / Beach Camp",
+  "website": "https://aframesurf.com/beach-camp/",
+  "pages": {
+    "main": "https://aframesurf.com/",
+    "beach_camp": "https://aframesurf.com/beach-camp/"
+  },
+  "data_hints": {
+    "pricing_location": "Beach camp page - rates clearly listed",
+    "hours_location": "9am-3pm standard, extended to 5:15pm",
+    "food": "Lunch and snacks included from Padaro Beach Grill and Thario's Kitchen"
+  },
+  "pricing": {
+    "daily": 100,
+    "weekly": 500,
+    "threeDay": 300,
+    "extendedCarePerDay": 25,
+    "citDiscount": "40% off"
+  },
+  "hours": {
+    "standard": "9:00 AM - 3:00 PM",
+    "extendedCare": "3:00 PM - 5:15 PM"
+  },
+  "age_groups": [
+    {"name": "Campers", "ages": "5-13"},
+    {"name": "CIT Program", "ages": "14-16", "discount": "40% off"}
+  ],
+  "activities": [
+    "Surfing lessons",
+    "Stand-Up Paddleboarding (SUP)",
+    "Boogie Boarding",
+    "Beach Games",
+    "Swimming"
+  ],
+  "typical_day": [
+    {"time": "9:00 AM", "activity": "Drop-off & Morning Safety Circle"},
+    {"time": "9:15 AM", "activity": "Water Time & Beach Play"},
+    {"time": "10:30 AM", "activity": "Snack, Sunscreen, Beach Game"},
+    {"time": "11:00 AM", "activity": "Water Time & Beach Play"},
+    {"time": "12:30 PM", "activity": "Catered Lunch, Sunscreen, Beach Game"},
+    {"time": "1:15 PM", "activity": "Water Time & Beach Play"},
+    {"time": "2:30 PM", "activity": "Clean Up, Prepare for Pickup"},
+    {"time": "3:00 PM", "activity": "Standard Pickup"},
+    {"time": "3:00-5:15 PM", "activity": "Extended Care available"}
+  ],
+  "staff_ratio": "1:5",
+  "staff_qualifications": "Water safety, CPR, First Aid trained",
+  "food": {
+    "lunch": "Catered from Padaro Beach Grill and Thario's Kitchen",
+    "snacks": "Included"
+  },
+  "location": {
+    "venue": "Santa Claus Lane Beach",
+    "address": "Carpinteria, CA 93013"
+  },
+  "contact": {
+    "phone": "805-684-8803"
+  },
+  "schedule": {
+    "summer": "Monday-Friday, June through August",
+    "saturday": "August through October"
+  },
+  "scrape_strategy": "playwright",
+  "scrape_notes": "JS-heavy site - Playwright recommended for full content",
+  "last_verified": "2026-01-28"
+}

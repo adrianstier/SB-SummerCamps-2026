@@ -1,0 +1,78 @@
+{
+  "id": "lobster-jo-s-beach-camp",
+  "name": "Lobster Jo's Beach Camp",
+  "website": "https://www.lobsterjosbeachcamp.com",
+  "pages": {
+    "main": "https://www.lobsterjosbeachcamp.com",
+    "programs": "https://www.lobsterjosbeachcamp.com/program",
+    "goleta_location": "https://www.lobsterjosbeachcamp.com/goleta",
+    "faq": "Not found - check under About or More menus",
+    "register": "https://www.lobsterjosbeachcamp.com/program"
+  },
+  "navigation_structure": {
+    "main_menus": ["About", "Summer Camps", "School Year Programs", "More"],
+    "note": "Dropdown menus with expandable submenus. 'Book a Camp' CTA in header"
+  },
+  "data_hints": {
+    "pricing_location": "Not visible on homepage - likely on individual program pages",
+    "hours_location": "Half Day program mentions 12pm-3pm (3 hours)",
+    "extended_care": "Half Day add-on available 12pm-3pm",
+    "sessions": "Weekly sessions during summer (specific dates on program pages)",
+    "locations": "Santa Barbara waterfront (Skater's Point, Stearns Wharf area), Goleta (new 2025 location)"
+  },
+  "camp_types": {
+    "beach_camp": {
+      "description": "Ocean activities, beach-themed arts and crafts, group games, sandcastle contests, surfing, beach party karaoke",
+      "location": "Stearns Wharf area, Garden St. lot for drop-off/pickup"
+    },
+    "art_camp": {
+      "description": "Morning art lessons (painting, sculpting, plant pressing, beading) + afternoon Beach Camp activities",
+      "structure": "Half art, half beach"
+    },
+    "skate_camp": {
+      "description": "Skateboarding technique at Skater's Point skate park",
+      "skill_levels": "All skill levels welcome",
+      "end_of_day": "Skills demo for family and friends"
+    },
+    "half_day": {
+      "description": "Extension from partner camps (Ceramics, Skate, Beach Volleyball) to Beach Camp",
+      "hours": "12pm-3pm (3 hours)"
+    },
+    "junior_counselors": {
+      "description": "Teens earn Community Service Hours for high school graduation requirements",
+      "benefit": "Experience life of camp counselor"
+    }
+  },
+  "brand_tagline": "SKATIN' CRAFTIN' SURFIN' - in no particular order...",
+  "mission": "Adventure & Curiosity Inspire Tomorrow's Leaders. We Are FUN. We Are STEWARDS.",
+  "special_notes": "Site type: Small Business. Modern Wix-based website with video background on homepage. Strong beach/ocean focus with local SB expertise (Skater's Point, Stearns Wharf, FunkZone). New Goleta location added 2025. Multiple camp types for variety. Junior Counselor program for teens. Strong testimonials section. Some program links may redirect externally.",
+  "scraping_challenges": [
+    "Wix-based site with dynamic loading",
+    "Video background on homepage (lobster jo's beach city approved v1.1.mov)",
+    "Dropdown menus require JavaScript interaction",
+    "Some links redirect to external sites unexpectedly",
+    "Pricing not prominently displayed on homepage"
+  ],
+  "contact": {
+    "form": "Footer contact form on main page",
+    "newsletter": "Newsletter signup with phone/email in footer"
+  },
+  "locations": {
+    "santa_barbara": {
+      "area": "Waterfront - Stearns Wharf, Skater's Point, FunkZone",
+      "dropoff": "Garden St. lot",
+      "landmarks": "Beach demarcated with giant lobster flags"
+    },
+    "goleta": {
+      "status": "New location 2025",
+      "description": "Goleta's newest parks"
+    }
+  },
+  "testimonials_highlight": [
+    "Clear winner out of a dozen summer camps",
+    "Kids excited to go in the morning, exhausted by pickup",
+    "Counselors attentive about sunscreen reapplication",
+    "Easy drop-off/pickup from Garden St. lot"
+  ],
+  "last_verified": "2026-01-24"
+}

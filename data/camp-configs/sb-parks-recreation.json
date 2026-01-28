@@ -1,0 +1,53 @@
+{
+  "id": "sb-parks-recreation",
+  "name": "Santa Barbara Parks and Recreation Summer Camps",
+  "website": "https://sbparksandrec.santabarbaraca.gov",
+  "pages": {
+    "main": "https://sbparksandrec.santabarbaraca.gov",
+    "summer_camps_hub": "https://sbparksandrec.santabarbaraca.gov/activities/youth/summer-camps",
+    "activities": "https://sbparksandrec.santabarbaraca.gov/activities",
+    "youth_programs": "https://sbparksandrec.santabarbaraca.gov/activities/youth-recreation",
+    "news_2026": "https://sbparksandrec.santabarbaraca.gov/news/2026-summer-camp-offerings-and-registration-date-announced",
+    "register": "https://sbparksandrec.santabarbaraca.gov/activities",
+    "scholarships": "https://www.sbpal.org/campership-alliance.html"
+  },
+  "navigation_path": {
+    "step1": "From homepage, click 'Activities' in main navigation",
+    "step2": "On Activities page, expand 'Youth' submenu (click + button)",
+    "step3": "Click 'Summer Camps' from expanded menu",
+    "alternative": "Featured Topics > 'Sign Up for Classes and Camps' on homepage"
+  },
+  "data_hints": {
+    "pricing_location": "Individual camp pages linked from summer camps hub. Range: $4-$17.50/hour, most $12-15/hour per news article",
+    "hours_location": "Individual camp listings - half-day and full-day options available",
+    "extended_care": "Not mentioned on main pages - check individual camp listings",
+    "sessions": "Registration opens February 4, 2026 at 9am online",
+    "ages": "Ages 5-17 across 15 different camps",
+    "topics": "Art, business, engineering, performing arts, sports, water safety"
+  },
+  "related_programs": {
+    "junior_lifeguards": "https://sbparksandrec.santabarbaraca.gov/activities/youth/junior-lifeguards",
+    "summer_fun_program": "https://sbparksandrec.santabarbaraca.gov/activities/youth/summer-fun-recreation-program",
+    "school_year_camps": "https://sbparksandrec.santabarbaraca.gov/activities/youth/school-year-camps",
+    "swim_lessons": "https://sbparksandrec.santabarbaraca.gov/activities/pools-beaches-and-aquatics/swim-lessons"
+  },
+  "special_notes": "Site type: Government (City of Santa Barbara). Complex Drupal-based CMS with nested navigation structure. Summer camps page contains links to multiple partner organizations (e.g., Peak2Pacific, SB Zoo) that redirect externally. 15 camps total for 2026. Scholarships available via PARC Foundation and SBPAL Campership Alliance. Free Junior Counselor program for teens 13-17 to earn volunteer hours. Free Summer Fun program provides 7 weeks childcare for eligible families.",
+  "scraping_challenges": [
+    "External redirects - some internal links redirect to partner camp websites",
+    "Cookie consent dialog on first visit",
+    "Navigation requires JavaScript interaction (expandable submenu)",
+    "Camp listings may be paginated or dynamically loaded"
+  ],
+  "contact": {
+    "phone": "(805) 564-5418",
+    "email": "ParksAndRec@SantaBarbaraCA.gov",
+    "address": "620 Laguna Street, Santa Barbara, CA 93101"
+  },
+  "social_media": {
+    "facebook": "https://www.facebook.com/sbparksandrec",
+    "instagram": "https://www.instagram.com/sbparksandrec/",
+    "twitter": "https://twitter.com/sbparksandrec",
+    "linkedin": "https://www.linkedin.com/company/sbparksandrec"
+  },
+  "last_verified": "2026-01-24"
+}

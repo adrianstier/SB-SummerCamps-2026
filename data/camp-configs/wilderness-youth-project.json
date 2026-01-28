@@ -1,0 +1,395 @@
+{
+  "id": "wilderness-youth-project",
+  "name": "Wilderness Youth Project (WYP)",
+  "organization_type": "Non-profit public charity 501(c)(3)",
+  "tax_id": "77-0526117",
+  "founded": 1999,
+  "website": "https://wyp.org",
+  "pages": {
+    "main": "https://wyp.org",
+    "summer_programs": "https://wyp.org/summer-programs/",
+    "pricing": "https://wyp.org/pricing/",
+    "register": "https://register.wyp.org/login",
+    "availability": "https://wyp.org/updated-program-availability/",
+    "parent_resources": "https://wyp.org/parent-resources/",
+    "places_we_go": "https://wyp.org/places-we-go/",
+    "school_year": "https://wyp.org/school-year/",
+    "outdoor_preschool": "https://wyp.org/outdoor-preschool/",
+    "bridge_to_nature": "https://wyp.org/experiences-bridge-to-nature/",
+    "reach": "https://wyp.org/reach/",
+    "sea_league": "https://wyp.org/the-sea-league/",
+    "events": "https://wyp.org/events/",
+    "blog": "https://wyp.org/blog/",
+    "diy_activities": "https://wyp.org/wyp-diy-activities/",
+    "who_we_are": "https://wyp.org/who-we-are/",
+    "our_team": "https://wyp.org/our-team/",
+    "partners": "https://wyp.org/our-partners/",
+    "annual_reports": "https://wyp.org/annual-reports/",
+    "jobs": "https://wyp.org/jobs/",
+    "contact": "https://wyp.org/contact-us/",
+    "donate": "https://wyp.org/donate/",
+    "newsletter": "https://wyp.org/join-our-newsletter/"
+  },
+  "data_hints": {
+    "pricing_location": "Sliding scale pricing on /pricing/ page and registration portal. Six scholarship levels based on family income and size. Specific program fees listed on registration site.",
+    "hours_location": "Summer programs page has hours per program type. Most programs 9am-4pm, younger kids 9am-1pm/3pm, overnight programs vary.",
+    "extended_care": {
+      "available": true,
+      "applies_to": "Bumblebees program only (ages 3-5)",
+      "description": "Optional aftercare extends 9AM-1PM program to 3PM",
+      "note": "Other programs do not offer extended care"
+    },
+    "sessions": {
+      "summer_dates": "June 15 - August 14, 2026",
+      "structure": "Weekly sessions for most programs; some specialty programs 1-2 weeks",
+      "max_weeks_per_child": 3,
+      "typical_award": "1-2 weeks"
+    }
+  },
+  "registration": {
+    "type": "Weighted Lottery",
+    "application_period": "February 11-18, 2026",
+    "placement_announcement": "March 5, 2026",
+    "waitlist_opens": "March 2026 through end of summer",
+    "registration_portal": "https://register.wyp.org/login",
+    "lottery_details": {
+      "priority_factors": [
+        "Returning participants",
+        "Diversity and equity commitments"
+      ],
+      "tip": "Apply for every camp you will be available for and rank your preference to increase chances of placement",
+      "financial_note": "Ability to pay does not affect lottery placement chances"
+    },
+    "deposit": {
+      "amount": "$30 per family, per seasonal session",
+      "refundable": false
+    },
+    "payment_deadline": "May 16, 2026 for summer camp"
+  },
+  "pricing": {
+    "type": "Sliding Scale",
+    "base_range": "$425-$650/week",
+    "sliding_scale_tiers": [
+      {
+        "level": 6,
+        "discount": "95%",
+        "income_threshold_family_of_4": "$17,850",
+        "income_category": "Acutely Low"
+      },
+      {
+        "level": 5,
+        "discount": "80%",
+        "income_threshold_family_of_4": "$48,800",
+        "income_category": "Extremely Low"
+      },
+      {
+        "level": 4,
+        "discount": "57%",
+        "income_threshold_family_of_4": "$81,300",
+        "income_category": "Very Low"
+      },
+      {
+        "level": 3,
+        "discount": "32%",
+        "income_threshold_family_of_4": "$119,100",
+        "income_category": "Median"
+      },
+      {
+        "level": 2,
+        "discount": "22%",
+        "income_threshold_family_of_4": "$130,350",
+        "income_category": "Low"
+      },
+      {
+        "level": 1,
+        "discount": "15%",
+        "income_threshold_family_of_4": "$142,900",
+        "income_category": "Moderate"
+      }
+    ],
+    "scholarship_limits": {
+      "levels_3_to_6": "One session per week (school-year) or two weeks (summer) per child",
+      "additional_sessions": "Must pay at Level 2 minimum"
+    },
+    "note": "Income limits follow California Housing and Community Development Guidelines for Santa Barbara County"
+  },
+  "summer_programs": [
+    {
+      "name": "Bumblebees",
+      "ages": "3-5",
+      "duration": "Weekly",
+      "hours": "9AM-1PM or 3PM",
+      "type": "Place-based",
+      "extended_care": "Optional aftercare to 3PM available",
+      "features": ["Place-based exploration", "Age-appropriate nature play"]
+    },
+    {
+      "name": "Treefrogs",
+      "ages": "6-8",
+      "duration": "Weekly",
+      "hours": "9AM-3PM",
+      "type": "Van-based",
+      "features": ["Van-based nature exploration", "Visit multiple outdoor sites"]
+    },
+    {
+      "name": "Salamanders",
+      "ages": "6-12",
+      "duration": "1 week",
+      "hours": "1PM-4PM",
+      "type": "Neurodiverse-focused",
+      "features": ["Designed for neurodiverse kids", "Playful outdoor environment", "Afternoon program"]
+    },
+    {
+      "name": "Dragonflies",
+      "ages": "9-11",
+      "duration": "Weekly",
+      "hours": "9AM-4PM",
+      "type": "Wilderness skills",
+      "features": ["Wilderness skills training", "Extended day program"]
+    },
+    {
+      "name": "Dragonflies Campout-Bike",
+      "ages": "10-12",
+      "duration": "Weekly",
+      "hours": "9AM-4PM + overnight",
+      "type": "Overnight",
+      "features": ["Local biking adventures", "Thursday overnight campout"]
+    },
+    {
+      "name": "Steelheads Campout",
+      "ages": "9-12",
+      "duration": "1 week",
+      "hours": "9AM-4PM + overnight",
+      "type": "Overnight",
+      "features": ["2 days day camp", "3-day local camping trip"]
+    },
+    {
+      "name": "Skills Camp: Rabbits",
+      "ages": "11-14",
+      "duration": "1 week",
+      "hours": "9AM-4PM",
+      "type": "Specialty skills",
+      "features": ["Animal tracking", "Tanning skills"]
+    },
+    {
+      "name": "Dolphins",
+      "ages": "12-14",
+      "duration": "1 week",
+      "hours": "9AM-4PM",
+      "type": "Advanced wilderness",
+      "features": ["Advanced wilderness experience", "Older youth focus"]
+    },
+    {
+      "name": "Shared Roots",
+      "ages": "11-13",
+      "duration": "3 nights",
+      "hours": "TBD",
+      "type": "Collaborative overnight",
+      "features": ["Multi-organization collaborative camp", "Camp at Arroyo Hondo Preserve", "Partnered with EverWild and Ventura Wild"]
+    },
+    {
+      "name": "Ringtails Backpacking",
+      "ages": "11-14",
+      "duration": "2 weeks",
+      "hours": "Week 1: 9AM-4PM; Week 2: Overnight expedition",
+      "type": "Expedition",
+      "features": ["First week: preparation and local exploration", "Second week: backpacking expedition (max 6 hour drive from SB)"]
+    },
+    {
+      "name": "Scarab Bike Expedition",
+      "ages": "14-17",
+      "duration": "1 week",
+      "hours": "9AM-4PM + overnight",
+      "type": "Expedition",
+      "features": ["100-mile bikepacking trip", "Multi-day adventure"]
+    },
+    {
+      "name": "Condors Day Camp",
+      "ages": "15-17",
+      "duration": "1 week",
+      "hours": "Daily",
+      "type": "Teen adventure",
+      "features": ["Local adventure experiences", "Teen-focused programming"]
+    },
+    {
+      "name": "Condors Backpacking",
+      "ages": "15-17",
+      "duration": "5 days",
+      "hours": "Overnight",
+      "type": "Expedition",
+      "features": ["High-altitude mountain backpacking", "Advanced teen program"]
+    },
+    {
+      "name": "C.I.T. (Counselor-in-Training)",
+      "ages": "15-17",
+      "duration": "Training + 1 week",
+      "hours": "9AM-3PM",
+      "type": "Leadership",
+      "features": ["Counselor-in-training program", "Leadership development", "Work with younger campers"]
+    }
+  ],
+  "age_groups": {
+    "overall": "Ages 3-17",
+    "youngest": {
+      "name": "Bumblebees",
+      "ages": "3-5",
+      "format": "Place-based, half-day with optional extension"
+    },
+    "elementary": {
+      "programs": ["Treefrogs (6-8)", "Salamanders (6-12)", "Dragonflies (9-11)", "Steelheads (9-12)"],
+      "format": "Van-based exploration with optional overnight options"
+    },
+    "middle_school": {
+      "programs": ["Dolphins (12-14)", "Skills Camp: Rabbits (11-14)", "Ringtails Backpacking (11-14)"],
+      "format": "Advanced skills, extended expeditions"
+    },
+    "teen": {
+      "programs": ["Scarab Bike (14-17)", "Condors Day Camp (15-17)", "Condors Backpacking (15-17)", "C.I.T. (15-17)"],
+      "format": "Expedition-level adventures, leadership opportunities"
+    }
+  },
+  "activities": {
+    "core_practices": [
+      "Circle of Thanksgiving (gratitude sharing)",
+      "Awareness games and animal observation",
+      "Wilderness wandering and exploration",
+      "Storytelling and journaling",
+      "Sit spot reflection exercises"
+    ],
+    "earth_skills": [
+      "Fire-making",
+      "Cordage",
+      "Animal tracking",
+      "Archery",
+      "Tanning (Skills Camp)"
+    ],
+    "adventure_activities": [
+      "Hiking",
+      "Backpacking",
+      "Bikepacking",
+      "Camping",
+      "Creek exploration",
+      "Beach exploration"
+    ],
+    "nature_connection": [
+      "Wildlife observation",
+      "Habitat exploration",
+      "Ecological restoration awareness",
+      "Sensory awareness practices"
+    ]
+  },
+  "locations": {
+    "program_areas": "Santa Barbara, Goleta, and Montecito wilderness areas",
+    "transport": "8 or 15-passenger vans to various locations",
+    "specific_sites": [
+      "Camino Corto Open Space - grassy fields, riparian habitat, creeks",
+      "Campus Point - beach, mesa, lagoon ecosystems",
+      "Parma Park - steep grassy hills, switchback trails",
+      "San Marcos Foothills Preserve - trails, creeks",
+      "Rattlesnake Canyon - creek, rock-hopping",
+      "The Pines - high-elevation viewpoint",
+      "Arroyo Hondo Preserve - overnight camping site"
+    ]
+  },
+  "staff": {
+    "ratio": "4:1 child-to-adult",
+    "qualifications": [
+      "CPR/First Aid certified (all staff)",
+      "Wilderness First Aid (lead staff)",
+      "Wilderness First Responder (expedition leaders)"
+    ],
+    "approach": "Mentoring model with ongoing relationships, not one-time field trips"
+  },
+  "what_to_bring": [
+    "Backpack with padded shoulder straps",
+    "Bathing suit",
+    "Lunch and snacks (limit sugar)",
+    "Water bottle (32+ oz)",
+    "Sunscreen (apply before arrival)",
+    "Layered clothing",
+    "Water shoes",
+    "Towel",
+    "Hat (optional)",
+    "Change of clothes (optional - kids may come home wet and dirty)"
+  ],
+  "policies": {
+    "cancellation": {
+      "15_plus_days": "90% refund minus $30 deposit",
+      "7_to_14_days": "50% refund",
+      "less_than_7_days": "No refund",
+      "deposit_note": "$30 deposit is non-refundable on canceled registrations"
+    },
+    "max_weeks_per_child": 3,
+    "typical_weeks_awarded": "1-2 weeks",
+    "toys_electronics": "Not allowed",
+    "rainy_days": "Programs operate in rain unless safety is compromised; families may keep children home if concerned",
+    "illness": "Keep child home if showing signs of sickness, especially fever. May return after fever-free for 24 hours without medication."
+  },
+  "contact": {
+    "phone": "(805) 964-8096",
+    "email": "info@wyp.org",
+    "registrar_email": "registrar@wyp.org",
+    "address": "2040 Alameda Padre Serra, Suite 224, Santa Barbara, CA 93103",
+    "alternate_address": "5386 Hollister Ave Suite D, Goleta (per some sources)",
+    "office_hours": "10am-4pm (often available earlier and later)"
+  },
+  "social_media": {
+    "facebook": "https://facebook.com/wildernessyouthproject/",
+    "instagram": "https://instagram.com/wildernessyouthproject/",
+    "twitter": "https://twitter.com/WildernessYouth",
+    "youtube": "https://youtube.com/channel/UCJ7xkSkBSuiAaVqWK5ld1Uw"
+  },
+  "features": {
+    "scholarships_available": true,
+    "scholarship_rate": "76% of participants receive scholarships",
+    "sliding_scale": true,
+    "lottery_registration": true,
+    "van_transport": true,
+    "overnight_options": true,
+    "neurodiverse_program": true,
+    "teen_programs": true,
+    "cit_program": true,
+    "expedition_programs": true,
+    "small_group_size": true,
+    "extended_care": "Limited - Bumblebees only",
+    "food_provided": false
+  },
+  "mission": {
+    "statement": "Foster confidence, health, and a lifelong love of learning for young people and families through active outdoor experiences and mentoring.",
+    "vision": "Teaching the next generation of children to be peaceful, respectful and confident stewards of our world.",
+    "philosophy": "All children need nature. Connection to natural environments should not be limited by economic status, race, background, or ability.",
+    "approach": "Ongoing mentoring relationships, not one-time field trips. Self-directed exploration, games, awareness practices, naturalist skills, inquiry-based learning, and storytelling."
+  },
+  "equity_commitment": {
+    "description": "Committed to diversity, equity, inclusion, and justice",
+    "scholarship_access": "76% of participants receive scholarships",
+    "lottery_priority": "Weighted lottery prioritizes returning families and DEI commitments",
+    "subsidy_programs": "Bridge to Nature subsidized programs offered at no cost at partner sites"
+  },
+  "site_structure": {
+    "cms": "WordPress",
+    "registration_system": "External portal at register.wyp.org",
+    "page_format": "Program listings with collapsible details, separate pricing page, availability updates via blog/page",
+    "key_pages_for_scraping": [
+      "/summer-programs/ - Full program list with ages, hours, descriptions",
+      "/pricing/ - Sliding scale tiers and scholarship info",
+      "/updated-program-availability/ - Current waitlist status",
+      "/parent-resources/ - What to bring, policies"
+    ]
+  },
+  "scraper_hints": {
+    "pricing_format": "Sliding scale table on /pricing/ page with 6 levels, income thresholds for family of 4",
+    "program_format": "Program cards/sections on summer programs page with ages, hours, descriptions",
+    "registration_dates": "Look for lottery application period dates on summer programs page",
+    "sessions_format": "Overall summer dates listed; individual weekly sessions not typically enumerated",
+    "extended_care_note": "Only Bumblebees has extended care option",
+    "hours_vary": "Different programs have different hours - must parse per-program"
+  },
+  "special_notes": "WYP uses a weighted LOTTERY registration system - this is key differentiator from first-come-first-served camps. Apply during the 1-week application window (Feb 11-18, 2026). Families receive placement notifications March 5, 2026. Maximum 3 weeks per child but typically 1-2 weeks awarded. The Salamanders program is specifically designed for neurodiverse children. Multiple overnight/expedition programs available for older kids. 76% of participants receive scholarships via automatic sliding-scale calculation during registration. Staff ratio of 4:1 is excellent. Programs visit diverse wilderness locations via van transport. The Shared Roots program is a collaboration with EverWild and Ventura Wild organizations.",
+  "annual_stats": {
+    "youth_served_2024": 1298,
+    "summer_spots_2024": 660,
+    "scholarship_rate": "76%"
+  },
+  "last_verified": "2026-01-24"
+}

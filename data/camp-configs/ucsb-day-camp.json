@@ -1,0 +1,126 @@
+{
+  "id": "ucsb-day-camp",
+  "name": "UCSB Day Camp",
+  "website": "https://recreation.ucsb.edu/youth-programs/summer-day-camp",
+  "pages": {
+    "main": "https://recreation.ucsb.edu/youth-programs/summer-day-camp",
+    "pricing": "Main page - table format with early bird vs regular pricing by session",
+    "schedule": "Main page - sessions table with dates and themes; PDF: https://recreation.ucsb.edu/sites/default/files/2025-11/Annual%20Calendar%202026.pdf",
+    "faq": "Not found - info embedded in Parent Information Packet",
+    "register": "https://register.recreation.ucsb.edu/",
+    "parent_info": "https://recreation.ucsb.edu/sites/default/files/2025-02/Parent%20Information%20Packet.pdf",
+    "jr_counselor_info": "https://recreation.ucsb.edu/sites/default/files/2025-04/JuniorCounselor%20-%20Parent%20Information%20Packet.docx.pdf",
+    "about": "https://recreation.ucsb.edu/about",
+    "hours": "https://recreation.ucsb.edu/about/hours",
+    "customer_service": "https://recreation.ucsb.edu/home/registration-cashier%27s-office"
+  },
+  "data_hints": {
+    "pricing_location": "Main page has a pricing table. Early bird: $315 (2026), Regular: $345 (2026). Early bird deadline is ~4 weeks before each session. Prorated pricing for holiday-shortened weeks (Sessions 1 & 3): Early $244, Regular $268",
+    "hours_location": "Main page header - 8:15am to 5:15pm. Drop-off window likely earlier, pick-up window noted as 4:30pm+",
+    "extended_care": "Extended care is INCLUDED in the price - this is a key differentiator. No additional cost for the full 8:15am-5:15pm window",
+    "sessions": {
+      "overview": "9 weekly sessions from June 15 - August 14, 2026",
+      "themes": [
+        { "session": 1, "dates": "June 15-18*", "theme": "Camp Olympics", "note": "4-day week (Juneteenth holiday)" },
+        { "session": 2, "dates": "June 22-26", "theme": "Superheroes" },
+        { "session": 3, "dates": "June 29 - July 2*", "theme": "Party in the USA", "note": "4-day week (July 4th holiday)" },
+        { "session": 4, "dates": "July 6-10", "theme": "The Great Outdoors" },
+        { "session": 5, "dates": "July 13-17", "theme": "Carnival", "note": "Features Rock Wall, Bounce Houses, Carnival games" },
+        { "session": 6, "dates": "July 20-24", "theme": "Magical World of Camp (Disney)" },
+        { "session": 7, "dates": "July 27-31", "theme": "Young Einsteins" },
+        { "session": 8, "dates": "August 3-7", "theme": "Camps Got Talent" },
+        { "session": 9, "dates": "August 10-14", "theme": "Summer Send Off" }
+      ]
+    },
+    "age_groups": {
+      "overall": "Ages 5-14",
+      "groups": [
+        { "name": "Blue Crew", "ages": "5-6" },
+        { "name": "Standard Groups", "ages": "7-10", "note": "Grouped by age" },
+        { "name": "Gauchos", "ages": "11-14", "note": "Older campers with special activities including Sci Trek lab experiments" }
+      ]
+    },
+    "combo_programs": "Beach 'n Surf combo available for ages 9-15 (separate registration)",
+    "sibling_discount": "$15 off per additional sibling (same session, full-day only)"
+  },
+  "activities": [
+    "swimming (pool time included)",
+    "gymnastics",
+    "adventure ropes course",
+    "arts & crafts",
+    "games",
+    "movies",
+    "kayaking",
+    "tennis",
+    "soccer",
+    "drama",
+    "music",
+    "dance",
+    "nature exploration",
+    "climbing",
+    "pottery",
+    "science experiments (Gauchos group)"
+  ],
+  "facilities": {
+    "location": "UCSB Campus, Santa Barbara",
+    "setting": "Both indoor and outdoor (uses UCSB campus facilities)",
+    "pool": "Yes - pool time included",
+    "high_dive": "Yes - mentioned in testimonials as highlight"
+  },
+  "contact": {
+    "email": "camps@recreation.ucsb.edu",
+    "phone": "(805) 893-3737",
+    "alternate_phone": "(805) 893-3913"
+  },
+  "social_media": {
+    "facebook": "https://www.facebook.com/UCSBRecreation",
+    "instagram": "https://www.instagram.com/ucsb_recreation/",
+    "twitter": "https://twitter.com/ucsb_recreation",
+    "youtube": "https://www.youtube.com/channel/UCu-dta8MqxlWc2PHIVgN6eQ"
+  },
+  "policies": {
+    "cancellation": "4+ weeks before session: 90% refund; Illness: $25/day refund with doctor note",
+    "food": "No food provided - bring lunch",
+    "transport": "No transportation provided",
+    "swim_requirement": "No - pool time included in activities but no swim test required"
+  },
+  "features": {
+    "scholarships_available": true,
+    "sibling_discount": true,
+    "special_needs_friendly": true,
+    "health_protocols": true,
+    "first_aid_certified": true,
+    "jr_counselor_program": true
+  },
+  "registration": {
+    "status": "Open",
+    "early_bird_available": true,
+    "registration_portal": "https://register.recreation.ucsb.edu/",
+    "note": "Registration opens at 10am; early bird pricing available until ~4 weeks before each session"
+  },
+  "testimonials": [
+    "We are thankful for this full-day camp as full-time working parents, the energy of the counselors, the safe environment, variety of activities and access to UCSB campus and resources.",
+    "My kids have always loved this camp! They love the variety of activities and the chance to swim and jump off the high dive. The weekly themes are great and the carnival is always a big hit."
+  ],
+  "site_structure": {
+    "cms": "Drupal 10",
+    "page_format": "Single long-form page with sections for overview, schedule/themes table, pricing table, FAQ sections",
+    "tables": [
+      "Sessions table with dates, themes, and dress-up days",
+      "Pricing table with early bird deadlines per session"
+    ],
+    "pdfs": [
+      "Parent Information Packet (detailed policies and procedures)",
+      "Jr Counselor Parent Information Packet",
+      "Annual Calendar 2026"
+    ]
+  },
+  "special_notes": "The UCSB Day Camp page is comprehensive with all info on one page. Key selling points: full-day with extended care INCLUDED (8:15am-5:15pm), university facilities including pool and high dive, themed weeks with Friday dress-up days. Gauchos group (ages 11-14) gets special activities at Sci Trek lab. The carnival week (Session 5) is highlighted as especially popular. Jr Counselor program available for teens. Site is built on Drupal 10.",
+  "scraper_hints": {
+    "pricing_selector": "Look for table with 'Early' and 'Regular' columns",
+    "sessions_selector": "Look for table with 'Session', 'Dates', and theme descriptions",
+    "testimonials_location": "Quote blocks on main page",
+    "registration_link_text": "Register Now or similar CTA button"
+  },
+  "last_verified": "2026-01-24"
+}

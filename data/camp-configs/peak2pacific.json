@@ -1,0 +1,128 @@
+{
+  "id": "peak2pacific",
+  "name": "Peak2Pacific",
+  "organization_type": "Small Business - S-Corp (EIN: 33-2379725)",
+  "website": "https://www.peak2pacific.com",
+  "pages": {
+    "main": "https://www.peak2pacific.com/",
+    "about": "https://www.peak2pacific.com/p2p-about-karen-austin",
+    "camp_programs": "https://www.peak2pacific.com/p2p-camp-programs",
+    "summer": "https://www.peak2pacific.com/p2p-summer-camp-programs",
+    "fall": "https://www.peak2pacific.com/fall-break-camps",
+    "winter": "https://www.peak2pacific.com/p2p-winter-break-camp-programs",
+    "spring": "https://www.peak2pacific.com/p2p-spring-break-camp-programs",
+    "after_school": "https://www.peak2pacific.com/p2p-after-school-adventures",
+    "school_enrichment": "https://www.peak2pacific.com/p2p-school-enrichment-programs",
+    "events_charters": "https://www.peak2pacific.com/p2p-family-event-programs",
+    "contact": "https://www.peak2pacific.com/contact-us",
+    "register": "https://campscui.active.com/orgs/Peak2Pacific"
+  },
+  "pdf_resources": {
+    "sample_schedule": "https://www.peak2pacific.com/_files/ugd/d2bbf5_b0c1bd8cd68546bfada681b625d04bb2.pdf",
+    "faqs": "https://www.peak2pacific.com/_files/ugd/d2bbf5_59efc2d326bf4b2c93fb1554c4a2402d.pdf"
+  },
+  "registration_platform": {
+    "name": "Active Network (CampsCUI)",
+    "url": "https://campscui.active.com/orgs/Peak2Pacific",
+    "notes": "All registration handled through Active Network. Summer 2026 sessions not yet posted (as of Jan 24, 2026). Winter and Spring currently available."
+  },
+  "data_hints": {
+    "pricing_location": "Pricing visible on Active.com registration portal after clicking View on a program",
+    "hours_location": "Sessions run 9:00am - 3:00pm (full day) or 9:00am-12:00pm / 12:00pm-3:00pm (half day)",
+    "extended_care": "No extended care documented in current listings",
+    "sessions": "Summer camps run June 8th - August 16th (per website graphic). Individual session dates TBD.",
+    "ages": "Campers: Ages 3-12, LITs: Ages 13-14, CITs: Ages 15-18"
+  },
+  "pricing_structure": {
+    "spring_break_2026": {
+      "campers_full_week": "$550 (M-F, 9am-3pm)",
+      "campers_daily_drop_in": "$150/day",
+      "campers_half_day_am_week": "$375 (M-F, 9am-12pm)",
+      "campers_half_day_pm_week": "$375 (M-F, 12pm-3pm)",
+      "campers_half_day_daily": "$100/day",
+      "lit_full_week": "$225 (M-F, 9am-3pm)",
+      "cit_full_week": "$0 (volunteer program)"
+    },
+    "single_day_programs": {
+      "peak_day_camp_full_day": "$150 (9am-3pm) for campers, $75 for LITs",
+      "peak_day_camp_half_day": "$100 (AM or PM)"
+    },
+    "notes": "Summer 2026 pricing not yet published"
+  },
+  "program_types": {
+    "campers": {
+      "ages": "3-12 years",
+      "grades": "Pre-School to 8th",
+      "description": "Standard camper program"
+    },
+    "lit": {
+      "name": "Leaders in Training",
+      "ages": "13-14 years",
+      "description": "Leadership development program, reduced rate"
+    },
+    "cit": {
+      "name": "Counselors in Training",
+      "ages": "15-18 years",
+      "description": "Volunteer counselor program, no cost"
+    }
+  },
+  "locations": {
+    "primary": {
+      "name": "Stevens Park",
+      "city": "Santa Barbara",
+      "state": "CA"
+    }
+  },
+  "program_focus": [
+    "Outdoor Adventures",
+    "Environmental Education",
+    "Marine Environments",
+    "Terrestrial Environments",
+    "Creek Environments",
+    "Coastal Environments",
+    "Island Environments",
+    "Wilderness Environments"
+  ],
+  "activities": [
+    "Hiking",
+    "Climbing",
+    "Swimming",
+    "Surfing",
+    "Kayaking",
+    "SUP (Stand Up Paddleboard)",
+    "Sailing"
+  ],
+  "mission": "PEAK2PACIFIC inspires life-long explorers, learners and nature advocates for our future generations; modeling respect, responsibility, and sustainability through our outdoor adventures and environmental education programs.",
+  "testimonials": [
+    "Karen is an amazing leader who has a wealth of worldly knowledge and experiences; always creating and inspiring a life of adventure for all! - Teacher & P2P Camper Parent",
+    "Peak2Pacific's outdoor education and camp programs are the only after-school, spring break and summer camp programs that are loved, trusted and repeatedly requested by BOTH parents and kids year after year. - Marine Biologist & P2P Camper Parent"
+  ],
+  "contact": {
+    "phone": "805-689-8326",
+    "email": "peak2pacific@gmail.com"
+  },
+  "social_media": {
+    "facebook": "https://www.facebook.com/Peak2Pacific/",
+    "instagram": "https://www.instagram.com/peak2pacific/",
+    "twitter": "https://twitter.com/peak2pacific",
+    "pinterest": "https://www.pinterest.com/peak2pacific/"
+  },
+  "special_notes": "Wix-based website with limited text content - relies heavily on images and embedded slideshows. Main site content loads via JavaScript with some navigation challenges. Registration is handled entirely through Active Network (Active.com CampsCUI platform). Summer 2026 sessions not yet posted to registration system as of January 24, 2026. PDF resources for schedule and FAQs are linked from camp programs page. Site redirects from peak2pacific.com to www.peak2pacific.com. Run by Karen & Austin (small family business). Offers year-round programs: Summer, Fall, Winter, Spring break camps plus after-school and school enrichment programs.",
+  "scraping_challenges": [
+    "Wix site with JavaScript-heavy rendering",
+    "Content loads dynamically, causing navigation timeouts",
+    "Homepage has slideshow galleries with minimal text",
+    "Limited program details on main site - detailed info in PDFs and registration portal",
+    "Site occasionally triggers unexpected navigation behavior",
+    "Registration platform (Active.com) is separate from main site",
+    "Summer session details not yet published to registration system"
+  ],
+  "schedule_seasons": {
+    "fall_break": "Single-day or multi-day sessions during fall breaks",
+    "winter_break": "Feb 13-16, 2026 (President's Day weekend)",
+    "spring_break": "Mar 13 - Jun 5, 2026 (includes individual day camps and full spring break week Mar 30 - Apr 3)",
+    "summer": "Sessions June 8th - August 16th, 2026 (specific dates TBD)"
+  },
+  "last_verified": "2026-01-28",
+  "playwright_verified": true
+}

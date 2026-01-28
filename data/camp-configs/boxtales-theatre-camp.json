@@ -1,0 +1,50 @@
+{
+  "id": "boxtales-theatre-camp",
+  "name": "Boxtales Theatre Company Summer Camp",
+  "organization_type": "Nonprofit - Award-winning Touring Theatre Company",
+  "website": "https://boxtales.org/education/summer-camp/",
+  "pages": {
+    "main": "https://boxtales.org/",
+    "summer_camp": "https://boxtales.org/education/summer-camp/",
+    "2025_camps": "https://boxtales.org/2025-summer-theatre-camps/",
+    "about": "https://boxtales.org/about-us/",
+    "contact": "https://boxtales.org/contact/"
+  },
+  "data_hints": {
+    "pricing_location": "Contact for pricing - limited spots",
+    "hours_location": "6 hours Mon-Thu, 3 hours Friday"
+  },
+  "programs": {
+    "youth_performance_camp": {
+      "ages": "8-13",
+      "description": "Weeklong intensive in multicultural performance, creating original play from mythology"
+    }
+  },
+  "activities": [
+    "Acting",
+    "Storytelling",
+    "Music",
+    "Acro-yoga",
+    "Theatre Performance",
+    "Trust-building Exercises",
+    "Philippine Bamboo Stick Exercises",
+    "Mirroring and Sequencing",
+    "Improvisation",
+    "Non-verbal Communication"
+  ],
+  "schedule": {
+    "monday_thursday": "6 hours/day",
+    "friday": "3 hours"
+  },
+  "location": {
+    "venue": "Marjorie Luke Theatre",
+    "address": "721 E Cota St, Santa Barbara, CA 93103"
+  },
+  "capacity": 15,
+  "contact": {
+    "phone": "805-962-1142",
+    "email": "info@boxtales.org"
+  },
+  "history": "Award-winning touring company since 1994, creating original works from world myths and folklore",
+  "last_verified": "2026-01-28"
+}

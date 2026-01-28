@@ -1,0 +1,73 @@
+{
+  "id": "laguna-blanca-summer-programs",
+  "name": "Summer @ Laguna - Laguna Blanca School",
+  "organization_type": "Private School",
+  "website": "https://www.lagunablanca.org/summer/summer-laguna",
+  "pages": {
+    "main": "https://www.lagunablanca.org/summer/summer-laguna",
+    "arts": "https://www.lagunablanca.org/summer/summer-laguna/arts-camps",
+    "academic": "https://www.lagunablanca.org/summer/summer-laguna/academic-camps",
+    "adventure_games": "https://www.lagunablanca.org/summer/summer-laguna/adventure-and-games-camps",
+    "sports": "https://www.lagunablanca.org/summer/summer-laguna/sports-and-fitness",
+    "cit": "https://www.lagunablanca.org/summer/arts-at-laguna-/cit-program"
+  },
+  "data_hints": {
+    "pricing_location": "Most camps $405/week; specialty $450; wilderness $475",
+    "hours_location": "9AM - 2:30PM daily with snacks, lunch, and PE provided"
+  },
+  "programs": {
+    "arts_at_laguna": {
+      "description": "Visual and performing arts program with themed weeks"
+    },
+    "camp_cito": {
+      "location": "Montecito campus",
+      "activities": ["LEGO engineering", "Art", "Music", "Sports", "Technology", "Rock Wall Climbing"]
+    },
+    "laguna_explorers": {
+      "ages": "Elementary",
+      "location": "Montecito campus",
+      "activities": ["Outdoor play", "Creative projects", "Themed activities", "Water days", "Team challenges"]
+    },
+    "sports_camps": {
+      "options": ["Flag Football", "Rowing at Lake Cachuma", "Dance", "Cheerleading"]
+    },
+    "academic_camps": {
+      "options": ["Mandarin", "Babysitter Training"]
+    }
+  },
+  "pricing": {
+    "standard_weekly": 405,
+    "specialty": 450,
+    "wilderness": 475,
+    "aftercare_daily": 25,
+    "bus_weekly": 75
+  },
+  "hours": "9:00 AM - 2:30 PM",
+  "includes": ["Snacks", "Lunch", "PE"],
+  "extended_care": {
+    "available": true,
+    "early_dropoff": "Free on Hope Ranch campus",
+    "aftercare": "$25/day on both campuses"
+  },
+  "ages": "EK-12 (ages 4-17)",
+  "locations": {
+    "hope_ranch": {
+      "address": "4125 Paloma Drive, Santa Barbara, CA 93110",
+      "size": "35 acres"
+    },
+    "montecito": {
+      "size": "2 acres"
+    }
+  },
+  "transportation": "Bus between campuses $75/week",
+  "scholarships": {
+    "available": true,
+    "allocation": "10% of gross summer revenue",
+    "covers": ["Camp fees", "Aftercare", "Meals", "Supplies", "Transportation"]
+  },
+  "contact": {
+    "phone": "805-687-2461"
+  },
+  "duration": "8 weeks of summer camps",
+  "last_verified": "2026-01-28"
+}

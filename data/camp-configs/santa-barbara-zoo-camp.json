@@ -1,0 +1,178 @@
+{
+  "id": "santa-barbara-zoo-camp",
+  "name": "Santa Barbara Zoo Camp",
+  "website": "https://www.sbzoo.org/learn/",
+  "pages": {
+    "main": "https://www.sbzoo.org/learn/",
+    "pricing": "https://reservations.sbzoo.org/Info.aspx?EventID=8",
+    "schedule": "https://reservations.sbzoo.org/Info.aspx?EventID=8",
+    "faq": "Not found - policies likely in registration confirmation or Parent Handbook",
+    "register": "https://reservations.sbzoo.org/Info.aspx?EventID=8",
+    "safari_sleepovers": "https://www.sbzoo.org/safari-sleepovers",
+    "scholarship_donations": "https://www.sbzoo.org/sponsor-a-camper",
+    "preschool": "https://zoopreschool.org/",
+    "field_trips": "https://www.sbzoo.org/field-trips"
+  },
+  "data_hints": {
+    "pricing_location": "Reservation system page at reservations.sbzoo.org/Info.aspx?EventID=8. Pricing displayed for each camp type in card format with dates, hours, and prices",
+    "hours_location": "Reservation system - Half Day: 9 AM - 12 PM, Full Day: 9 AM - 3 PM",
+    "extended_care": {
+      "available": true,
+      "name": "Extended day option",
+      "hours": "Until 5 PM",
+      "price": "$100/week additional",
+      "applies_to": "Full Day Traditional Summer Camp only",
+      "note": "THIS IS THE AFTERCARE - $100/week extends the day from 3 PM to 5 PM"
+    },
+    "sessions": {
+      "spring_camp": {
+        "dates": "March 30 - April 3, 2026",
+        "half_day": { "hours": "9 AM - 12 PM", "price": "$375/week", "member_price": "$325/week" },
+        "full_day": { "hours": "9 AM - 3 PM", "price": "$425/week", "member_price": "$375/week" }
+      },
+      "summer_camp": {
+        "dates": "June 8 - August 14, 2026",
+        "total_weeks": "~10 weeks",
+        "half_day": { "hours": "9 AM - 12 PM", "price": "$375/week", "member_price": "$325/week" },
+        "full_day": {
+          "hours": "9 AM - 3 PM",
+          "price": "$425/week",
+          "member_price": "$375/week",
+          "hot_lunch_option": "$60/week additional",
+          "extended_day_option": "$100/week additional (until 5 PM)"
+        },
+        "aug_17_18_only": {
+          "note": "2-day partial week option",
+          "price": "$170",
+          "member_price": "$150",
+          "hot_lunch_option": "$24"
+        }
+      },
+      "specialty_camps": [
+        {
+          "name": "Jr. Vet",
+          "ages": "8-12",
+          "price": "$460/week",
+          "member_price": "$410/week",
+          "hot_lunch_option": "$60/week",
+          "description": "Live a week in the life of an exotic animal veterinarian when you visit the Zoo's animal hospital and practice medical procedures."
+        },
+        {
+          "name": "Jr. Zookeeper",
+          "ages": "8-12",
+          "price": "$425/week",
+          "member_price": "$375/week",
+          "hot_lunch_option": "$60/week",
+          "description": "Campers get to be a zookeeper for the week, and will assist staff in caring for some of the Zoo's exotic animals."
+        },
+        {
+          "name": "Backyard Biologist",
+          "ages": "8-12",
+          "price": "$425/week",
+          "member_price": "$375/week",
+          "hot_lunch_option": "$36 (M-W only)",
+          "schedule": "Mon-Wed: 9 AM - 3 PM, Thu-Fri: 3:30 PM - 12 PM (OVERNIGHT)",
+          "description": "Train as a professional field biologist alongside the Zoo's conservation team and learn about sustainable stewardship practices."
+        }
+      ]
+    },
+    "member_pricing": "Yes - SB Zoo Members receive $50/week discount on most camp types",
+    "hot_lunch": {
+      "available": true,
+      "price": "$60/week (full week) or $24 for 2-day session",
+      "note": "Optional add-on for full-day camps"
+    }
+  },
+  "age_groups": {
+    "standard_camps": "Ages 3-12",
+    "specialty_camps": "Ages 8-12"
+  },
+  "activities": [
+    "animal encounters",
+    "behind-the-scenes zoo tours",
+    "veterinary hospital visits (Jr. Vet camp)",
+    "zookeeper shadowing (Jr. Zookeeper camp)",
+    "conservation field work (Backyard Biologist)",
+    "overnight camping experience (Backyard Biologist)",
+    "animal science education",
+    "wildlife exploration",
+    "hands-on animal care"
+  ],
+  "facilities": {
+    "location": "Santa Barbara Zoo, 500 Ninos Drive, Santa Barbara, CA 93103",
+    "setting": "Outdoor zoo environment with indoor educational facilities",
+    "unique_features": [
+      "Direct access to zoo animals and exhibits",
+      "Animal hospital access for Jr. Vet program",
+      "Behind-the-scenes keeper areas"
+    ]
+  },
+  "contact": {
+    "email": "zooinfo@sbzoo.org",
+    "phone": "(805) 962-5339",
+    "address": "500 Ninos Drive, Santa Barbara, CA 93103"
+  },
+  "social_media": {
+    "facebook": "https://www.facebook.com/santabarbarazoo",
+    "twitter": "https://twitter.com/SantaBarbaraZoo",
+    "instagram": "https://instagram.com/santabarbarazoo/",
+    "youtube": "https://www.youtube.com/@SantaBarbaraZoo1963",
+    "linkedin": "https://www.linkedin.com/company/santa-barbara-zoo"
+  },
+  "policies": {
+    "cancellation": "Unknown - check registration confirmation",
+    "food": "Hot lunch available as add-on ($60/week), otherwise bring lunch",
+    "transport": "Not provided - drop-off and pick-up required",
+    "membership_discount": "$50/week discount for SB Zoo members"
+  },
+  "features": {
+    "scholarships_available": true,
+    "scholarship_fund": "Nancy H. McToldridge Camp Scholarship Fund",
+    "scholarship_partner": "Campership Alliance",
+    "member_discount": true,
+    "special_needs_friendly": true,
+    "extended_care": true,
+    "hot_lunch_option": true
+  },
+  "registration": {
+    "status": "Opening soon",
+    "registration_opens": "Monday, January 12, 2026 at 10 AM",
+    "registration_portal": "https://reservations.sbzoo.org/Info.aspx?EventID=8",
+    "note": "Registration for Summer Zoo Camp opens January 12, 2026"
+  },
+  "related_programs": {
+    "safari_sleepovers": {
+      "url": "https://www.sbzoo.org/safari-sleepovers",
+      "description": "Overnight camping at the zoo with s'mores, animal encounters, and breakfast",
+      "family_dates_2026": ["June 26", "July 10", "July 31"],
+      "price": "$105/person ($95 for members)",
+      "group_price": "$105/person ($95 for Scout troops)",
+      "time": "6:30 PM - 10:30 AM"
+    },
+    "outdoor_education": {
+      "note": "Zoo Outdoor Ed and 'Zoo Camp' links on main site redirect to Peak2Pacific external partner",
+      "partner_url": "https://www.peak2pacific.com/",
+      "partner_phone": "805.689.8326"
+    },
+    "preschool": {
+      "url": "https://zoopreschool.org/",
+      "name": "Early Explorers Preschool"
+    }
+  },
+  "site_structure": {
+    "primary_site": "www.sbzoo.org (Informational)",
+    "reservation_system": "reservations.sbzoo.org (Registration and detailed camp info)",
+    "cms": "Custom CMS on main site, separate reservation system portal",
+    "page_format": "Main 'Learn' page links to /zoo-camp which REDIRECTS to external partner Peak2Pacific. Actual zoo camp registration and details are on reservations.sbzoo.org",
+    "important_note": "The /zoo-camp URL on sbzoo.org redirects externally to Peak2Pacific. The actual Zoo Camp operated by SB Zoo is found on the reservations portal."
+  },
+  "scraper_hints": {
+    "main_page_redirects": "The URL https://www.sbzoo.org/zoo-camp redirects to https://www.peak2pacific.com/ - this is a DIFFERENT program",
+    "actual_zoo_camp_url": "https://reservations.sbzoo.org/Info.aspx?EventID=8",
+    "pricing_format": "Card-based layout with camp type headings, dates, hours, and prices",
+    "sessions_format": "Listed by camp type (Spring, Traditional Summer, Specialty)",
+    "member_discount": "$50/week - member pricing shown alongside regular pricing"
+  },
+  "special_notes": "IMPORTANT: The SB Zoo website's /zoo-camp page redirects to Peak2Pacific (an external outdoor adventure partner program). The actual Santa Barbara Zoo Camp operated by the zoo is found ONLY on the reservation portal at reservations.sbzoo.org/Info.aspx?EventID=8. This is confusing for users. The zoo offers traditional day camps (half and full day) for ages 3-12, plus specialty camps (Jr. Vet, Jr. Zookeeper, Backyard Biologist) for ages 8-12. AFTERCARE IS AVAILABLE: Extended day option until 5 PM for $100/week on full-day traditional camps. Hot lunch is also an optional add-on for $60/week. Member pricing offers $50/week discount. The Nancy H. McToldridge Camp Scholarship Fund provides scholarships through Campership Alliance partnership. Safari Sleepovers are separate overnight programs available for families and groups.",
+  "last_verified": "2026-01-24"
+}

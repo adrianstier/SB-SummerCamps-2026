@@ -1,0 +1,47 @@
+{
+  "id": "twin-lakes-junior-golf",
+  "name": "Twin Lakes Junior Golf Camp",
+  "organization_type": "Golf Course - Don Parsons Golf",
+  "website": "https://www.twinlakesgolf.com/junior-golf",
+  "pages": {
+    "main": "https://www.twinlakesgolf.com",
+    "junior_golf": "https://www.twinlakesgolf.com/junior-golf"
+  },
+  "data_hints": {
+    "pricing_location": "Contact for rates",
+    "equipment": "Snag Golf equipment for beginners, US Kids or Cleveland clubs when ready"
+  },
+  "programs": {
+    "minis": {
+      "ages": "5-6",
+      "description": "Foundation program for youngest golfers"
+    },
+    "prep_players": {
+      "ages": "7-12",
+      "description": "Skill development program"
+    }
+  },
+  "curriculum": {
+    "designer": "Don Parsons (California PGA Teacher's Hall of Fame Member)",
+    "focus": ["Full Swing", "Short Game", "Putting", "On-Course Play"],
+    "approach": "Fun, stress-free environment with unique golf games"
+  },
+  "equipment": {
+    "beginners": "Snag Golf equipment provided",
+    "progression": "US Kids or Cleveland junior clubs when ready",
+    "loaner_clubs": "Available for starting players"
+  },
+  "policies": {
+    "cancellation": "Full refund if cancelled 24+ hours in advance",
+    "no_refund": "Cancellations within 24 hours"
+  },
+  "location": {
+    "address": "6034 Hollister Ave, Goleta, CA 93117",
+    "description": "Santa Barbara's premiere game development center between mountains and coast"
+  },
+  "contact": {
+    "phone": "805-964-1414",
+    "email": "Carly@DonParsonsGolf.com"
+  },
+  "last_verified": "2026-01-28"
+}

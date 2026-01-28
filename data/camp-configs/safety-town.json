@@ -1,0 +1,54 @@
+{
+  "id": "safety-town",
+  "name": "Safety Town of Santa Barbara County",
+  "organization_type": "Nonprofit 501(c)(3)",
+  "website": "https://www.sbsafetytown.org/",
+  "pages": {
+    "main": "https://www.sbsafetytown.org/",
+    "program_details": "https://www.sbsafetytown.org/program-details/",
+    "about": "https://www.sbsafetytown.org/the_safetytown_program/"
+  },
+  "data_hints": {
+    "pricing_location": "Program details page - $200 per 5-day session",
+    "hours_location": "17.5 hours over 5 days",
+    "sessions": "6 one-week sessions in June and July at 3 locations"
+  },
+  "programs": {
+    "safety_education": {
+      "ages": "Entering Kindergarten or 1st grade (must be 5 by Sept 1)",
+      "duration": "5 days, 17.5 hours total",
+      "description": "Comprehensive safety education using miniature town built to child scale"
+    }
+  },
+  "activities": [
+    "Vehicle Safety Belts",
+    "Bus Riding Safety",
+    "Bicycle Rules",
+    "Pedestrian Safety",
+    "Playground Safety",
+    "Water Safety",
+    "Domestic Violence Awareness",
+    "Child Abuse Prevention",
+    "Gun Safety",
+    "Fire Hazards",
+    "911 Emergency Training",
+    "Address/Phone Memorization"
+  ],
+  "pricing": {
+    "per_session": 200,
+    "includes": ["Mid-morning snack", "Safety Town T-shirt"]
+  },
+  "staffing": {
+    "lead_instructors": "Certificated teachers from local elementary schools",
+    "counselors": "Teen counselors-in-training (2 CITs per 4 children)",
+    "community_presenters": ["Law enforcement", "Firefighters", "Smokey Bear", "Forest Rangers", "Paramedics", "Water safety professionals", "Personal Safety speakers"]
+  },
+  "registration": {
+    "opens": "February 8th at 6am",
+    "platform": "Website"
+  },
+  "scholarships": true,
+  "locations": "3 elementary school locations from Goleta to Montecito",
+  "history": "Serving children since 1975",
+  "last_verified": "2026-01-28"
+}

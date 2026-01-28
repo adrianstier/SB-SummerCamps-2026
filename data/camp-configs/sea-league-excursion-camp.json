@@ -1,0 +1,51 @@
+{
+  "id": "sea-league-excursion-camp",
+  "name": "Sea League Excursion Camp",
+  "organization_type": "Nonprofit - Ocean Sports & Education",
+  "website": "https://www.thesealeague.org/summer-camps",
+  "pages": {
+    "main": "https://www.thesealeague.org/",
+    "summer_camps": "https://www.thesealeague.org/summer-camps",
+    "spring": "https://www.thesealeague.org/spring-season-2026"
+  },
+  "data_hints": {
+    "pricing_location": "Sliding scale based on CA Housing Guidelines",
+    "sessions": "5-day overnight camp at Dos Pueblos Ranch"
+  },
+  "programs": {
+    "excursion_camp": {
+      "location": "Dos Pueblos Ranch, Gaviota Coast",
+      "ages": "9-13",
+      "duration": "5 days (overnight)",
+      "description": "Coastal adventure with Channel Islands trip"
+    },
+    "after_school_program": {
+      "ages": "7-14",
+      "description": "Team sports with nature connection focus"
+    }
+  },
+  "activities": [
+    "Surfing",
+    "Boogie Boarding",
+    "Giant SUP",
+    "Kayaking",
+    "Sea Cave Kayaking",
+    "Snorkeling",
+    "Channel Islands Trip",
+    "Fishing",
+    "Abalone Shell Scavenging"
+  ],
+  "pricing": {
+    "model": "Sliding scale based on income",
+    "deposit": 30,
+    "retainer_fee": 30
+  },
+  "accessibility": {
+    "sliding_scale": true,
+    "weighted_lottery": true,
+    "swim_requirement": "Must be able to swim",
+    "blue_bridge_program": "Free swimming lessons for low-income families (YMCA partnership)"
+  },
+  "philosophy": "After-school team sports with emphasis on nature connection instead of competition",
+  "last_verified": "2026-01-28"
+}

@@ -1,0 +1,52 @@
+{
+  "id": "page-youth-center",
+  "name": "Page Youth Center Summer Sports Camps",
+  "organization_type": "Nonprofit - Sports & Youth Development",
+  "website": "https://www.pageyouthcenter.org/summer-camps",
+  "pages": {
+    "main": "https://www.pageyouthcenter.org/",
+    "summer_camps": "https://www.pageyouthcenter.org/summer-camps"
+  },
+  "data_hints": {
+    "pricing_location": "Check website for current rates",
+    "hours_location": "Typically 9AM-3PM"
+  },
+  "programs": {
+    "basketball": {
+      "description": "Basketball skills and fundamentals"
+    },
+    "volleyball": {
+      "description": "Volleyball training"
+    },
+    "indoor_soccer": {
+      "description": "Indoor soccer skills"
+    },
+    "multi_sport": {
+      "description": "Multiple sports rotation"
+    }
+  },
+  "activities": [
+    "Basketball",
+    "Volleyball",
+    "Indoor Soccer",
+    "Multi-Sport"
+  ],
+  "facility": {
+    "size": "23,000 square feet",
+    "gym": "16,000 square foot gymnasium"
+  },
+  "special_programs": {
+    "la_clippers_camp": {
+      "ages": "6-14",
+      "hours": "9AM-3PM",
+      "description": "Clippers Certified Curriculum coached by former Clippers players"
+    }
+  },
+  "contact": {
+    "phone": "805-967-8778",
+    "address": "4540 Hollister Avenue, Santa Barbara, CA 93110"
+  },
+  "history": "Founded 1984, facility completed 1991",
+  "mission": "Enhance lives of youth through sport programs building character, self-confidence, physical fitness and sportsmanship",
+  "last_verified": "2026-01-28"
+}

@@ -1,0 +1,43 @@
+{
+  "id": "santa-barbara-soccer-club-camp",
+  "name": "Santa Barbara Soccer Club Summer Camps",
+  "organization_type": "Sports Club",
+  "website": "https://santabarbarasc.org/recreational-programs/clinics-2/",
+  "pages": {
+    "main": "https://santabarbarasc.org/",
+    "camps": "https://santabarbarasc.org/recreational-programs/clinics-2/",
+    "club_camps": "https://santabarbarasc.org/competitive-programs/club/",
+    "goalkeepers": "https://santabarbarasc.org/competitive-programs/club-goalkeepers-camp/"
+  },
+  "data_hints": {
+    "pricing_location": "Registration portal",
+    "hours_location": "Drop-off 8:30-9am (free early drop-off)"
+  },
+  "programs": {
+    "recreational_camps": {
+      "ages": "5-12",
+      "description": "For players of all ability levels"
+    },
+    "club_player_camps": {
+      "ages": "2018-2010 birth years",
+      "description": "For competitive club players"
+    },
+    "goalkeepers_camp": {
+      "description": "Specialized goalkeeper training"
+    }
+  },
+  "location": {
+    "venue": "Girsh Park Turf",
+    "address": "7050 Phelps Rd, Goleta, CA 93110"
+  },
+  "staff": {
+    "director": "Brian Hessinger (certified coach)",
+    "coaches": ["Peter Aguilar", "Antonio Alonso", "Hans Diaz", "Tommy Gray"]
+  },
+  "contact": {
+    "phone": "805-452-0083",
+    "email": "info@santabarbarasc.org",
+    "address": "358 Storke Road, Goleta, CA 93117"
+  },
+  "last_verified": "2026-01-28"
+}

@@ -1,0 +1,59 @@
+{
+  "id": "ymca-summer-camp",
+  "name": "YMCA Summer Day Camp",
+  "organization_type": "Nonprofit - Channel Islands YMCA",
+  "website": "https://www.ciymca.org/summer-camp",
+  "pages": {
+    "main": "https://www.ciymca.org/summer-camp",
+    "guides": "https://www.ciymca.org/guides",
+    "locations": "https://www.ciymca.org/locations/santa-barbara-family-ymca",
+    "register": "https://channel.recliquecore.com/programs/1524/santa-barbara-day-camps/"
+  },
+  "data_hints": {
+    "pricing_location": "Registration portal on RecLique platform",
+    "hours_location": "Camp guides and registration pages",
+    "extended_care": "After care available",
+    "sessions": "Weekly themed sessions throughout summer"
+  },
+  "programs": {
+    "adventure_camp": {
+      "grades": "K-1st",
+      "description": "Age-appropriate activities for youngest campers"
+    },
+    "explorer_camp": {
+      "grades": "4th-7th",
+      "description": "Local field trips and exploration"
+    },
+    "jr_high_camp": {
+      "grades": "7th-9th",
+      "description": "Sports, arts & crafts, team challenges, swimming, field trips"
+    },
+    "enrichment_camps": {
+      "description": "Specialty camps diving deep into areas of interest"
+    },
+    "sports_camps": {
+      "description": "Fundamentals of favorite sports"
+    },
+    "cit_program": {
+      "description": "Counselor In Training for teens"
+    }
+  },
+  "activities": [
+    "Art",
+    "STEM",
+    "Sports",
+    "Outdoor Recreation",
+    "Field Trips",
+    "Swimming"
+  ],
+  "accreditation": "ACA Accredited",
+  "contact": {
+    "phone": "805-687-7727",
+    "address": "36 Hitchcock Way, Santa Barbara, CA 93105"
+  },
+  "registration": {
+    "opens": "February 1, 2026",
+    "platform": "RecLique"
+  },
+  "last_verified": "2026-01-28"
+}

@@ -1,0 +1,101 @@
+{
+  "id": "momentum-dance-camp",
+  "name": "Momentum Dance Company Summer Camps",
+  "organization_type": "Dance Studio",
+  "website": "https://momentumdancesb.com/summer",
+  "pages": {
+    "main": "https://momentumdancesb.com/",
+    "summer": "https://momentumdancesb.com/summer",
+    "register": "https://app3.jackrabbitclass.com/regv2.asp?id=524399"
+  },
+  "data_hints": {
+    "pricing_location": "Summer page - tiered pricing (Launch Week, Early Bird, Full Price)",
+    "hours_location": "9am-4pm for most camps, varies by program type",
+    "registration_system": "JackRabbit Class"
+  },
+  "pricing": {
+    "miniJunior5Day": {
+      "launchWeek": 295,
+      "earlyBird": 320,
+      "fullPrice": 345
+    },
+    "techniqueIntensive4Day": {
+      "launchWeek": 220,
+      "earlyBird": 245,
+      "fullPrice": 270
+    },
+    "auditionPrep5Day": {
+      "launchWeek": 330,
+      "earlyBird": 365,
+      "fullPrice": 400
+    },
+    "techniqueTuesdaysDropIn": 20,
+    "registrationFee": 45,
+    "siblingRegistrationFee": 35,
+    "note": "5% surcharge for credit/debit; no fee for bank draft/check/cash"
+  },
+  "hours": {
+    "miniJunior": "9:00 AM - 4:00 PM",
+    "halfDayAM": "9:00 AM - 12:00 PM",
+    "halfDayPM": "1:00 PM - 4:00 PM",
+    "techniqueIntensive": "10:00 AM - 2:00 PM",
+    "auditionPrepYounger": "9:00 AM - 4:00 PM",
+    "auditionPrepOlder": "11:00 AM - 6:00 PM",
+    "techniqueTuesdays": "6:00 PM - 7:15 PM"
+  },
+  "age_groups": [
+    {"name": "Mini Camps", "ages": "3-5", "grades": "Preschool & Kindergarten"},
+    {"name": "Junior Camps", "ages": "6-11"},
+    {"name": "Technique Intensive", "ages": "8+"},
+    {"name": "Audition Prep", "ages": "7-18"}
+  ],
+  "activities": [
+    "Jazz",
+    "Hip Hop",
+    "Tumbling/Acro",
+    "Ballet",
+    "Contemporary",
+    "Leaps & Turns",
+    "Stretch & Strengthen",
+    "Improvisation",
+    "Tap"
+  ],
+  "sessions_2026": [
+    {"dates": "June 9-13", "mini": "Donut Spyctacular", "junior": "Donuts & Dancin'"},
+    {"dates": "June 16-20", "mini": "Elphaba & Glinda Wicked", "junior": "Wickedly Popular Dance Camp"},
+    {"dates": "June 23-27", "theme": "Queen of Hearts / Rize of Red Descendants"},
+    {"dates": "June 30-July 3", "theme": "Party In the USA (4-day, discounted)"},
+    {"dates": "July 7-11", "theme": "Era's Tour Taylor Swift"},
+    {"dates": "July 21-25", "mini": "Donut Spyctacular", "junior": "Donuts + Dancin'"},
+    {"dates": "July 28-Aug 1", "theme": "Queen of Hearts / Rize of Red Descendants"},
+    {"dates": "Aug 4-8", "mini": "Wackadoo Bluey Camp", "junior": "Wickedly Popular Dance Camp"},
+    {"dates": "Aug 11-15", "theme": "Audition Prep Camp"}
+  ],
+  "technique_intensive_dates": ["June 23-26", "July 7-10", "July 28-31", "Aug 4-7"],
+  "technique_tuesdays": ["June 17", "June 24", "July 1", "July 8", "July 22", "July 29", "Aug 5"],
+  "included": [
+    "2 snacks daily",
+    "Camp T-shirt",
+    "All craft supplies",
+    "Costume pieces (kept by dancer)"
+  ],
+  "refund_policy": {
+    "beforeMay1_within4weeks": "Full refund",
+    "beforeMay1_after4weeks": "Credit only",
+    "afterMay1_within4weeks": "Credit only",
+    "afterMay1_after4weeks": "Partial credit",
+    "within2weeks": "No refund"
+  },
+  "contact": {
+    "email": "MomentumDanceSB@gmail.com",
+    "phone": "(805) 364-1638"
+  },
+  "registration_dates": {
+    "launchWeek": "Feb 5-11",
+    "earlyBird": "Feb 12 - May 1",
+    "fullPrice": "After May 1"
+  },
+  "scrape_strategy": "playwright",
+  "scrape_notes": "Wix site - Playwright required. JackRabbit registration system.",
+  "last_verified": "2026-01-28"
+}

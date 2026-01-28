@@ -1,0 +1,79 @@
+{
+  "id": "terrific-scientific",
+  "name": "Terrific Scientific / Art Explorers",
+  "organization_note": "Terrific Scientific and Art Explorers are run by the same organization. Registration is unified under 'ArtExplorersTerrificScientific' on ACTIVE.",
+  "website": "https://terrificscientific.org",
+  "pages": {
+    "main": "https://terrificscientific.org/",
+    "summer_camps": "https://terrificscientific.org/summer-camps/",
+    "camps_k1": "https://terrificscientific.org/camp-grade-k-1/",
+    "camps_1_3": "https://terrificscientific.org/camp-grade-1-3/",
+    "camps_4_5": "https://terrificscientific.org/camp-grades-4-5/",
+    "camps_teens": "http://terrificscientific.org/teens-camp-grades-6-8/",
+    "classes": "http://terrificscientific.org/?page_id=1097",
+    "events": "http://terrificscientific.org/?page_id=166",
+    "about_us": "https://terrificscientific.org/about-us/",
+    "contact": "https://terrificscientific.org/contact-us/",
+    "register": "https://campscui.active.com/orgs/ArtExplorersTerrificScientific",
+    "parent_login": "https://terrificscientific.org/parent-login/",
+    "parent_account": "https://campsself.active.com/artexplorersterrificscientific"
+  },
+  "data_hints": {
+    "pricing_location": "Summer camps page has multi-session discount ($10 off per camp) and multi-sibling discount ($10). Specific camp prices on grade-level pages",
+    "hours_location": "Camp Arrival: 8:30-8:50am, Camp Ends: 3:30pm, Aftercare 3:30-5pm",
+    "extended_care": "Aftercare available 3:30-5pm, $12/day, must register in advance. Late fees $1/minute past 5pm",
+    "sessions": "June 15 - July 24, 2026 (8 weeks)",
+    "location": "Vieja Valley School, 434 Nogal Dr. Santa Barbara, CA 93110"
+  },
+  "age_groups": {
+    "k_1": "Grades K-1 (Ages 5-6)",
+    "1_3": "Grades 1-3 (Ages 6-8)",
+    "4_5": "Grades 4-5 (Ages 9-11)",
+    "teens": "Grades 6-8 (Ages 11-14)"
+  },
+  "program_details": {
+    "total_camps": "65 different camps - largest array in Santa Barbara County",
+    "focus": "STEAM - Science, Technology, Engineering, Art, and Math",
+    "staff_ratio": "1:12 student to staff ratio",
+    "curriculum": "Discovery-based learning, hands-on experiments, team activities, robotics"
+  },
+  "daily_schedule": {
+    "8:30-8:55": "Courtyard Events - Science Demonstration & Games",
+    "9:00-10:30": "Specific Camp Activities (Tribes Activity, Project Time)",
+    "10:30-10:45": "Outdoor snack/bathroom break",
+    "10:45-11:45": "Project Time",
+    "midday": "Lunch/Outdoor Play - 60 min",
+    "afternoon": "Specific Camp Activities",
+    "3:30-3:45": "Camper Pick Up in Courtyard"
+  },
+  "lunch_provider": {
+    "name": "Nu Cuisine",
+    "options": ["Meat-based menu", "Vegetarian menu"],
+    "note": "Healthy, organic, vegetarian option, all made from scratch. State of CA certified."
+  },
+  "cancellation_policy": {
+    "24hr": "Full refund",
+    "2/9-2/28": "$25 cancellation fee, balance refunded to card",
+    "3/1-4/15": "$50 cancellation fee per camp, balance refunded to card",
+    "4/16-5/31": "$50 cancellation fee per camp, balance to ACTIVE credit (2 year expiry)",
+    "6/1-8/5": "No refunds or credits. Transfer possible with $25 admin fee if space available"
+  },
+  "policies": {
+    "no_nuts": "Nut-free environment - no nuts or peanut butter allowed",
+    "no_phones": "Following California Phone-Free School Act (AB 3216)",
+    "closed_toe_shoes": "Required",
+    "covid": "Masks currently not required but may be reinstated based on conditions"
+  },
+  "special_notes": "Site type: Nonprofit educational organization. WordPress site with straightforward navigation. Uses ACTIVE Network for registration (same platform as many SB camps). 65 different STEAM camps - largest variety in Santa Barbara County. Strong emphasis on behavioral expectations and Tribes Education anti-bullying program. Detailed policies and procedures on summer camps page.",
+  "scraping_challenges": [
+    "Some pages use HTTP (not HTTPS) links",
+    "Grade-level camp pages have individual pricing and schedules",
+    "Camp descriptions may be image-heavy"
+  ],
+  "contact": {
+    "phone": "805-570-1988"
+  },
+  "serving_areas": ["Santa Barbara", "Goleta", "Montecito", "Carpinteria"],
+  "school_districts": ["Santa Barbara School District", "Goleta School District", "Montecito Union", "Cold Spring", "Carpinteria School District"],
+  "last_verified": "2026-01-24"
+}

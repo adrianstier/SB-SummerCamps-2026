@@ -1,0 +1,288 @@
+{
+  "id": "moxi-museum-camp",
+  "name": "MOXI Museum Camp",
+  "full_name": "MOXI, The Wolf Museum of Exploration + Innovation",
+  "website": "https://moxi.org/programs/for-families/camps/",
+  "pages": {
+    "main": "https://moxi.org/programs/for-families/camps/",
+    "registration_portal": "https://moxi.ticketapp.org/portal/pages/camps",
+    "five_day_camps": "https://moxi.ticketapp.org/portal/product/94/events",
+    "one_day_camps": "https://moxi.ticketapp.org/portal/product/98/events",
+    "membership": "https://moxi.org/join-and-give/membership/",
+    "hours_admission": "https://moxi.org/visit/hours-admission/",
+    "faq": "https://moxi.org/visit/faq/",
+    "contact": "https://moxi.org/about-moxi/contact/",
+    "newsletter_signup": "https://pages.wordfly.com/moxi/pages/Subscribe/",
+    "waitlist": "https://pages.wordfly.com/moxi/pages/2026-One-Day-Camp-Spring-Break-Waitlist/",
+    "summer_schedule_image": "https://moxi.org/wp-content/uploads/2026/01/2026-Summer-Camp-Schedule.png"
+  },
+  "data_hints": {
+    "pricing_location": "Registration portal at moxi.ticketapp.org shows pricing in Details sidebar. Member discount applied at checkout when signed in.",
+    "hours_location": "Camp hours: 9:00 AM start (implied from registration times). Extended day available as add-on.",
+    "extended_care": {
+      "available": true,
+      "name": "Extended Day",
+      "five_day_camp_price": "$125 additional",
+      "one_day_camp_price": "$30 additional",
+      "note": "Add-on at registration"
+    },
+    "registration_dates": {
+      "one_day_and_spring_break": "January 22, 2026 at noon",
+      "summer_camps": "March 3, 2026"
+    },
+    "sessions": {
+      "one_day_camps": [
+        {
+          "name": "Cupid's Workshop: Patterns + Prints",
+          "date": "Friday, February 13, 2026",
+          "grades": "1-4",
+          "member_price": "$110",
+          "non_member_price": "$125",
+          "extended_day": "$30 additional",
+          "description": "Create picture-perfect Valentines using patterns. Get inspired by patterns in nature, design a tessellation stamp, or use the pattern of your heartbeat to create a truly heartfelt card."
+        }
+      ],
+      "spring_break_camps": [
+        {
+          "name": "Intergalactic Innovators",
+          "dates": "March 30 - April 3, 2026",
+          "grades": "2-4",
+          "member_price": "$360",
+          "non_member_price": "$410",
+          "extended_day": "$125 additional",
+          "description": "Calling all space explorers! The galaxy is recruiting its newest space troop. Looking for collaborative, curious, and brave kids to help solve problems that are out of this world."
+        }
+      ],
+      "summer_camps": {
+        "note": "Summer registration opens March 3, 2026. Schedule image available at pages.summer_schedule_image URL.",
+        "typical_format": "Week-long camps with themed STEAM activities"
+      }
+    },
+    "member_pricing": "Yes - MOXI Members receive discount on camps. Must sign in with membership email at checkout to see discount."
+  },
+  "age_groups": {
+    "grade_range": "Grades K-6 (varies by camp)",
+    "typical_camps": "Grades 1-4 or Grades 2-4",
+    "filter_options": ["Grade K", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"]
+  },
+  "camp_types": {
+    "one_day_camps": {
+      "duration": "Single day",
+      "typical_hours": "9:00 AM start",
+      "pricing": {
+        "member": "$110",
+        "non_member": "$125"
+      },
+      "extended_day": "$30 additional"
+    },
+    "five_day_camps": {
+      "duration": "5 days (Monday - Friday)",
+      "typical_hours": "9:00 AM start",
+      "pricing": {
+        "member": "$360/week",
+        "non_member": "$410/week"
+      },
+      "extended_day": "$125 additional"
+    }
+  },
+  "locations": {
+    "primary": {
+      "name": "MOXI Museum",
+      "address": "125 State Street, Santa Barbara, CA 93101"
+    },
+    "secondary": {
+      "name": "Veterans Memorial Building",
+      "note": "Some camps held here - check individual camp listings"
+    },
+    "lunch_locations": [
+      "Ambassador Park",
+      "Chase Palm Park",
+      "Beach near Santa Barbara Wharf"
+    ]
+  },
+  "activities": [
+    "STEAM (Science, Technology, Engineering, Art, Math) activities",
+    "Hands-on experiments",
+    "Interactive museum exhibits",
+    "Space exploration themes",
+    "Art and pattern design",
+    "Team problem-solving",
+    "Outdoor lunch and play at local parks"
+  ],
+  "daily_schedule": {
+    "start_time": "9:00 AM",
+    "camp_activities": "Themed STEAM activities throughout the day",
+    "lunch": "Off-site at local parks (Ambassador Park, Chase Palm Park, or beach)",
+    "extended_day": "Available as add-on"
+  },
+  "what_to_bring": {
+    "required": [
+      "Comfortable, weather-appropriate clothing (may get dirty)",
+      "Comfortable closed-toe shoes",
+      "Lunch and snacks",
+      "Backpack",
+      "Water bottle",
+      "Sunscreen"
+    ],
+    "optional": [
+      "Medication in original container (staff cannot administer)",
+      "Sunglasses",
+      "Hat for sun protection"
+    ],
+    "do_not_bring": [
+      "Phones or smart watches",
+      "Toys or other valuables"
+    ],
+    "provided": "Camp t-shirt (additional shirts available for $20)"
+  },
+  "staff": {
+    "qualifications": [
+      "High school graduates",
+      "CPR + First Aid certified",
+      "Previous experience working with kids"
+    ],
+    "ratio": "16 campers per session",
+    "supervision": "CPR-certified Camp Counselors with emergency contact info, first aid kit, radios, and extra supplies"
+  },
+  "policies": {
+    "cancellation": {
+      "more_than_1_month_before": "90% refund",
+      "2_weeks_to_1_month_before": "50% refund",
+      "less_than_2_weeks_before": "No refund",
+      "how_to_cancel": "Email camps@moxi.org in writing"
+    },
+    "behavior": "MOXI does not tolerate bullying. Primary care/pick up person will be contacted for behavior issues.",
+    "food": "Campers bring own lunch. Lunch eaten off-site at local parks.",
+    "transport": "Campers escorted to parks by volunteers and CPR-certified counselors"
+  },
+  "communication": {
+    "before_camp": [
+      "Email sent Monday before camp",
+      "Text sent Friday before camp"
+    ],
+    "during_camp": [
+      "Email on first day",
+      "Text on Thursday",
+      "Email on last day"
+    ],
+    "emergencies": "Staff will reach out via phone"
+  },
+  "contact": {
+    "camps_email": "camps@moxi.org",
+    "camps_text_line": "(833) 676-4849",
+    "front_desk": "(805) 770-5000",
+    "camps_manager": {
+      "name": "Leah Forester",
+      "title": "Camps + Outreach Manager",
+      "email": "leah.forester@moxi.org",
+      "phone": "(805) 770-5010"
+    },
+    "camps_coordinator": {
+      "name": "Kyle Dent",
+      "title": "Camps + Outreach Coordinator",
+      "email": "kyle.dent@moxi.org",
+      "phone": "(805) 845-6149"
+    },
+    "general": {
+      "email": "info@moxi.org",
+      "phone": "(805) 770-5000",
+      "address": "125 State Street, Santa Barbara, CA 93101"
+    },
+    "membership": {
+      "email": "members@moxi.org",
+      "phone": "(805) 770-5011"
+    }
+  },
+  "membership_tiers": {
+    "note": "Members receive camp discounts. Must sign in with membership email at checkout.",
+    "tiers": [
+      {
+        "name": "Individual/Dual",
+        "price": "$100/year",
+        "includes": "1 Member + 1 guest or 2 Named Adults"
+      },
+      {
+        "name": "Family",
+        "price": "$165/year",
+        "includes": "2 Named Adults + Named Children (17 and under, in household)",
+        "benefits": ["Camp discounts", "ASTC Passport Program"]
+      },
+      {
+        "name": "Family +1",
+        "price": "$215/year",
+        "includes": "2 Named Adults + Named Children + 1 Named Caregiver/Grandparent"
+      },
+      {
+        "name": "Family +2",
+        "price": "$250/year",
+        "includes": "2 Named Adults + Named Children + 2 Named Caregivers/Grandparents"
+      },
+      {
+        "name": "Explorer",
+        "price": "$500/year",
+        "includes": "All membership benefits + 2 additional guests per visit + 4 guest passes"
+      },
+      {
+        "name": "Donor",
+        "price": "$1000+/year",
+        "includes": "All membership benefits + exclusive events + recognition"
+      }
+    ],
+    "camp_benefit": "Savings on Camps, Special Events, and MOXI Birthday Packages"
+  },
+  "museum_info": {
+    "hours": "Open Daily 10:00 AM - 5:00 PM",
+    "special_hours": {
+      "toddler_tuesday": "9 AM - 12 PM (Tuesdays)",
+      "member_saturday": "9 AM - 10 AM (Saturdays, members only)"
+    },
+    "admission": {
+      "adults_13_plus": "$25",
+      "children_2_12": "$20",
+      "infants_under_2": "Free",
+      "members": "Free",
+      "ebt_cardholders": "$3 per member of household (up to 4 guests)"
+    },
+    "closed": ["Thanksgiving", "Christmas Eve", "Christmas Day"]
+  },
+  "social_media": {
+    "facebook": "https://www.facebook.com/MOXIsb",
+    "instagram": "https://www.instagram.com/moxisb/",
+    "tiktok": "https://www.tiktok.com/@moxi_sb",
+    "vimeo": "https://vimeo.com/moxisb",
+    "linkedin": "https://www.linkedin.com/company/moxi-the-wolf-museum-of-exploration-innovation/"
+  },
+  "features": {
+    "member_discount": true,
+    "extended_care": true,
+    "scholarships_available": false,
+    "special_needs_friendly": "Unknown - contact camps@moxi.org",
+    "lunch_provided": false,
+    "off_site_activities": true,
+    "multiple_locations": true
+  },
+  "registration": {
+    "platform": "moxi.ticketapp.org",
+    "one_day_spring_break_opens": "January 22, 2026 at noon",
+    "summer_opens": "March 3, 2026",
+    "member_discount_note": "Sign in with membership email at checkout to see discount",
+    "waitlist_url": "https://pages.wordfly.com/moxi/pages/2026-One-Day-Camp-Spring-Break-Waitlist/"
+  },
+  "site_structure": {
+    "primary_site": "moxi.org (informational, camp details, FAQ)",
+    "registration_portal": "moxi.ticketapp.org (registration and pricing)",
+    "cms": "WordPress with Modern Events Calendar",
+    "registration_system": "TicketApp portal",
+    "page_format": "Main camps page has filterable camp listings by grade and date. Registration links to ticketapp portal."
+  },
+  "scraper_hints": {
+    "camps_page_has_filters": "Grade checkboxes (K-6) and Date checkboxes for filtering",
+    "pricing_in_sidebar": "Registration portal shows pricing in Details sidebar on right side",
+    "member_pricing_at_checkout": "Member pricing appears after signing in, not shown publicly",
+    "summer_schedule_is_image": "Summer camp schedule published as PNG image, not text",
+    "multiple_camp_products": "Product 94 = 5-day camps, Product 98 = 1-day camps"
+  },
+  "special_notes": "MOXI camps are STEAM-focused with themed week-long or single-day experiences. Lunch is eaten off-site at local parks (Ambassador Park, Chase Palm Park, beach). Campers receive a camp t-shirt. Extended day is available as an add-on. Member pricing requires signing in with membership email at checkout. Summer 2026 registration opens March 3. The summer schedule is published as a PNG image. Some camps may be held at Veterans Memorial Building instead of MOXI. 16 campers per session. Staff are CPR/First Aid certified.",
+  "last_verified": "2026-01-28",
+  "playwright_verified": true
+}
