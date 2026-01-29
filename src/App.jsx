@@ -1726,9 +1726,12 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
       className={`camp-card scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`}
       style={isComparing ? { ringColor: 'var(--ocean-500)' } : undefined}
     >
-      <button
+      <div
         className="camp-card-button"
+        role="button"
+        tabIndex={0}
         onClick={onToggle}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }}
         aria-label={`View details for ${camp.camp_name}`}
       >
       {/* Camp Image or Category color bar */}
@@ -1863,7 +1866,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
           )}
         </div>
       </div>
-      </button>
+      </div>
 
       {/* Expanded Details */}
       {expanded && (
