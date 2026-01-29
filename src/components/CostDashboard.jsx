@@ -123,6 +123,27 @@ export function CostDashboard({ camps, onClose }) {
               <p className="text-2xl font-bold" style={{ color: 'var(--sage-800)' }}>
                 {formatCurrency(costBreakdown.total)}
               </p>
+              {/* Mini sparkline for cost trend */}
+              {costBreakdown.byWeek.length > 1 && (
+                <div className="mt-2 flex items-end gap-0.5 h-4">
+                  {(() => {
+                    const maxCost = Math.max(...costBreakdown.byWeek.map(w => w.total));
+                    return costBreakdown.byWeek.map((week, idx) => (
+                      <div
+                        key={week.date}
+                        className="flex-1 rounded-sm transition-all"
+                        style={{
+                          height: `${maxCost > 0 ? (week.total / maxCost) * 100 : 0}%`,
+                          minHeight: '2px',
+                          backgroundColor: 'var(--sage-400)',
+                          opacity: 0.6 + (idx / costBreakdown.byWeek.length) * 0.4
+                        }}
+                        title={`${formatDate(week.date)}: ${formatCurrency(week.total)}`}
+                      />
+                    ));
+                  })()}
+                </div>
+              )}
             </div>
 
             {budget > 0 && (
@@ -242,27 +263,144 @@ export function CostDashboard({ camps, onClose }) {
             </div>
           )}
 
-          {/* Weekly Breakdown */}
+          {/* Weekly Breakdown - Visual Chart */}
           {costBreakdown.byWeek.length > 0 && (
             <div>
-              <h3 className="font-medium mb-3" style={{ color: 'var(--earth-800)' }}>By Week</h3>
-              <div className="space-y-2">
-                {costBreakdown.byWeek.map(week => (
-                  <div key={week.date} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                    <div>
-                      <p className="font-medium" style={{ color: 'var(--earth-800)' }}>
-                        Week of {formatDate(week.date)}
-                      </p>
-                      <p className="text-sm" style={{ color: 'var(--earth-500)' }}>
-                        {week.camps.length} camp{week.camps.length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <p className="font-semibold" style={{ color: 'var(--earth-800)' }}>
-                      {formatCurrency(week.total)}
-                    </p>
+              <h3 className="font-medium mb-3" style={{ color: 'var(--earth-800)' }}>Weekly Cost Breakdown</h3>
+
+              {/* Visual Bar Chart */}
+              <div className="mb-4 p-4 rounded-xl" style={{ backgroundColor: 'var(--sand-50)' }}>
+                <div className="space-y-3">
+                  {(() => {
+                    const maxWeekCost = Math.max(...costBreakdown.byWeek.map(w => w.total));
+                    let runningTotal = 0;
+
+                    return costBreakdown.byWeek.map((week, idx) => {
+                      runningTotal += week.total;
+                      const barWidth = maxWeekCost > 0 ? (week.total / maxWeekCost) * 100 : 0;
+                      const childrenInWeek = [...new Set(week.camps.map(c => c.child_id))];
+
+                      return (
+                        <div key={week.date} className="relative">
+                          {/* Week label and cost */}
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--ocean-100)', color: 'var(--ocean-700)' }}>
+                                W{idx + 1}
+                              </span>
+                              <span className="text-sm font-medium" style={{ color: 'var(--earth-700)' }}>
+                                {formatDate(week.date)}
+                              </span>
+                              {/* Child dots */}
+                              <div className="flex gap-1 ml-1">
+                                {childrenInWeek.map(childId => {
+                                  const child = children.find(c => c.id === childId);
+                                  return child ? (
+                                    <div
+                                      key={childId}
+                                      className="w-3 h-3 rounded-full"
+                                      style={{ backgroundColor: child.color }}
+                                      title={child.name}
+                                    />
+                                  ) : null;
+                                })}
+                              </div>
+                            </div>
+                            <span className="text-sm font-semibold" style={{ color: 'var(--earth-800)' }}>
+                              {formatCurrency(week.total)}
+                            </span>
+                          </div>
+
+                          {/* Cost bar */}
+                          <div className="h-6 rounded-md overflow-hidden" style={{ backgroundColor: 'var(--sand-200)' }}>
+                            <div
+                              className="h-full rounded-md flex items-center justify-end pr-2 transition-all duration-500"
+                              style={{
+                                width: `${Math.max(barWidth, 2)}%`,
+                                background: `linear-gradient(90deg, var(--ocean-400), var(--ocean-500))`,
+                              }}
+                            >
+                              {barWidth > 25 && (
+                                <span className="text-xs font-medium text-white">
+                                  {week.camps.length} camp{week.camps.length !== 1 ? 's' : ''}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Running total line */}
+                          <div className="flex items-center justify-end mt-1">
+                            <span className="text-xs" style={{ color: 'var(--earth-400)' }}>
+                              Running: {formatCurrency(runningTotal)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* Chart summary */}
+                <div className="mt-4 pt-3 border-t flex items-center justify-between" style={{ borderColor: 'var(--sand-200)' }}>
+                  <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--earth-500)' }}>
+                    <span>{costBreakdown.byWeek.length} weeks scheduled</span>
+                    <span>•</span>
+                    <span>Avg {formatCurrency(costBreakdown.total / costBreakdown.byWeek.length)}/week</span>
                   </div>
-                ))}
+                  <div className="text-sm font-semibold" style={{ color: 'var(--sage-700)' }}>
+                    Total: {formatCurrency(costBreakdown.total)}
+                  </div>
+                </div>
               </div>
+
+              {/* Detailed list (collapsible) */}
+              <details className="group">
+                <summary className="cursor-pointer text-sm font-medium py-2 flex items-center gap-2" style={{ color: 'var(--ocean-600)' }}>
+                  <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  View detailed breakdown
+                </summary>
+                <div className="space-y-2 mt-2">
+                  {costBreakdown.byWeek.map(week => (
+                    <div key={week.date} className="p-3 rounded-lg bg-gray-50">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-medium" style={{ color: 'var(--earth-800)' }}>
+                          Week of {formatDate(week.date)}
+                        </p>
+                        <p className="font-semibold" style={{ color: 'var(--earth-800)' }}>
+                          {formatCurrency(week.total)}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        {week.camps.map(sc => {
+                          const camp = camps.find(c => c.id === sc.camp_id);
+                          const child = children.find(c => c.id === sc.child_id);
+                          return (
+                            <div key={sc.id} className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2">
+                                {child && (
+                                  <div
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: child.color }}
+                                  />
+                                )}
+                                <span style={{ color: 'var(--earth-600)' }}>
+                                  {camp?.camp_name || 'Camp'}
+                                  {child && <span className="text-xs ml-1" style={{ color: 'var(--earth-400)' }}>({child.name})</span>}
+                                </span>
+                              </div>
+                              <span style={{ color: 'var(--earth-500)' }}>
+                                {formatCurrency(parseFloat(sc.price) || 0)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </details>
             </div>
           )}
 

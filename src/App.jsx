@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, memo } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useScrollReveal } from './hooks/useScrollReveal';
+import { useFilters, FILTER_PRESETS } from './hooks/useFilters';
+import { usePWAInstall, useOnlineStatus, useServiceWorkerUpdate, usePullToRefresh, useHaptic } from './hooks/usePWA';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthButton } from './components/AuthButton';
 import { FavoriteButton } from './components/FavoriteButton';
+import NotificationBell from './components/NotificationBell';
+import { AdvancedFilters, SUMMER_WEEKS_2026 } from './components/AdvancedFilters';
+import { MobileNav, InstallBanner, OfflineIndicator, UpdateToast, PullToRefreshIndicator } from './components/MobileNav';
+import { SwipeableCampCard, SwipeHint } from './components/SwipeableCampCard';
 import { supabase, getRegistrationStatus, checkWorkScheduleCoverage } from './lib/supabase';
 import { formatPrice } from './lib/formatters';
 
@@ -18,6 +24,8 @@ const JoinSquad = lazy(() => import('./components/JoinSquad'));
 const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
 const CostDashboard = lazy(() => import('./components/CostDashboard').then(m => ({ default: m.CostDashboard })));
 const Wishlist = lazy(() => import('./components/Wishlist').then(m => ({ default: m.Wishlist })));
+const CampInsights = lazy(() => import('./components/CampInsights').then(m => ({ default: m.CampInsights })));
+const FamilyWorkspace = lazy(() => import('./components/FamilyWorkspace'));
 
 // Loading fallback for lazy-loaded modals
 const ModalLoadingFallback = memo(function ModalLoadingFallback() {
@@ -350,28 +358,40 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filter state
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [childAge, setChildAge] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [selectedKeywords, setSelectedKeywords] = useState([]);
+  // Advanced filters hook
+  const priceRange = useMemo(() => ({
+    min: stats?.priceRange?.min || 0,
+    max: stats?.priceRange?.max || 1000
+  }), [stats?.priceRange]);
+
+  const {
+    filters,
+    updateFilters,
+    clearFilters: clearAdvancedFilters,
+    applyPreset,
+    filterAndSortCamps,
+    activeFilterCount,
+    userLocation,
+    locationError,
+    requestLocation,
+    savedSearches,
+    saveSearch,
+    deleteSavedSearch,
+    applySavedSearch,
+    shareableURL
+  } = useFilters(priceRange);
+
+  // Legacy filter state (for backwards compatibility with existing UI)
   const [showFilters, setShowFilters] = useState(false);
-  const [extendedCare, setExtendedCare] = useState(false);
-  const [foodIncluded, setFoodIncluded] = useState(false);
-  const [hasTransport, setHasTransport] = useState(false);
-  const [siblingDiscount, setSiblingDiscount] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // View state
   const [expandedCamp, setExpandedCamp] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
-  const [sortBy, setSortBy] = useState('camp_name');
-  const [sortDir, setSortDir] = useState('asc');
 
   // Loading states
   const [isPlannerLoading, setIsPlannerLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResultCount, setSearchResultCount] = useState(null);
 
   // Modal state
   const [showPlanner, setShowPlanner] = useState(false);
@@ -379,16 +399,16 @@ export default function App() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showCostDashboard, setShowCostDashboard] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
+  const [showFamilyWorkspace, setShowFamilyWorkspace] = useState(false);
   const [compareList, setCompareList] = useState([]);
   const [modalCamp, setModalCamp] = useState(null); // Camp detail modal
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-  // Work schedule filter
-  const [matchWorkSchedule, setMatchWorkSchedule] = useState(false);
+  const [copiedShareUrl, setCopiedShareUrl] = useState(false);
 
   // Track initial load to prevent double-fetch
   const initialLoadDone = useRef(false);
@@ -398,6 +418,74 @@ export default function App() {
 
   // Auth context
   const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user, friendInterestCounts, squads } = useAuth();
+
+  // PWA hooks
+  const { canInstall, isStandalone, promptInstall } = usePWAInstall();
+  const { isOnline, wasOffline } = useOnlineStatus();
+  const { updateAvailable, applyUpdate } = useServiceWorkerUpdate();
+  const haptic = useHaptic();
+  const [showInstallBanner, setShowInstallBanner] = useState(true);
+  const [showSwipeHint, setShowSwipeHint] = useState(() => {
+    // Only show swipe hint once per device
+    return !localStorage.getItem('sb-camps-swipe-hint-seen');
+  });
+  const [mobileTab, setMobileTab] = useState('browse');
+  const [hiddenCamps, setHiddenCamps] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sb-camps-hidden') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  // Dismiss swipe hint
+  const dismissSwipeHint = useCallback(() => {
+    setShowSwipeHint(false);
+    localStorage.setItem('sb-camps-swipe-hint-seen', 'true');
+  }, []);
+
+  // Handle install prompt
+  const handleInstall = useCallback(async () => {
+    haptic.medium();
+    const installed = await promptInstall();
+    if (installed) {
+      setShowInstallBanner(false);
+    }
+  }, [promptInstall, haptic]);
+
+  // Handle camp swipe actions
+  const handleSwipeRight = useCallback((campId) => {
+    haptic.success();
+    // Add to favorites - the FavoriteButton component handles the actual toggle
+    window.dispatchEvent(new CustomEvent('toggle-favorite', { detail: { campId } }));
+  }, [haptic]);
+
+  const handleSwipeLeft = useCallback((campId) => {
+    haptic.light();
+    setHiddenCamps(prev => {
+      const updated = [...prev, campId];
+      localStorage.setItem('sb-camps-hidden', JSON.stringify(updated));
+      return updated;
+    });
+  }, [haptic]);
+
+  // Handle mobile tab changes
+  const handleMobileTabChange = useCallback((tab) => {
+    haptic.light();
+    setMobileTab(tab);
+    if (tab === 'favorites') {
+      setShowWishlist(true);
+    } else if (tab === 'planner') {
+      setShowPlanner(true);
+    } else if (tab === 'profile') {
+      if (user) {
+        setShowDashboard(true);
+      } else {
+        // Trigger sign in
+        window.dispatchEvent(new CustomEvent('navigate', { detail: 'signin' }));
+      }
+    }
+  }, [haptic, user]);
 
   // Check for join squad route
   const [joinInviteCode, setJoinInviteCode] = useState(() => {
@@ -512,96 +600,71 @@ export default function App() {
     loadData();
   }, []);
 
-  // Fetch camps when filters change
-  const loadCamps = useCallback(async () => {
-    setError(null);
-    setLoading(true);
-    setIsSearching(true);
-    try {
-      const data = await fetchCamps({
-        search,
-        category: selectedCategory,
-        age: childAge,
-        maxPrice,
-        keywords: selectedKeywords,
-        extendedCare,
-        foodIncluded,
-        transport: hasTransport,
-        siblingDiscount,
-        sortBy,
-        sortDir
-      });
-      setCamps(data.camps);
-      setSearchResultCount(data.total);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setIsSearching(false);
+  // Legacy filter state helpers (derived from filters hook)
+  const search = filters.search || '';
+  const selectedCategory = filters.categories?.length === 1 ? filters.categories[0] : 'All';
+  const childAge = filters.childAge || '';
+  const maxPrice = filters.priceMax < (priceRange.max || 1000) ? filters.priceMax.toString() : '';
+  const extendedCare = filters.extendedCare || false;
+  const foodIncluded = filters.foodIncluded || false;
+  const hasTransport = filters.hasTransport || false;
+  const siblingDiscount = filters.siblingDiscount || false;
+  const matchWorkSchedule = filters.matchWorkSchedule || false;
+  const sortBy = filters.sortBy || 'camp_name';
+  const sortDir = filters.sortDir || 'asc';
+
+  // Setters that update the filters hook
+  const setSearch = useCallback((val) => updateFilters({ ...filters, search: val }), [filters, updateFilters]);
+  const setSelectedCategory = useCallback((val) => {
+    if (val === 'All') {
+      updateFilters({ ...filters, categories: [] });
+    } else {
+      updateFilters({ ...filters, categories: [val] });
     }
-  }, [search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount, sortBy, sortDir]);
+  }, [filters, updateFilters]);
+  const setChildAge = useCallback((val) => updateFilters({ ...filters, childAge: val }), [filters, updateFilters]);
+  const setMaxPrice = useCallback((val) => {
+    const numVal = val ? parseInt(val, 10) : (priceRange.max || 1000);
+    updateFilters({ ...filters, priceMax: numVal });
+  }, [filters, updateFilters, priceRange.max]);
+  const setExtendedCare = useCallback((val) => updateFilters({ ...filters, extendedCare: val }), [filters, updateFilters]);
+  const setFoodIncluded = useCallback((val) => updateFilters({ ...filters, foodIncluded: val }), [filters, updateFilters]);
+  const setHasTransport = useCallback((val) => updateFilters({ ...filters, hasTransport: val }), [filters, updateFilters]);
+  const setSiblingDiscount = useCallback((val) => updateFilters({ ...filters, siblingDiscount: val }), [filters, updateFilters]);
+  const setMatchWorkSchedule = useCallback((val) => updateFilters({ ...filters, matchWorkSchedule: val }), [filters, updateFilters]);
+  const setSortBy = useCallback((val) => updateFilters({ ...filters, sortBy: val }), [filters, updateFilters]);
+  const setSortDir = useCallback((val) => updateFilters({ ...filters, sortDir: val }), [filters, updateFilters]);
 
-  // Debounced search - skip on initial mount to prevent double-fetch
-  useEffect(() => {
-    if (!initialLoadDone.current) return;
-    if (search || selectedCategory !== 'All' || childAge || maxPrice || selectedKeywords.length > 0 || extendedCare || foodIncluded || hasTransport || siblingDiscount) {
-      setIsSearching(true);
-    }
-    const timer = setTimeout(loadCamps, 300);
-    return () => clearTimeout(timer);
-  }, [loadCamps, search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount]);
+  // Clear all filters - uses the hook
+  const clearFilters = clearAdvancedFilters;
 
-  // Toggle keyword selection - memoized
-  const toggleKeyword = useCallback((keyword) => {
-    setSelectedKeywords(prev =>
-      prev.includes(keyword)
-        ? prev.filter(k => k !== keyword)
-        : [...prev, keyword]
-    );
-  }, []);
-
-  // Clear all filters - memoized
-  const clearFilters = useCallback(() => {
-    setSearch('');
-    setSelectedCategory('All');
-    setChildAge('');
-    setMaxPrice('');
-    setSelectedKeywords([]);
-    setExtendedCare(false);
-    setFoodIncluded(false);
-    setHasTransport(false);
-    setSiblingDiscount(false);
-    setMatchWorkSchedule(false);
-  }, []);
-
-  // Count active filters
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (search) count++;
-    if (selectedCategory !== 'All') count++;
-    if (childAge) count++;
-    if (maxPrice) count++;
-    if (selectedKeywords.length) count++;
-    if (extendedCare) count++;
-    if (foodIncluded) count++;
-    if (hasTransport) count++;
-    if (siblingDiscount) count++;
-    if (matchWorkSchedule) count++;
-    return count;
-  }, [search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount, matchWorkSchedule]);
-
-  // Apply work schedule filter to camps
+  // Apply filtered and sorted camps using the hook
   const filteredCamps = useMemo(() => {
-    if (!matchWorkSchedule || !profile) return camps;
+    return filterAndSortCamps(camps, profile);
+  }, [camps, filterAndSortCamps, profile]);
 
-    const workStart = profile.work_hours_start || '08:00';
-    const workEnd = profile.work_hours_end || '17:30';
+  // Copy share URL to clipboard
+  const copyShareUrl = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(shareableURL);
+      setCopiedShareUrl(true);
+      setTimeout(() => setCopiedShareUrl(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+    }
+  }, [shareableURL]);
 
-    return camps.filter(camp => {
-      const coverage = checkWorkScheduleCoverage(camp, workStart, workEnd);
-      return coverage.covers;
-    });
-  }, [camps, matchWorkSchedule, profile]);
+  // Derived state for backwards compatibility
+  const searchResultCount = filteredCamps.length;
+
+  // Track if search is active (for UI feedback)
+  useEffect(() => {
+    if (filters.search) {
+      setIsSearching(true);
+      const timer = setTimeout(() => setIsSearching(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [filters.search]);
 
   // Handle join squad route
   if (joinInviteCode) {
@@ -648,6 +711,23 @@ export default function App() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--sand-50)' }}>
       <a href="#main-content" className="skip-to-content">Skip to content</a>
+
+      {/* PWA Install Banner */}
+      {canInstall && showInstallBanner && !isStandalone && (
+        <InstallBanner
+          onInstall={handleInstall}
+          onDismiss={() => setShowInstallBanner(false)}
+        />
+      )}
+
+      {/* Offline Indicator */}
+      {!isOnline && <OfflineIndicator />}
+
+      {/* Update Toast */}
+      {updateAvailable && (
+        <UpdateToast onUpdate={applyUpdate} />
+      )}
+
       {/* Hero Section */}
       <header className="hero-section relative pt-8 pb-24 md:pt-12 md:pb-32">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
@@ -729,6 +809,23 @@ export default function App() {
                 {viewMode === 'grid' ? <TableIcon /> : <GridIcon />}
                 <span className="hidden sm:inline">{viewMode === 'grid' ? 'Table' : 'Grid'}</span>
               </button>
+
+              {/* Family workspace - only for logged in users */}
+              {user && (
+                <button
+                  onClick={() => setShowFamilyWorkspace(true)}
+                  className="filter-control-btn"
+                  title="Family planning workspace"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span className="hidden sm:inline">Family</span>
+                </button>
+              )}
+
+              {/* Notification bell - only for logged in users */}
+              {user && <NotificationBell />}
 
               {/* Auth button */}
               <AuthButton />
@@ -910,22 +1007,71 @@ export default function App() {
                 )}
               </button>
 
+              {/* Advanced Filters Button */}
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={`filter-control-btn ${showAdvancedFilters ? 'active' : ''}`}
+                title="Advanced filters with presets, date ranges, and more"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                <span className="hidden sm:inline">Advanced</span>
+              </button>
+
+              {/* Insights Button - Data Visualizations */}
+              <button
+                onClick={() => setShowInsights(true)}
+                className="filter-control-btn"
+                title="View camp data insights and visualizations"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span className="hidden sm:inline">Insights</span>
+              </button>
+
               {/* Sort dropdown */}
               <select
-                value={`${sortBy}-${sortDir}`}
+                value={filters.sortByDistance ? 'distance-asc' : `${sortBy}-${sortDir}`}
                 onChange={(e) => {
                   const [field, dir] = e.target.value.split('-');
-                  setSortBy(field);
-                  setSortDir(dir);
+                  if (field === 'distance') {
+                    updateFilters({ ...filters, sortByDistance: true });
+                    if (!userLocation) requestLocation();
+                  } else {
+                    updateFilters({ ...filters, sortByDistance: false, sortBy: field, sortDir: dir });
+                  }
                 }}
                 className="filter-sort-select"
                 aria-label="Sort camps by"
               >
-                <option value="camp_name-asc">A–Z</option>
-                <option value="camp_name-desc">Z–A</option>
-                <option value="min_price-asc">Price ↑</option>
-                <option value="min_price-desc">Price ↓</option>
+                <option value="camp_name-asc">A-Z</option>
+                <option value="camp_name-desc">Z-A</option>
+                <option value="min_price-asc">Price: Low</option>
+                <option value="min_price-desc">Price: High</option>
+                <option value="distance-asc">Nearest</option>
               </select>
+
+              {/* Share URL button */}
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={copyShareUrl}
+                  className={`share-url-btn ${copiedShareUrl ? 'copied' : ''}`}
+                  title="Copy shareable URL with these filters"
+                >
+                  {copiedShareUrl ? (
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                  )}
+                  <span className="hidden sm:inline">{copiedShareUrl ? 'Copied' : 'Share'}</span>
+                </button>
+              )}
 
               {/* Clear filters */}
               {activeFilterCount > 0 && (
@@ -1002,6 +1148,42 @@ export default function App() {
                   className="active-filter-chip"
                 >
                   Sibling Discount
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {filters.hasOpenings && (
+                <button
+                  onClick={() => updateFilters({ ...filters, hasOpenings: false })}
+                  className="active-filter-chip"
+                >
+                  Has Openings
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {filters.sortByDistance && (
+                <button
+                  onClick={() => updateFilters({ ...filters, sortByDistance: false })}
+                  className="active-filter-chip"
+                >
+                  Nearest First
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {filters.selectedWeeks?.length > 0 && (
+                <button
+                  onClick={() => updateFilters({ ...filters, selectedWeeks: [] })}
+                  className="active-filter-chip"
+                >
+                  {filters.selectedWeeks.length} Week{filters.selectedWeeks.length > 1 ? 's' : ''}
+                  <span className="active-filter-remove">×</span>
+                </button>
+              )}
+              {filters.categories?.length > 1 && (
+                <button
+                  onClick={() => updateFilters({ ...filters, categories: [] })}
+                  className="active-filter-chip"
+                >
+                  {filters.categories.length} Categories
                   <span className="active-filter-remove">×</span>
                 </button>
               )}
@@ -1168,6 +1350,44 @@ export default function App() {
                 </div>
               </div>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Advanced Filters Panel */}
+      {showAdvancedFilters && (
+        <section className="filter-panel-animated" style={{ background: 'white', borderBottom: '1px solid var(--sand-200)' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="flex justify-between items-center px-4 sm:px-6 py-4" style={{ borderBottom: '1px solid var(--sand-100)' }}>
+              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
+                Advanced Filters
+              </h3>
+              <button
+                onClick={() => setShowAdvancedFilters(false)}
+                className="p-2 rounded-full hover:bg-sand-100 transition-colors"
+                style={{ color: 'var(--sand-400)' }}
+                aria-label="Close advanced filters"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <AdvancedFilters
+              filters={filters}
+              onFiltersChange={updateFilters}
+              categories={categories}
+              categoryCounts={stats?.categories || {}}
+              priceRange={priceRange}
+              onClearFilters={clearFilters}
+              onApplyPreset={applyPreset}
+              savedSearches={savedSearches}
+              onSaveSearch={saveSearch}
+              onDeleteSavedSearch={deleteSavedSearch}
+              onApplySavedSearch={applySavedSearch}
+              userLocation={userLocation}
+              onRequestLocation={requestLocation}
+            />
           </div>
         </section>
       )}
@@ -1393,6 +1613,27 @@ export default function App() {
           />
         )}
 
+        {showInsights && (
+          <CampInsights
+            camps={camps}
+            onClose={() => setShowInsights(false)}
+            onSelectCamp={(camp) => {
+              setShowInsights(false);
+              if (isMobile) {
+                setExpandedCamp(camp.id);
+              } else {
+                setModalCamp(camp);
+                document.body.classList.add('modal-open');
+              }
+            }}
+            onCompare={(campIds) => {
+              setShowInsights(false);
+              setCompareList(campIds);
+              setShowComparison(true);
+            }}
+          />
+        )}
+
         {showOnboarding && (
           <OnboardingWizard onComplete={completeOnboarding} />
         )}
@@ -1430,6 +1671,13 @@ export default function App() {
           }}
         />
       )}
+
+        {/* Family Workspace Modal */}
+        {showFamilyWorkspace && (
+          <div className="fixed inset-0 z-50 bg-white">
+            <FamilyWorkspace onClose={() => setShowFamilyWorkspace(false)} />
+          </div>
+        )}
       </Suspense>
 
       {/* FavoritesModal is not lazy loaded as it's small */}
@@ -1494,6 +1742,7 @@ export default function App() {
       {modalCamp && (
         <CampDetailModal
           camp={modalCamp}
+          allCamps={camps}
           onClose={() => {
             setModalCamp(null);
             document.body.classList.remove('modal-open');
@@ -1509,6 +1758,9 @@ export default function App() {
           isFavorite={favorites.some(f => f.camp_id === modalCamp.id)}
           onToggleCompare={() => toggleCompare(modalCamp.id)}
           isInCompare={compareList.includes(modalCamp.id)}
+          onSelectSimilar={(similarCamp) => {
+            setModalCamp(similarCamp);
+          }}
         />
       )}
     </div>
@@ -2075,9 +2327,26 @@ const DetailRow = memo(function DetailRow({ label, value }) {
 });
 
 // Camp Detail Modal - Editorial Magazine Style - memoized
-const CampDetailModal = memo(function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isFavorite, onToggleCompare, isInCompare }) {
+const CampDetailModal = memo(function CampDetailModal({
+  camp,
+  allCamps = [],
+  onClose,
+  onAddToSchedule,
+  onToggleFavorite,
+  isFavorite,
+  onToggleCompare,
+  isInCompare,
+  onSelectSimilar
+}) {
   const [imageError, setImageError] = useState(false);
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
+  const { findSimilarCamps } = useAuth();
+
+  // Get similar camps
+  const similarCamps = useMemo(() => {
+    if (!findSimilarCamps || allCamps.length === 0) return [];
+    return findSimilarCamps(camp, allCamps, 4);
+  }, [camp, allCamps, findSimilarCamps]);
 
   // Manage body overflow when modal is open
   useEffect(() => {
@@ -2422,6 +2691,46 @@ const CampDetailModal = memo(function CampDetailModal({ camp, onClose, onAddToSc
                 <p>{camp.notes}</p>
               </div>
             </div>
+          )}
+
+          {/* Similar Camps Section */}
+          {similarCamps.length > 0 && (
+            <section className="modal-similar-camps">
+              <h2 className="modal-section-title">Camps Like This</h2>
+              <p className="modal-similar-subtitle">Similar options you might like</p>
+              <div className="modal-similar-grid">
+                {similarCamps.map(({ camp: similarCamp, explanation }) => (
+                  <button
+                    key={similarCamp.id}
+                    className="modal-similar-card"
+                    onClick={() => onSelectSimilar?.(similarCamp)}
+                  >
+                    {similarCamp.image_url ? (
+                      <img
+                        src={similarCamp.image_url}
+                        alt=""
+                        className="modal-similar-img"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div
+                        className="modal-similar-img-fallback"
+                        style={{ background: categoryGradients[similarCamp.category] || 'var(--sand-200)' }}
+                      />
+                    )}
+                    <div className="modal-similar-info">
+                      <p className="modal-similar-name">{similarCamp.camp_name}</p>
+                      <p className="modal-similar-meta">
+                        {similarCamp.ages || 'All ages'} · {formatPrice(similarCamp)}
+                      </p>
+                      {explanation && (
+                        <p className="modal-similar-reason">{explanation}</p>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
           )}
         </div>
 

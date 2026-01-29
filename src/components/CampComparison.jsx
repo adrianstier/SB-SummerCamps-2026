@@ -2,6 +2,25 @@ import React, { useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FavoriteButton } from './FavoriteButton';
 import { createComparisonList, shareComparisonList } from '../lib/supabase';
+import './CampComparison.css';
+
+// Category colors for visual accents
+const CATEGORY_COLORS = {
+  'Beach/Surf': '#2d9599',
+  'Theater': '#a855f7',
+  'Dance': '#ec4899',
+  'Art': '#f59e0b',
+  'Science/STEM': '#3b82f6',
+  'Nature/Outdoor': '#22c55e',
+  'Sports': '#f97316',
+  'Music': '#6366f1',
+  'Cooking': '#ef4444',
+  'Faith-Based': '#8b5cf6',
+  'Animals/Zoo': '#84cc16',
+  'Multi-Activity': '#64748b',
+  'Education': '#14b8a6',
+  'Overnight': '#f43f5e',
+};
 
 // Format price for display
 function formatPrice(camp) {
@@ -30,14 +49,21 @@ function getNumericPrice(camp) {
   return isNaN(parsed) ? null : parsed;
 }
 
+// Get age range as object
+function getAgeRange(camp) {
+  const minAge = parseInt(camp.min_age) || 3;
+  const maxAge = parseInt(camp.max_age) || 18;
+  return { min: minAge, max: maxAge };
+}
+
 const COMPARISON_FIELDS = [
-  { key: 'category', label: 'Category', icon: '🏷️' },
-  { key: 'ages', label: 'Age Range', icon: '👶' },
-  { key: 'price', label: 'Price', icon: '💰', format: formatPrice },
+  { key: 'category', label: 'Category', icon: '🏷️', visualType: 'category' },
+  { key: 'ages', label: 'Age Range', icon: '👶', visualType: 'ageRange' },
+  { key: 'price', label: 'Price', icon: '💰', format: formatPrice, visualType: 'priceBar' },
   { key: 'hours', label: 'Hours', icon: '🕐' },
-  { key: 'indoor_outdoor', label: 'Indoor/Outdoor', icon: '🏠' },
-  { key: 'has_extended_care', label: 'Extended Care', icon: '⏰', type: 'boolean' },
-  { key: 'food_included', label: 'Food Included', icon: '🍽️', type: 'boolean' },
+  { key: 'indoor_outdoor', label: 'Indoor/Outdoor', icon: '🏠', visualType: 'badge' },
+  { key: 'has_extended_care', label: 'Extended Care', icon: '⏰', type: 'boolean', highlight: true },
+  { key: 'food_included', label: 'Food Included', icon: '🍽️', type: 'boolean', highlight: true },
   { key: 'has_transport', label: 'Transportation', icon: '🚌', type: 'boolean' },
   { key: 'has_sibling_discount', label: 'Sibling Discount', icon: '👨‍👩‍👧‍👦', type: 'boolean' },
   { key: 'address', label: 'Location', icon: '📍' },
@@ -53,6 +79,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
   const [saving, setSaving] = useState(false);
   const [shareUrl, setShareUrl] = useState(null);
   const [selectedChildId, setSelectedChildId] = useState(null);
+  const [viewMode, setViewMode] = useState('visual'); // 'visual' or 'table'
 
   // Get selected camps
   const selectedCamps = useMemo(() => {
@@ -75,6 +102,17 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
       .slice(0, 10);
   }, [camps, selectedCampIds, searchQuery]);
 
+  // Price stats for visual comparison
+  const priceStats = useMemo(() => {
+    const prices = selectedCamps.map(getNumericPrice).filter(p => p !== null);
+    if (prices.length === 0) return { min: 0, max: 0, avg: 0 };
+    return {
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+      avg: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
+    };
+  }, [selectedCamps]);
+
   // Find best value
   const bestValue = useMemo(() => {
     const campsWithPrices = selectedCamps.filter(c => getNumericPrice(c) !== null);
@@ -88,6 +126,19 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
   const bestExtendedCare = useMemo(() => {
     return selectedCamps.find(c => c.has_extended_care);
   }, [selectedCamps]);
+
+  // Calculate feature scores for each camp
+  const featureScores = useMemo(() => {
+    return selectedCamps.map(camp => {
+      let score = 0;
+      if (camp.has_extended_care) score += 2;
+      if (camp.food_included) score += 2;
+      if (camp.has_transport) score += 1;
+      if (camp.has_sibling_discount) score += 1;
+      if (getNumericPrice(camp) && getNumericPrice(camp) <= priceStats.avg) score += 1;
+      return { campId: camp.id, score, maxScore: 7 };
+    });
+  }, [selectedCamps, priceStats]);
 
   const handleSave = async () => {
     if (!user || !saveName.trim()) return;
@@ -141,16 +192,38 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
       <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="p-6 flex items-center justify-between" style={{ borderBottom: '1px solid var(--sand-200)' }}>
-          <div>
-            <h2 className="font-serif text-2xl font-semibold" style={{ color: 'var(--earth-800)' }}>
-              Compare Camps
-            </h2>
-            <p className="text-sm mt-1" style={{ color: 'var(--sand-400)' }}>
+        <div className="comparison-header">
+          <div className="comparison-header-left">
+            <h2 className="comparison-title">Compare Camps</h2>
+            <p className="comparison-subtitle">
               Comparing {selectedCamps.length} camp{selectedCamps.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="comparison-header-right">
+            {/* View Mode Toggle */}
+            <div className="comparison-view-toggle">
+              <button
+                className={`comparison-view-btn ${viewMode === 'visual' ? 'active' : ''}`}
+                onClick={() => setViewMode('visual')}
+                title="Visual comparison"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </button>
+              <button
+                className={`comparison-view-btn ${viewMode === 'table' ? 'active' : ''}`}
+                onClick={() => setViewMode('table')}
+                title="Table view"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path d="M3 6h18M3 12h18M3 18h18" />
+                </svg>
+              </button>
+            </div>
             {selectedCamps.length < 4 && (
               <button
                 onClick={() => setShowSearch(!showSearch)}
@@ -173,8 +246,8 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-sand-100 transition-colors"
-              style={{ color: 'var(--sand-400)' }}
+              className="comparison-close-btn"
+              aria-label="Close"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -222,7 +295,199 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
           </div>
         )}
 
-        {/* Comparison Table */}
+        {/* Visual Comparison Mode */}
+        {viewMode === 'visual' && (
+          <div className="comparison-visual-content">
+            {/* Camp Cards with Feature Scores */}
+            <div className="comparison-cards-row">
+              {selectedCamps.map((camp, index) => {
+                const catColor = CATEGORY_COLORS[camp.category] || '#64748b';
+                const score = featureScores.find(s => s.campId === camp.id);
+                const price = getNumericPrice(camp);
+                const ageRange = getAgeRange(camp);
+
+                return (
+                  <div key={camp.id} className="comparison-card" style={{ '--card-accent': catColor }}>
+                    <div className="comparison-card-header">
+                      <div className="comparison-card-accent" style={{ background: catColor }} />
+                      <button
+                        onClick={() => onRemoveCamp?.(camp.id)}
+                        className="comparison-card-remove"
+                        title="Remove"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="comparison-card-body">
+                      <div className="comparison-card-title-row">
+                        <h3 className="comparison-card-name">{camp.camp_name}</h3>
+                        <FavoriteButton campId={camp.id} size="sm" />
+                      </div>
+                      <span className="comparison-card-category" style={{ color: catColor }}>
+                        {camp.category}
+                      </span>
+
+                      {/* Feature Score Ring */}
+                      <div className="comparison-score-ring">
+                        <svg viewBox="0 0 36 36" className="comparison-score-svg">
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="var(--sand-200)" strokeWidth="3" />
+                          <circle
+                            cx="18" cy="18" r="15"
+                            fill="none"
+                            stroke={catColor}
+                            strokeWidth="3"
+                            strokeDasharray={`${(score.score / score.maxScore) * 94.2} 94.2`}
+                            strokeLinecap="round"
+                            transform="rotate(-90 18 18)"
+                          />
+                        </svg>
+                        <span className="comparison-score-value">{score.score}/{score.maxScore}</span>
+                        <span className="comparison-score-label">features</span>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="comparison-badges">
+                        {camp.id === bestValue?.id && (
+                          <span className="comparison-badge comparison-badge-value">Best Value</span>
+                        )}
+                        {camp.has_extended_care && (
+                          <span className="comparison-badge comparison-badge-feature">Ext. Care</span>
+                        )}
+                        {camp.food_included && (
+                          <span className="comparison-badge comparison-badge-feature">Food</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Visual Price Comparison */}
+            <div className="comparison-section">
+              <h4 className="comparison-section-title">
+                <span className="comparison-section-icon">💰</span>
+                Price Comparison
+              </h4>
+              <div className="comparison-price-bars">
+                {selectedCamps.map(camp => {
+                  const price = getNumericPrice(camp);
+                  const percentage = price ? ((price - priceStats.min) / (priceStats.max - priceStats.min || 1)) * 100 : 0;
+                  const catColor = CATEGORY_COLORS[camp.category] || '#64748b';
+                  const isBestValue = camp.id === bestValue?.id;
+
+                  return (
+                    <div key={camp.id} className="comparison-price-row">
+                      <span className="comparison-price-name">{camp.camp_name}</span>
+                      <div className="comparison-price-track">
+                        <div
+                          className="comparison-price-fill"
+                          style={{
+                            width: `${Math.max(percentage, 5)}%`,
+                            background: `linear-gradient(90deg, ${catColor}cc, ${catColor})`
+                          }}
+                        />
+                        {isBestValue && <span className="comparison-price-best">Best</span>}
+                      </div>
+                      <span className="comparison-price-value">{formatPrice(camp)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Price sparkline summary */}
+              <div className="comparison-price-summary">
+                <span>Range: {formatPrice({ price_min: priceStats.min })} - {formatPrice({ price_min: priceStats.max })}</span>
+                <span className="comparison-price-avg">Avg: {formatPrice({ price_min: priceStats.avg })}</span>
+              </div>
+            </div>
+
+            {/* Visual Age Range Comparison */}
+            <div className="comparison-section">
+              <h4 className="comparison-section-title">
+                <span className="comparison-section-icon">👶</span>
+                Age Range Coverage
+              </h4>
+              <div className="comparison-age-timeline">
+                <div className="comparison-age-labels">
+                  {[3, 5, 7, 9, 11, 13, 15, 17].map(age => (
+                    <span key={age} className="comparison-age-label">{age}</span>
+                  ))}
+                </div>
+                {selectedCamps.map(camp => {
+                  const range = getAgeRange(camp);
+                  const left = ((range.min - 3) / 15) * 100;
+                  const width = ((range.max - range.min) / 15) * 100;
+                  const catColor = CATEGORY_COLORS[camp.category] || '#64748b';
+
+                  return (
+                    <div key={camp.id} className="comparison-age-row">
+                      <span className="comparison-age-name">{camp.camp_name}</span>
+                      <div className="comparison-age-track">
+                        <div
+                          className="comparison-age-bar"
+                          style={{
+                            left: `${left}%`,
+                            width: `${Math.max(width, 5)}%`,
+                            background: catColor
+                          }}
+                        >
+                          <span className="comparison-age-range">{range.min}-{range.max}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Feature Checklist Grid */}
+            <div className="comparison-section">
+              <h4 className="comparison-section-title">
+                <span className="comparison-section-icon">✓</span>
+                Features at a Glance
+              </h4>
+              <div className="comparison-features-grid">
+                <div className="comparison-features-header">
+                  <div className="comparison-features-label">Feature</div>
+                  {selectedCamps.map(camp => (
+                    <div key={camp.id} className="comparison-features-camp">
+                      {camp.camp_name.split(' ').slice(0, 2).join(' ')}
+                    </div>
+                  ))}
+                </div>
+                {COMPARISON_FIELDS.filter(f => f.type === 'boolean').map(field => (
+                  <div key={field.key} className="comparison-features-row">
+                    <div className="comparison-features-label">
+                      <span className="comparison-features-icon">{field.icon}</span>
+                      {field.label}
+                    </div>
+                    {selectedCamps.map(camp => {
+                      const hasFeature = camp[field.key];
+                      return (
+                        <div key={camp.id} className={`comparison-features-cell ${hasFeature ? 'has-feature' : ''}`}>
+                          {hasFeature ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                              <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                            </svg>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Table Comparison Mode */}
+        {viewMode === 'table' && (
         <div className="overflow-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
           <table className="w-full">
             {/* Camp Headers */}
@@ -293,7 +558,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                   </td>
                   {selectedCamps.map(camp => (
                     <td key={camp.id} className="p-4">
-                      <ComparisonCell camp={camp} field={field} />
+                      <ComparisonCell camp={camp} field={field} allCamps={selectedCamps} priceStats={priceStats} />
                     </td>
                   ))}
                 </tr>
@@ -352,6 +617,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
             </tbody>
           </table>
         </div>
+        )}
 
         {/* Save for later */}
         {user && (
@@ -391,14 +657,89 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
   );
 }
 
-// Comparison Cell Component
-function ComparisonCell({ camp, field }) {
+// Comparison Cell Component with visual enhancements
+function ComparisonCell({ camp, field, allCamps, priceStats }) {
   let value;
 
   if (field.format) {
     value = field.format(camp);
   } else {
     value = camp[field.key];
+  }
+
+  // Category badge visualization
+  if (field.visualType === 'category') {
+    const catColor = CATEGORY_COLORS[value] || '#64748b';
+    return (
+      <span
+        className="inline-flex items-center gap-2 text-sm font-medium px-2.5 py-1 rounded-full"
+        style={{ background: `${catColor}15`, color: catColor }}
+      >
+        <span className="w-2 h-2 rounded-full" style={{ background: catColor }} />
+        {value || '—'}
+      </span>
+    );
+  }
+
+  // Price bar visualization
+  if (field.visualType === 'priceBar' && priceStats) {
+    const price = getNumericPrice(camp);
+    if (price === null) return <span className="text-sm" style={{ color: 'var(--sand-400)' }}>TBD</span>;
+
+    const percentage = ((price - priceStats.min) / (priceStats.max - priceStats.min || 1)) * 100;
+    const isBest = price === priceStats.min;
+
+    return (
+      <div className="comparison-cell-price">
+        <span className="comparison-cell-price-value">{value}</span>
+        <div className="comparison-cell-price-bar">
+          <div
+            className="comparison-cell-price-fill"
+            style={{ width: `${Math.max(percentage, 8)}%` }}
+          />
+        </div>
+        {isBest && <span className="comparison-cell-best-tag">Best</span>}
+      </div>
+    );
+  }
+
+  // Age range visualization
+  if (field.visualType === 'ageRange') {
+    const range = getAgeRange(camp);
+    return (
+      <div className="comparison-cell-age">
+        <span className="comparison-cell-age-text">{range.min}-{range.max} years</span>
+        <div className="comparison-cell-age-bar">
+          {Array.from({ length: 16 }, (_, i) => i + 3).map(age => (
+            <div
+              key={age}
+              className={`comparison-cell-age-dot ${age >= range.min && age <= range.max ? 'active' : ''}`}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Badge visualization for indoor/outdoor
+  if (field.visualType === 'badge') {
+    const isOutdoor = value?.toLowerCase().includes('outdoor');
+    const isIndoor = value?.toLowerCase().includes('indoor');
+    const isBoth = isOutdoor && isIndoor;
+
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 text-sm font-medium px-2 py-0.5 rounded-md ${
+          isBoth ? 'bg-purple-50 text-purple-600' :
+          isOutdoor ? 'bg-green-50 text-green-600' :
+          isIndoor ? 'bg-blue-50 text-blue-600' :
+          'bg-gray-50 text-gray-500'
+        }`}
+      >
+        {isBoth ? '🏡🌳' : isOutdoor ? '🌳' : isIndoor ? '🏡' : '—'}
+        {value || '—'}
+      </span>
+    );
   }
 
   if (field.type === 'boolean') {

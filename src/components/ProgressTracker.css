@@ -1,0 +1,260 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROGRESS TRACKER - Summer Planning Progress Component
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.progress-tracker {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.progress-tracker-detailed {
+  padding: var(--space-5) var(--space-6);
+}
+
+/* Header */
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.progress-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+}
+
+.progress-percent {
+  font-size: 1.25rem;
+  font-weight: var(--font-bold);
+  color: var(--ocean-600);
+}
+
+/* Streak Badge */
+.progress-streak {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: linear-gradient(135deg, #fef4f1 0%, #fff7ed 100%);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--terra-200);
+}
+
+.progress-streak-icon {
+  font-size: 0.875rem;
+}
+
+.progress-streak-count {
+  font-size: 0.75rem;
+  font-weight: var(--font-bold);
+  color: var(--terra-600);
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  position: relative;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-5); /* Space for milestones */
+}
+
+.progress-bar {
+  height: 10px;
+  background: var(--sand-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
+  border-radius: var(--radius-full);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.progress-complete {
+  background: linear-gradient(90deg, var(--ocean-500) 0%, #22c55e 100%);
+}
+
+.progress-complete-icon {
+  position: absolute;
+  right: 4px;
+  font-size: 0.625rem;
+  color: white;
+  font-weight: bold;
+}
+
+/* Milestones */
+.progress-milestones {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  height: 20px;
+}
+
+.progress-milestone {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.progress-milestone-marker {
+  width: 2px;
+  height: 6px;
+  background: var(--sand-400);
+  border-radius: 1px;
+  transition: background 0.3s ease;
+}
+
+.progress-milestone.reached .progress-milestone-marker {
+  background: var(--ocean-500);
+}
+
+.progress-milestone-label {
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  font-weight: var(--font-medium);
+  transition: color 0.3s ease;
+}
+
+.progress-milestone.reached .progress-milestone-label {
+  color: var(--ocean-600);
+}
+
+/* Status Text */
+.progress-status {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.progress-status-complete {
+  color: #16a34a;
+  font-weight: var(--font-semibold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.progress-gaps {
+  color: var(--terra-500);
+}
+
+/* Stats Grid */
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--sand-200);
+}
+
+.progress-stat {
+  text-align: center;
+}
+
+.progress-stat-value {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+.progress-stat-value.over-budget {
+  color: var(--terra-500);
+}
+
+.progress-stat-label {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Badges Hint */
+.progress-badges-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--sand-100);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.progress-badges-icon {
+  font-size: 0.875rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPACT VARIANT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.progress-tracker-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.progress-compact-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--sand-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-compact-fill {
+  height: 100%;
+  background: var(--ocean-500);
+  border-radius: var(--radius-full);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-compact-text {
+  font-size: 0.75rem;
+  font-weight: var(--font-medium);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .progress-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .progress-milestone-label {
+    display: none;
+  }
+
+  .progress-bar-container {
+    padding-bottom: var(--space-2);
+  }
+}

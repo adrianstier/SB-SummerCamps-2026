@@ -1,0 +1,415 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHAREABLE SUMMER CARD - Social Media Share Card
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.shareable-card-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: var(--space-4);
+  animation: fadeIn 0.2s ease;
+}
+
+.shareable-card-modal {
+  position: relative;
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.shareable-card-close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  padding: var(--space-2);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+}
+
+.shareable-card-close:hover {
+  background: var(--sand-100);
+  color: var(--color-text-secondary);
+}
+
+.shareable-card-header {
+  text-align: center;
+  margin-bottom: var(--space-5);
+}
+
+.shareable-card-title {
+  font-family: var(--font-family-serif, Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.shareable-card-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Theme selector */
+.shareable-card-themes {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.shareable-theme-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.shareable-theme-btn:hover {
+  transform: scale(1.1);
+}
+
+.shareable-theme-btn.active {
+  border-color: var(--earth-800);
+  transform: scale(1.15);
+  box-shadow: var(--shadow-md);
+}
+
+/* Card preview container */
+.shareable-card-preview {
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+/* The actual shareable card */
+.shareable-card {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--card-gradient);
+  color: white;
+  overflow: hidden;
+}
+
+.shareable-card-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+}
+
+.shareable-card-content {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5);
+}
+
+.shareable-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.shareable-card-label {
+  font-size: 0.6875rem;
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+}
+
+.shareable-card-brand {
+  font-size: 0.75rem;
+  font-weight: var(--font-bold);
+  opacity: 0.9;
+}
+
+.shareable-card-name {
+  font-family: var(--font-family-serif, Georgia, serif);
+  font-size: 1.5rem;
+  font-weight: var(--font-semibold);
+  margin: 0 0 var(--space-4) 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Progress ring */
+.shareable-progress-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shareable-progress-ring {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.shareable-progress-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.shareable-progress-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.2);
+  stroke-width: 8;
+}
+
+.shareable-progress-fill {
+  fill: none;
+  stroke: white;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.shareable-progress-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.shareable-progress-percent {
+  font-size: 2rem;
+  font-weight: var(--font-bold);
+  line-height: 1;
+}
+
+.shareable-progress-label {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+/* Stats row */
+.shareable-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.shareable-stat {
+  text-align: center;
+}
+
+.shareable-stat-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: var(--font-bold);
+}
+
+.shareable-stat-label {
+  font-size: 0.6875rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.shareable-stat-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255,255,255,0.3);
+}
+
+/* Categories */
+.shareable-categories {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.shareable-category {
+  padding: var(--space-1) var(--space-2);
+  background: rgba(255,255,255,0.2);
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: var(--font-medium);
+}
+
+/* Badges */
+.shareable-badges {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.shareable-badge {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.2);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+}
+
+/* Card footer */
+.shareable-card-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-3);
+  background: rgba(0,0,0,0.1);
+  text-align: center;
+  font-size: 0.6875rem;
+  opacity: 0.7;
+}
+
+/* Action buttons */
+.shareable-card-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.shareable-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.875rem;
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shareable-action-btn.secondary {
+  background: var(--sand-100);
+  border: 1px solid var(--sand-300);
+  color: var(--color-text-secondary);
+}
+
+.shareable-action-btn.secondary:hover {
+  background: var(--sand-200);
+}
+
+.shareable-action-btn.primary {
+  background: var(--ocean-500);
+  border: none;
+  color: white;
+}
+
+.shareable-action-btn.primary:hover {
+  background: var(--ocean-600);
+}
+
+.shareable-action-btn.primary.success {
+  background: #16a34a;
+}
+
+.shareable-action-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.shareable-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Share button trigger */
+.share-summer-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.8125rem;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  background: var(--sand-100);
+  border: 1px solid var(--sand-200);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.share-summer-btn:hover {
+  background: var(--sand-200);
+  border-color: var(--sand-300);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .shareable-card-modal {
+    padding: var(--space-4);
+    max-height: 95vh;
+  }
+
+  .shareable-card-name {
+    font-size: 1.25rem;
+  }
+
+  .shareable-progress-ring {
+    width: 120px;
+    height: 120px;
+  }
+
+  .shareable-progress-percent {
+    font-size: 1.5rem;
+  }
+
+  .shareable-card-actions {
+    flex-direction: column;
+  }
+}

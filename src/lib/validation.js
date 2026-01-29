@@ -154,6 +154,166 @@ export const ComparisonListSchema = z.object({
 });
 
 // ============================================================================
+// FAMILY COLLABORATION SCHEMAS
+// ============================================================================
+
+export const FamilySchema = z.object({
+  name: shortText.max(100),
+  settings: z.object({
+    require_approval: z.boolean().optional(),
+    notify_on_changes: z.boolean().optional(),
+    notify_on_suggestions: z.boolean().optional(),
+  }).optional(),
+});
+
+export const FamilyMemberSchema = z.object({
+  nickname: shortText.max(50).optional().nullable(),
+  can_edit_schedule: z.boolean().optional(),
+  can_approve_camps: z.boolean().optional(),
+  notify_schedule_changes: z.boolean().optional(),
+  notify_comments: z.boolean().optional(),
+  notify_suggestions: z.boolean().optional(),
+});
+
+export const FamilyInvitationSchema = z.object({
+  invitee_email: email,
+  message: safeText.max(500).optional(),
+});
+
+export const ScheduleCommentSchema = z.object({
+  family_id: uuid,
+  scheduled_camp_id: uuid.optional().nullable(),
+  week_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  child_id: uuid.optional().nullable(),
+  comment_text: safeText.min(1).max(2000),
+  parent_comment_id: uuid.optional().nullable(),
+});
+
+export const CampSuggestionSchema = z.object({
+  family_id: uuid,
+  camp_id: z.string().min(1).max(200), // Camp IDs can vary in format
+  suggested_to: uuid.optional().nullable(),
+  child_id: uuid.optional().nullable(),
+  week_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  note: safeText.max(500).optional(),
+});
+
+export const ApprovalRequestSchema = z.object({
+  family_id: uuid,
+  camp_id: z.string().min(1).max(200),
+  child_id: uuid,
+  week_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  week_end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  requested_price: z.number().min(0).max(10000).optional().nullable(),
+  note: safeText.max(500).optional(),
+});
+
+// ============================================================================
+// NOTIFICATION SCHEMAS
+// ============================================================================
+
+export const NotificationTypeSchema = z.enum([
+  'registration_reminder',
+  'registration_open',
+  'registration_opening_alert',
+  'new_session',
+  'camp_update',
+  'review_reply',
+  'question_answered',
+  'schedule_reminder',
+  'price_drop',
+  'early_bird_deadline',
+  'spots_available',
+  'waitlist_update',
+  'new_camp_match',
+  'schedule_conflict',
+  'coverage_gap_reminder',
+  'friend_activity',
+  'friend_match',
+  'squad_member_joined',
+  'squad_schedule_change',
+  'budget_alert',
+  'camp_session_filling',
+  'weekly_digest',
+  'system'
+]);
+
+export const NotificationCategorySchema = z.enum([
+  'registration',
+  'pricing',
+  'schedule',
+  'social',
+  'system',
+  'general'
+]);
+
+export const NotificationPrioritySchema = z.enum(['low', 'normal', 'high', 'urgent']);
+
+export const NotificationPreferencesSchema = z.object({
+  // Global settings
+  notifications_enabled: z.boolean().optional(),
+  email_enabled: z.boolean().optional(),
+  push_enabled: z.boolean().optional(),
+  quiet_hours_start: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
+  quiet_hours_end: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
+
+  // Registration alerts
+  registration_alerts_enabled: z.boolean().optional(),
+  registration_alert_days: z.number().int().min(1).max(30).optional(),
+  registration_opening_email: z.boolean().optional(),
+  registration_opening_push: z.boolean().optional(),
+
+  // Price notifications
+  price_drop_enabled: z.boolean().optional(),
+  price_drop_email: z.boolean().optional(),
+  price_drop_threshold: z.number().int().min(1).max(100).optional(),
+  early_bird_reminder_enabled: z.boolean().optional(),
+  early_bird_days_before: z.number().int().min(1).max(14).optional(),
+
+  // Waitlist notifications
+  waitlist_updates_enabled: z.boolean().optional(),
+  waitlist_email: z.boolean().optional(),
+  waitlist_position_change: z.boolean().optional(),
+  waitlist_spot_available: z.boolean().optional(),
+
+  // New camp notifications
+  new_camp_match_enabled: z.boolean().optional(),
+  new_camp_email: z.boolean().optional(),
+  match_by_category: z.boolean().optional(),
+  match_by_age: z.boolean().optional(),
+  match_by_price: z.boolean().optional(),
+
+  // Schedule notifications
+  schedule_conflict_enabled: z.boolean().optional(),
+  schedule_conflict_email: z.boolean().optional(),
+  coverage_gap_enabled: z.boolean().optional(),
+  coverage_gap_email: z.boolean().optional(),
+  coverage_reminder_day: z.enum(['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']).optional(),
+
+  // Friend/Squad notifications
+  friend_activity_enabled: z.boolean().optional(),
+  friend_activity_email: z.boolean().optional(),
+  friend_match_enabled: z.boolean().optional(),
+  friend_match_email: z.boolean().optional(),
+  squad_updates_enabled: z.boolean().optional(),
+  squad_email: z.boolean().optional(),
+
+  // Digest settings
+  weekly_digest_enabled: z.boolean().optional(),
+  weekly_digest_day: z.enum(['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']).optional(),
+  weekly_digest_time: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  digest_include_recommendations: z.boolean().optional(),
+  digest_include_price_changes: z.boolean().optional(),
+  digest_include_registration_dates: z.boolean().optional(),
+  digest_include_coverage_status: z.boolean().optional(),
+
+  // Budget alerts
+  budget_alerts_enabled: z.boolean().optional(),
+  budget_warning_threshold: z.number().int().min(1).max(100).optional(),
+  budget_exceeded_email: z.boolean().optional(),
+});
+
+// ============================================================================
 // VALIDATION HELPER
 // ============================================================================
 
@@ -204,6 +364,16 @@ export default {
   SquadSchema,
   SquadMembershipSchema,
   ComparisonListSchema,
+  FamilySchema,
+  FamilyMemberSchema,
+  FamilyInvitationSchema,
+  ScheduleCommentSchema,
+  CampSuggestionSchema,
+  ApprovalRequestSchema,
+  NotificationTypeSchema,
+  NotificationCategorySchema,
+  NotificationPrioritySchema,
+  NotificationPreferencesSchema,
   validate,
   sanitizeString,
 };

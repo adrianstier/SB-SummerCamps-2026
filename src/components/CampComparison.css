@@ -1,0 +1,650 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   CAMP COMPARISON - Enhanced Visual Comparison Mode
+   Beautiful side-by-side camp comparison with visual diffs
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Header */
+.comparison-header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--sand-200);
+  background: linear-gradient(135deg, var(--sand-50) 0%, white 100%);
+}
+
+.comparison-header-left {
+  flex-shrink: 0;
+}
+
+.comparison-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  margin: 0 0 0.25rem;
+}
+
+.comparison-subtitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--sand-500);
+  margin: 0;
+}
+
+.comparison-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* View Toggle */
+.comparison-view-toggle {
+  display: flex;
+  background: var(--sand-100);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.comparison-view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--earth-500);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.comparison-view-btn:hover {
+  color: var(--earth-700);
+}
+
+.comparison-view-btn.active {
+  background: white;
+  color: var(--ocean-600);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.comparison-close-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: var(--sand-400);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.comparison-close-btn:hover {
+  background: var(--sand-100);
+  color: var(--earth-700);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISUAL COMPARISON MODE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.comparison-visual-content {
+  padding: 1.5rem 2rem 2rem;
+  overflow-y: auto;
+  max-height: calc(90vh - 200px);
+}
+
+/* Camp Cards Row */
+.comparison-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.comparison-card {
+  position: relative;
+  background: white;
+  border: 1px solid var(--sand-200);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.comparison-card:hover {
+  border-color: var(--card-accent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.comparison-card-header {
+  position: relative;
+  height: 6px;
+}
+
+.comparison-card-accent {
+  position: absolute;
+  inset: 0;
+}
+
+.comparison-card-remove {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: none;
+  border-radius: 6px;
+  color: var(--sand-400);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.comparison-card:hover .comparison-card-remove {
+  opacity: 1;
+}
+
+.comparison-card-remove:hover {
+  color: var(--terra-500);
+  background: var(--terra-50);
+}
+
+.comparison-card-body {
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.comparison-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.comparison-card-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.comparison-card-category {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Score Ring */
+.comparison-score-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 1rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.comparison-score-svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.comparison-score-value {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  line-height: 1;
+}
+
+.comparison-score-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--sand-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Badges */
+.comparison-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  justify-content: center;
+}
+
+.comparison-badge {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.comparison-badge-value {
+  background: var(--sage-100);
+  color: var(--sage-700);
+}
+
+.comparison-badge-feature {
+  background: var(--ocean-100);
+  color: var(--ocean-700);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPARISON SECTIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.comparison-section {
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: var(--sand-50);
+  border-radius: 14px;
+}
+
+.comparison-section:last-child {
+  margin-bottom: 0;
+}
+
+.comparison-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--earth-700);
+  margin: 0 0 1rem;
+}
+
+.comparison-section-icon {
+  font-size: 1rem;
+}
+
+/* Price Comparison Bars */
+.comparison-price-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.comparison-price-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 70px;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .comparison-price-row {
+    grid-template-columns: 100px 1fr 60px;
+    gap: 0.75rem;
+  }
+}
+
+.comparison-price-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--earth-700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comparison-price-track {
+  position: relative;
+  height: 24px;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.comparison-price-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.comparison-price-best {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sage-700);
+  background: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+}
+
+.comparison-price-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  text-align: right;
+}
+
+.comparison-price-summary {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--sand-200);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  color: var(--sand-500);
+}
+
+.comparison-price-avg {
+  font-weight: 600;
+  color: var(--earth-600);
+}
+
+/* Age Timeline */
+.comparison-age-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comparison-age-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 100px 0 140px;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .comparison-age-labels {
+    padding: 0 60px 0 100px;
+  }
+}
+
+.comparison-age-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--sand-400);
+}
+
+.comparison-age-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .comparison-age-row {
+    grid-template-columns: 100px 1fr;
+  }
+}
+
+.comparison-age-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--earth-700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comparison-age-track {
+  position: relative;
+  height: 28px;
+  background: white;
+  border-radius: 6px;
+}
+
+.comparison-age-bar {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.comparison-age-range {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Features Grid */
+.comparison-features-grid {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.comparison-features-header,
+.comparison-features-row {
+  display: grid;
+  grid-template-columns: 160px repeat(auto-fit, minmax(80px, 1fr));
+  align-items: center;
+}
+
+.comparison-features-header {
+  background: var(--sand-100);
+  padding: 0.75rem 1rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--earth-600);
+}
+
+.comparison-features-row {
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--sand-100);
+}
+
+.comparison-features-row:last-child {
+  border-bottom: none;
+}
+
+.comparison-features-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--earth-700);
+}
+
+.comparison-features-icon {
+  font-size: 0.875rem;
+}
+
+.comparison-features-camp {
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comparison-features-cell {
+  display: flex;
+  justify-content: center;
+  color: var(--sand-300);
+}
+
+.comparison-features-cell.has-feature {
+  color: var(--sage-600);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABLE VIEW CELL ENHANCEMENTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Price Cell */
+.comparison-cell-price {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.comparison-cell-price-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--earth-800);
+}
+
+.comparison-cell-price-bar {
+  height: 6px;
+  background: var(--sand-200);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.comparison-cell-price-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ocean-400), var(--ocean-500));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.comparison-cell-best-tag {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sage-700);
+  background: var(--sage-100);
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  align-self: flex-start;
+}
+
+/* Age Cell */
+.comparison-cell-age {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.comparison-cell-age-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-700);
+}
+
+.comparison-cell-age-bar {
+  display: flex;
+  gap: 2px;
+}
+
+.comparison-cell-age-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--sand-200);
+  transition: background 0.2s ease;
+}
+
+.comparison-cell-age-dot.active {
+  background: var(--ocean-400);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .comparison-header {
+    padding: 1rem 1.25rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .comparison-header-right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .comparison-title {
+    font-size: 1.25rem;
+  }
+
+  .comparison-visual-content {
+    padding: 1rem;
+  }
+
+  .comparison-cards-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .comparison-card-body {
+    padding: 0.875rem;
+  }
+
+  .comparison-card-name {
+    font-size: 0.8125rem;
+  }
+
+  .comparison-score-ring {
+    width: 64px;
+    height: 64px;
+    margin: 0.75rem auto;
+  }
+
+  .comparison-score-value {
+    font-size: 1rem;
+  }
+
+  .comparison-section {
+    padding: 1rem;
+  }
+
+  .comparison-features-grid {
+    overflow-x: auto;
+  }
+
+  .comparison-features-header,
+  .comparison-features-row {
+    min-width: 400px;
+  }
+}

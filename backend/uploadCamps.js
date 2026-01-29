@@ -23,6 +23,19 @@ async function uploadCamps() {
   const campsPath = path.join(__dirname, '..', 'data', 'camps.json');
   const campsData = JSON.parse(fs.readFileSync(campsPath, 'utf-8'));
 
+  // Merge image URLs from camp-images.json
+  const imagesPath = path.join(__dirname, '..', 'data', 'camp-images.json');
+  if (fs.existsSync(imagesPath)) {
+    const imagesData = JSON.parse(fs.readFileSync(imagesPath, 'utf-8'));
+    const imageMap = new Map(imagesData.map(img => [img.id, img.image_url]));
+    campsData.forEach(camp => {
+      if (!camp.image_url && imageMap.has(camp.id)) {
+        camp.image_url = imageMap.get(camp.id);
+      }
+    });
+    console.log(`Merged ${imageMap.size} image URLs from camp-images.json`);
+  }
+
   console.log(`Found ${campsData.length} camps to upload`);
 
   // Transform data to match table schema
@@ -71,7 +84,13 @@ async function uploadCamps() {
     is_closed: camp.is_closed || false,
     last_updated: camp.last_updated ? new Date(camp.last_updated).toISOString() : null,
     scrape_timestamp: camp.scrape_timestamp || null,
-    scrape_status: camp.scrape_status || null
+    scrape_status: camp.scrape_status || null,
+    extracted: camp.extracted || {},
+    pdf_links: camp.pdf_links || [],
+    social_media: camp.social_media || {},
+    image_url: camp.image_url || null,
+    has_2026: camp.has_2026 || false,
+    pages_scraped: camp.pages_scraped || []
   }));
 
   console.log('Uploading to Supabase...');

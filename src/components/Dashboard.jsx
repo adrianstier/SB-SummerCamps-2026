@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { FavoriteButton } from './FavoriteButton';
 import { getSummerWeeks2026 } from '../lib/supabase';
 import { formatPriceShort } from '../lib/formatters';
+import { GapSuggestions } from './RecommendationSection';
 import './Dashboard.css';
 
 export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
@@ -129,11 +130,12 @@ export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
 
               {recommendations.length > 0 ? (
                 <div className="dashboard-reco-list">
-                  {recommendations.map(({ camp, score }) => (
+                  {recommendations.map(({ camp, score, explanation }) => (
                     <RecoCard
                       key={camp.id}
                       camp={camp}
                       score={score}
+                      explanation={explanation}
                       onSelect={() => onSelectCamp?.(camp)}
                     />
                   ))}
@@ -145,6 +147,17 @@ export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
               )}
             </section>
           </div>
+
+          {/* Gap Suggestions - Only show if there are gaps */}
+          {totalGaps > 0 && (
+            <GapSuggestions
+              camps={camps}
+              onSelectCamp={onSelectCamp}
+              onScheduleCamp={(camp) => {
+                onOpenPlanner?.();
+              }}
+            />
+          )}
         </div>
 
         {/* Footer CTA */}
@@ -188,7 +201,7 @@ function ScheduleCard({ scheduled }) {
 }
 
 // Recommendation Card Component
-function RecoCard({ camp, score, onSelect }) {
+function RecoCard({ camp, score, explanation, onSelect }) {
   return (
     <div className="reco-card" onClick={onSelect}>
       <div className="reco-card-info">
@@ -196,6 +209,9 @@ function RecoCard({ camp, score, onSelect }) {
         <p className="reco-card-meta">
           {camp.category} · {formatPriceShort(camp)}
         </p>
+        {explanation && (
+          <p className="reco-card-reason">{explanation}</p>
+        )}
       </div>
       <div className="reco-card-fav" onClick={e => e.stopPropagation()}>
         <FavoriteButton campId={camp.id} size="sm" />

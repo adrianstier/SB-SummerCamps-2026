@@ -3,6 +3,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import {
+  loadCampConfig,
+  extractWithClaude,
+  mergeWithCSVFallback,
+  checkNeedsReview,
+  addToReviewQueue
+} from './lib/claude-extractor.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, '..', 'data');
@@ -1157,7 +1164,7 @@ function extractCampInfo(text, html, existingCamp, structuredData = null) {
 
 // Scrape a single camp website with retry logic and multi-page crawling
 async function scrapeCamp(browser, camp, retryCount = 0, options = {}) {
-  const { useCache = true, forceFresh = false } = options;
+  const { useCache = true, forceFresh = false, withAI = false } = options;
 
   if (!camp.website_url || camp.website_url === 'N/A' || camp.website_url.includes('CLOSED')) {
     return { ...camp, scrape_status: 'skipped', scrape_reason: 'No valid URL' };
@@ -1298,8 +1305,75 @@ async function scrapeCamp(browser, camp, retryCount = 0, options = {}) {
     }
 
     // === EXTRACT ALL INFORMATION ===
+    // First, do regex-based extraction (fast, no API cost)
     scrapedData.extracted = extractCampInfo(allText, pageHtml, camp, structuredData);
     scrapedData.scrape_status = 'success';
+
+    // === AI-ENHANCED EXTRACTION (optional) ===
+    if (withAI) {
+      try {
+        console.log(`    🤖 Running Claude AI extraction...`);
+
+        // Load camp-specific config if available
+        const campConfig = await loadCampConfig(camp.id);
+
+        // Build page contents map for Claude
+        const pageContents = {
+          main: allText.substring(0, 10000) // Main page content (truncated)
+        };
+
+        // Add subpage contents
+        for (const scraped of scrapedData.pages_scraped || []) {
+          if (scraped.type && scraped.type !== 'main') {
+            // Extract content section for this page type
+            const marker = `--- ${scraped.type.toUpperCase()} PAGE ---`;
+            const idx = allText.indexOf(marker);
+            if (idx !== -1) {
+              pageContents[scraped.type] = allText.substring(idx, idx + 6000);
+            }
+          }
+        }
+
+        // Run Claude extraction
+        const aiExtracted = await extractWithClaude(
+          campConfig || { name: camp.camp_name, data_hints: {} },
+          pageContents,
+          camp // CSV baseline data
+        );
+
+        // Merge AI extraction with CSV fallback
+        const merged = mergeWithCSVFallback(aiExtracted, camp);
+
+        // Preserve regex extraction but enhance with AI data
+        scrapedData.extracted = {
+          ...scrapedData.extracted,
+          ...merged,
+          _extraction_method: 'ai+regex',
+          _ai_confidence: aiExtracted.confidence,
+          _ai_notes: aiExtracted.extraction_notes
+        };
+
+        // Check if any fields need manual review
+        const needsReview = checkNeedsReview(aiExtracted, 70);
+        if (needsReview.length > 0) {
+          console.log(`    ⚠️ Low confidence fields: ${needsReview.map(r => r.field).join(', ')}`);
+          await addToReviewQueue(
+            camp.id,
+            needsReview,
+            aiExtracted,
+            campConfig?.pages || { main: camp.website_url }
+          );
+        }
+
+        console.log(`    ✅ AI extraction complete`);
+      } catch (aiError) {
+        console.log(`    ❌ AI extraction failed: ${aiError.message}`);
+        scrapedData.extracted._extraction_method = 'regex_only';
+        scrapedData.extracted._ai_error = aiError.message;
+      }
+    } else {
+      scrapedData.extracted._extraction_method = 'regex_only';
+    }
 
     // Merge image-detected activities with text-detected activities
     if (scrapedData.image_detected?.activities) {
@@ -1421,12 +1495,18 @@ async function processCampsInParallel(browser, camps, concurrency, options = {})
 
 // Main scraper function
 async function runScraper(options = {}) {
-  const { singleCamp, limit, concurrency = CONFIG.concurrency, forceFresh = false, noCache = false } = options;
+  const { singleCamp, limit, concurrency = CONFIG.concurrency, forceFresh = false, noCache = false, withAI = false } = options;
 
   console.log('Starting optimized camp scraper...');
   console.log(`Concurrency: ${concurrency} parallel scrapers`);
   console.log(`Data directory: ${DATA_DIR}`);
   console.log(`Cache: ${noCache ? 'disabled' : (forceFresh ? 'force refresh' : 'enabled')}`);
+  console.log(`AI Extraction: ${withAI ? 'ENABLED (Claude)' : 'disabled (regex only)'}`);
+
+  if (withAI && !process.env.ANTHROPIC_API_KEY) {
+    console.error('ERROR: --with-ai requires ANTHROPIC_API_KEY environment variable');
+    process.exit(1);
+  }
 
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.mkdir(PDF_DIR, { recursive: true });
@@ -1460,7 +1540,7 @@ async function runScraper(options = {}) {
 
   try {
     console.log(`\nScraping ${camps.length} camps...`);
-    const scrapeOptions = { useCache: !noCache, forceFresh };
+    const scrapeOptions = { useCache: !noCache, forceFresh, withAI };
     ({ results, scrapeLog } = await processCampsInParallel(browser, camps, concurrency, scrapeOptions));
   } finally {
     await browser.close();
@@ -1512,6 +1592,7 @@ Options:
   --concurrency <n>   Number of parallel scrapers (default: ${CONFIG.concurrency})
   --fresh             Force fresh scrape (ignore cache)
   --no-cache          Disable caching entirely
+  --with-ai           Use Claude AI for semantic extraction (requires ANTHROPIC_API_KEY)
   --help              Show this help
 
 Features:
@@ -1537,7 +1618,8 @@ Examples:
   const campName = args[idx + 1];
   const forceFresh = args.includes('--fresh');
   const noCache = args.includes('--no-cache');
-  runScraper({ singleCamp: campName, forceFresh, noCache }).catch(console.error);
+  const withAI = args.includes('--with-ai');
+  runScraper({ singleCamp: campName, forceFresh, noCache, withAI }).catch(console.error);
 } else if (args.includes('--limit')) {
   const idx = args.indexOf('--limit');
   const limit = parseInt(args[idx + 1]);
@@ -1545,13 +1627,15 @@ Examples:
   const concurrency = concurrencyIdx >= 0 ? parseInt(args[concurrencyIdx + 1]) : CONFIG.concurrency;
   const forceFresh = args.includes('--fresh');
   const noCache = args.includes('--no-cache');
-  runScraper({ limit, concurrency, forceFresh, noCache }).catch(console.error);
+  const withAI = args.includes('--with-ai');
+  runScraper({ limit, concurrency, forceFresh, noCache, withAI }).catch(console.error);
 } else if (import.meta.url === `file://${process.argv[1]}`) {
   const concurrencyIdx = args.indexOf('--concurrency');
   const concurrency = concurrencyIdx >= 0 ? parseInt(args[concurrencyIdx + 1]) : CONFIG.concurrency;
   const forceFresh = args.includes('--fresh');
+  const withAI = args.includes('--with-ai');
   const noCache = args.includes('--no-cache');
-  runScraper({ concurrency, forceFresh, noCache }).catch(console.error);
+  runScraper({ concurrency, forceFresh, noCache, withAI }).catch(console.error);
 }
 
 export { runScraper, loadCampsFromCSV };

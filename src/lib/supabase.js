@@ -11,6 +11,13 @@ import {
   SquadSchema,
   SquadMembershipSchema,
   ComparisonListSchema,
+  NotificationPreferencesSchema,
+  FamilySchema,
+  FamilyMemberSchema,
+  FamilyInvitationSchema,
+  ScheduleCommentSchema,
+  CampSuggestionSchema,
+  ApprovalRequestSchema,
   sanitizeString
 } from './validation.js';
 
@@ -1659,4 +1666,1278 @@ export async function updateFavorite(campId, updates) {
     .eq('camp_id', campId)
     .select()
     .single();
+}
+
+// ============================================================================
+// FAMILY COLLABORATION HELPERS
+// ============================================================================
+
+/**
+ * Get all families the user belongs to
+ */
+export async function getFamilies() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('families')
+    .select(`
+      *,
+      family_members(
+        id,
+        user_id,
+        role,
+        status,
+        nickname,
+        can_edit_schedule,
+        can_approve_camps,
+        profiles(id, full_name, avatar_url)
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching families:', error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Create a new family workspace
+ */
+export async function createFamily(name) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Validate input
+  const validation = validate(FamilySchema, { name });
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  // Create the family
+  const { data: family, error: familyError } = await supabase
+    .from('families')
+    .insert({
+      name: sanitizeString(validation.data.name),
+      created_by: user.id
+    })
+    .select()
+    .single();
+
+  if (familyError) return { error: familyError };
+
+  // Add creator as owner member
+  const { error: memberError } = await supabase
+    .from('family_members')
+    .insert({
+      family_id: family.id,
+      user_id: user.id,
+      role: 'owner',
+      can_edit_schedule: true,
+      can_approve_camps: true
+    });
+
+  if (memberError) return { error: memberError };
+
+  return { data: family };
+}
+
+/**
+ * Update family settings
+ */
+export async function updateFamily(familyId, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Only allow name and settings fields
+  const allowedUpdates = {};
+  if (updates.name !== undefined) allowedUpdates.name = sanitizeString(updates.name);
+  if (updates.settings !== undefined) allowedUpdates.settings = updates.settings;
+
+  return supabase
+    .from('families')
+    .update({ ...allowedUpdates, updated_at: new Date().toISOString() })
+    .eq('id', familyId)
+    .select()
+    .single();
+}
+
+/**
+ * Delete a family (owner only)
+ */
+export async function deleteFamily(familyId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('families')
+    .delete()
+    .eq('id', familyId);
+}
+
+/**
+ * Get family by invite code
+ */
+export async function getFamilyByInviteCode(code) {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .rpc('get_family_by_invite_code', { p_code: code });
+
+  if (error) {
+    console.error('Error fetching family by invite code:', error);
+    return null;
+  }
+  return data?.[0] || null;
+}
+
+/**
+ * Join a family using invite code
+ */
+export async function joinFamily(familyId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('family_members')
+    .insert({
+      family_id: familyId,
+      user_id: user.id,
+      role: 'member',
+      can_edit_schedule: true,
+      can_approve_camps: false
+    })
+    .select()
+    .single();
+}
+
+/**
+ * Leave a family
+ */
+export async function leaveFamily(familyId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('family_members')
+    .delete()
+    .eq('family_id', familyId)
+    .eq('user_id', user.id);
+}
+
+/**
+ * Update family member settings
+ */
+export async function updateFamilyMember(familyId, memberId, updates) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Validate input
+  const validation = validate(FamilyMemberSchema, updates);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  return supabase
+    .from('family_members')
+    .update({ ...validation.data, updated_at: new Date().toISOString() })
+    .eq('family_id', familyId)
+    .eq('user_id', memberId)
+    .select()
+    .single();
+}
+
+/**
+ * Remove a family member (admin only)
+ */
+export async function removeFamilyMember(familyId, memberId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('family_members')
+    .delete()
+    .eq('family_id', familyId)
+    .eq('user_id', memberId);
+}
+
+/**
+ * Regenerate family invite code
+ */
+export async function regenerateFamilyInviteCode(familyId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  // Generate new random code
+  const newCode = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  return supabase
+    .from('families')
+    .update({ invite_code: newCode })
+    .eq('id', familyId)
+    .select()
+    .single();
+}
+
+/**
+ * Invite someone to family by email
+ */
+export async function inviteToFamily(familyId, inviteeEmail, message = null) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Validate input
+  const validation = validate(FamilyInvitationSchema, { invitee_email: inviteeEmail, message });
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  return supabase
+    .from('family_invitations')
+    .insert({
+      family_id: familyId,
+      inviter_id: user.id,
+      invitee_email: validation.data.invitee_email,
+      message: message ? sanitizeString(message) : null
+    })
+    .select()
+    .single();
+}
+
+/**
+ * Get pending invitations for current user
+ */
+export async function getMyInvitations() {
+  if (!supabase) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('family_invitations')
+    .select(`
+      *,
+      families(name),
+      profiles:inviter_id(full_name, avatar_url)
+    `)
+    .eq('invitee_email', user.email)
+    .eq('status', 'pending')
+    .gt('expires_at', new Date().toISOString());
+
+  if (error) {
+    console.error('Error fetching invitations:', error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Respond to family invitation
+ */
+export async function respondToInvitation(invitationId, accept) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // Update invitation status
+  const { data: invitation, error: updateError } = await supabase
+    .from('family_invitations')
+    .update({
+      status: accept ? 'accepted' : 'declined',
+      invitee_user_id: user.id,
+      responded_at: new Date().toISOString()
+    })
+    .eq('id', invitationId)
+    .select('family_id')
+    .single();
+
+  if (updateError) return { error: updateError };
+
+  // If accepted, join the family
+  if (accept && invitation) {
+    return joinFamily(invitation.family_id);
+  }
+
+  return { data: { success: true } };
+}
+
+// ============================================================================
+// SCHEDULE COMMENTS HELPERS
+// ============================================================================
+
+/**
+ * Get comments for a family's schedule
+ */
+export async function getScheduleComments(familyId, filters = {}) {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from('schedule_comments')
+    .select(`
+      *,
+      profiles:user_id(full_name, avatar_url),
+      replies:schedule_comments(
+        id,
+        comment_text,
+        created_at,
+        profiles:user_id(full_name, avatar_url)
+      )
+    `)
+    .eq('family_id', familyId)
+    .is('parent_comment_id', null) // Only top-level comments
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
+
+  if (filters.scheduled_camp_id) {
+    query = query.eq('scheduled_camp_id', filters.scheduled_camp_id);
+  }
+  if (filters.week_date) {
+    query = query.eq('week_date', filters.week_date);
+  }
+  if (filters.child_id) {
+    query = query.eq('child_id', filters.child_id);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching comments:', error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Add a comment to the schedule
+ */
+export async function addScheduleComment(comment) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Validate input
+  const validation = validate(ScheduleCommentSchema, comment);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  const { data, error } = await supabase
+    .from('schedule_comments')
+    .insert({
+      ...validation.data,
+      user_id: user.id,
+      comment_text: sanitizeString(validation.data.comment_text)
+    })
+    .select(`
+      *,
+      profiles:user_id(full_name, avatar_url)
+    `)
+    .single();
+
+  if (error) return { error };
+
+  // Record activity
+  if (data) {
+    await supabase.from('family_activity_feed').insert({
+      family_id: validation.data.family_id,
+      user_id: user.id,
+      activity_type: validation.data.parent_comment_id ? 'comment_reply' : 'comment_added',
+      target_type: 'comment',
+      target_id: data.id,
+      child_id: validation.data.child_id,
+      week_date: validation.data.week_date
+    });
+  }
+
+  return { data };
+}
+
+/**
+ * Update a comment
+ */
+export async function updateScheduleComment(commentId, text) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('schedule_comments')
+    .update({
+      comment_text: sanitizeString(text),
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', commentId)
+    .select()
+    .single();
+}
+
+/**
+ * Delete a comment (soft delete)
+ */
+export async function deleteScheduleComment(commentId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('schedule_comments')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', commentId);
+}
+
+/**
+ * Pin/unpin a comment
+ */
+export async function toggleCommentPin(commentId, isPinned) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('schedule_comments')
+    .update({ is_pinned: isPinned })
+    .eq('id', commentId)
+    .select()
+    .single();
+}
+
+// ============================================================================
+// CAMP SUGGESTIONS HELPERS
+// ============================================================================
+
+/**
+ * Get camp suggestions for a family
+ */
+export async function getCampSuggestions(familyId, status = null) {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from('camp_suggestions')
+    .select(`
+      *,
+      suggested_by_profile:profiles!camp_suggestions_suggested_by_fkey(full_name, avatar_url),
+      suggested_to_profile:profiles!camp_suggestions_suggested_to_fkey(full_name, avatar_url),
+      children(name, color)
+    `)
+    .eq('family_id', familyId)
+    .order('created_at', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching suggestions:', error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Suggest a camp to family member(s)
+ */
+export async function suggestCamp(suggestion) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Validate input
+  const validation = validate(CampSuggestionSchema, suggestion);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  const { data, error } = await supabase
+    .from('camp_suggestions')
+    .insert({
+      ...validation.data,
+      suggested_by: user.id,
+      note: validation.data.note ? sanitizeString(validation.data.note) : null
+    })
+    .select()
+    .single();
+
+  if (error) return { error };
+
+  // Record activity
+  if (data) {
+    await supabase.from('family_activity_feed').insert({
+      family_id: validation.data.family_id,
+      user_id: user.id,
+      activity_type: 'suggestion_sent',
+      target_type: 'suggestion',
+      target_id: data.id,
+      camp_id: validation.data.camp_id,
+      child_id: validation.data.child_id,
+      week_date: validation.data.week_date
+    });
+  }
+
+  return { data };
+}
+
+/**
+ * Respond to a camp suggestion
+ */
+export async function respondToSuggestion(suggestionId, accept) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  const { data, error } = await supabase
+    .from('camp_suggestions')
+    .update({
+      status: accept ? 'accepted' : 'declined',
+      responded_by: user.id,
+      responded_at: new Date().toISOString()
+    })
+    .eq('id', suggestionId)
+    .select('family_id, camp_id, child_id, week_date')
+    .single();
+
+  if (error) return { error };
+
+  // Record activity
+  if (data) {
+    await supabase.from('family_activity_feed').insert({
+      family_id: data.family_id,
+      user_id: user.id,
+      activity_type: accept ? 'suggestion_accepted' : 'suggestion_declined',
+      target_type: 'suggestion',
+      target_id: suggestionId,
+      camp_id: data.camp_id,
+      child_id: data.child_id,
+      week_date: data.week_date
+    });
+  }
+
+  return { data };
+}
+
+// ============================================================================
+// APPROVAL REQUESTS HELPERS
+// ============================================================================
+
+/**
+ * Get approval requests for a family
+ */
+export async function getApprovalRequests(familyId, status = null) {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from('approval_requests')
+    .select(`
+      *,
+      requested_by_profile:profiles!approval_requests_requested_by_fkey(full_name, avatar_url),
+      decided_by_profile:profiles!approval_requests_decided_by_fkey(full_name, avatar_url),
+      children(name, color)
+    `)
+    .eq('family_id', familyId)
+    .order('created_at', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching approval requests:', error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Request approval to add a camp
+ */
+export async function requestApproval(request) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Validate input
+  const validation = validate(ApprovalRequestSchema, request);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  const { data, error } = await supabase
+    .from('approval_requests')
+    .insert({
+      ...validation.data,
+      requested_by: user.id,
+      note: validation.data.note ? sanitizeString(validation.data.note) : null
+    })
+    .select()
+    .single();
+
+  if (error) return { error };
+
+  // Record activity
+  if (data) {
+    await supabase.from('family_activity_feed').insert({
+      family_id: validation.data.family_id,
+      user_id: user.id,
+      activity_type: 'approval_requested',
+      target_type: 'approval',
+      target_id: data.id,
+      camp_id: validation.data.camp_id,
+      child_id: validation.data.child_id,
+      week_date: validation.data.week_start
+    });
+  }
+
+  return { data };
+}
+
+/**
+ * Respond to an approval request
+ */
+export async function respondToApproval(requestId, approve, decisionNote = null) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  const { data, error } = await supabase
+    .from('approval_requests')
+    .update({
+      status: approve ? 'approved' : 'denied',
+      decided_by: user.id,
+      decision_note: decisionNote ? sanitizeString(decisionNote) : null,
+      decided_at: new Date().toISOString()
+    })
+    .eq('id', requestId)
+    .select('family_id, camp_id, child_id, week_start, week_end, requested_price')
+    .single();
+
+  if (error) return { error };
+
+  // Record activity
+  if (data) {
+    await supabase.from('family_activity_feed').insert({
+      family_id: data.family_id,
+      user_id: user.id,
+      activity_type: approve ? 'approval_approved' : 'approval_denied',
+      target_type: 'approval',
+      target_id: requestId,
+      camp_id: data.camp_id,
+      child_id: data.child_id,
+      week_date: data.week_start
+    });
+  }
+
+  return { data };
+}
+
+// ============================================================================
+// FAMILY ACTIVITY FEED HELPERS
+// ============================================================================
+
+/**
+ * Get activity feed for a family
+ */
+export async function getFamilyActivityFeed(familyId, limit = 50, offset = 0) {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('family_activity_feed')
+    .select(`
+      *,
+      profiles:user_id(full_name, avatar_url),
+      children(name, color)
+    `)
+    .eq('family_id', familyId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error('Error fetching activity feed:', error);
+    return [];
+  }
+  return data;
+}
+
+// ============================================================================
+// FAMILY NOTIFICATIONS HELPERS
+// ============================================================================
+
+/**
+ * Get family notifications for current user
+ */
+export async function getFamilyNotifications(unreadOnly = false) {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from('family_notifications')
+    .select(`
+      *,
+      families(name),
+      from_user:profiles!family_notifications_from_user_id_fkey(full_name, avatar_url)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (unreadOnly) {
+    query = query.eq('read', false);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching family notifications:', error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Mark a family notification as read
+ */
+export async function markFamilyNotificationRead(notificationId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('family_notifications')
+    .update({ read: true, read_at: new Date().toISOString() })
+    .eq('id', notificationId);
+}
+
+/**
+ * Mark all family notifications as read
+ */
+export async function markAllFamilyNotificationsRead() {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase.rpc('mark_all_family_notifications_read', { p_user_id: user.id });
+}
+
+/**
+ * Get unread family notification count
+ */
+export async function getUnreadFamilyNotificationCount() {
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from('family_notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('read', false);
+
+  if (error) return 0;
+  return count || 0;
+}
+
+// ============================================================================
+// REAL-TIME SUBSCRIPTION HELPERS
+// ============================================================================
+
+/**
+ * Subscribe to family notifications
+ */
+export function subscribeFamilyNotifications(userId, callback) {
+  if (!supabase) return { unsubscribe: () => {} };
+
+  const subscription = supabase
+    .channel(`family-notifications-${userId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'family_notifications',
+        filter: `user_id=eq.${userId}`
+      },
+      (payload) => {
+        callback(payload.new);
+      }
+    )
+    .subscribe();
+
+  return {
+    unsubscribe: () => {
+      supabase.removeChannel(subscription);
+    }
+  };
+}
+
+/**
+ * Subscribe to family activity feed
+ */
+export function subscribeFamilyActivity(familyId, callback) {
+  if (!supabase) return { unsubscribe: () => {} };
+
+  const subscription = supabase
+    .channel(`family-activity-${familyId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'family_activity_feed',
+        filter: `family_id=eq.${familyId}`
+      },
+      (payload) => {
+        callback(payload.new);
+      }
+    )
+    .subscribe();
+
+  return {
+    unsubscribe: () => {
+      supabase.removeChannel(subscription);
+    }
+  };
+}
+
+/**
+ * Subscribe to schedule comments
+ */
+export function subscribeScheduleComments(familyId, callback) {
+  if (!supabase) return { unsubscribe: () => {} };
+
+  const subscription = supabase
+    .channel(`schedule-comments-${familyId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'schedule_comments',
+        filter: `family_id=eq.${familyId}`
+      },
+      (payload) => {
+        callback(payload.eventType, payload.new || payload.old);
+      }
+    )
+    .subscribe();
+
+  return {
+    unsubscribe: () => {
+      supabase.removeChannel(subscription);
+    }
+  };
+}
+
+/**
+ * Subscribe to camp suggestions
+ */
+export function subscribeCampSuggestions(familyId, callback) {
+  if (!supabase) return { unsubscribe: () => {} };
+
+  const subscription = supabase
+    .channel(`camp-suggestions-${familyId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'camp_suggestions',
+        filter: `family_id=eq.${familyId}`
+      },
+      (payload) => {
+        callback(payload.eventType, payload.new || payload.old);
+      }
+    )
+    .subscribe();
+
+  return {
+    unsubscribe: () => {
+      supabase.removeChannel(subscription);
+    }
+  };
+}
+
+/**
+ * Subscribe to approval requests
+ */
+export function subscribeApprovalRequests(familyId, callback) {
+  if (!supabase) return { unsubscribe: () => {} };
+
+  const subscription = supabase
+    .channel(`approval-requests-${familyId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'approval_requests',
+        filter: `family_id=eq.${familyId}`
+      },
+      (payload) => {
+        callback(payload.eventType, payload.new || payload.old);
+      }
+    )
+    .subscribe();
+
+  return {
+    unsubscribe: () => {
+      supabase.removeChannel(subscription);
+    }
+  };
+}
+
+// ============================================================================
+// ENHANCED NOTIFICATIONS HELPERS
+// ============================================================================
+
+/**
+ * Get all notifications with optional filters
+ * @param {Object} options - Filter options
+ * @param {boolean} options.unreadOnly - Only return unread notifications
+ * @param {string} options.category - Filter by category
+ * @param {number} options.limit - Maximum notifications to return
+ * @returns {Promise<Array>} Array of notifications
+ */
+export async function getNotificationsEnhanced(options = {}) {
+  if (!supabase) return [];
+
+  const { unreadOnly = false, category = null, limit = 50 } = options;
+
+  let query = supabase
+    .from('notifications')
+    .select(`
+      *,
+      children(name, color)
+    `)
+    .eq('dismissed', false)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (unreadOnly) {
+    query = query.eq('read', false);
+  }
+
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  // Filter out expired notifications
+  query = query.or('expires_at.is.null,expires_at.gt.now()');
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching notifications:', error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Get notification counts by category
+ * @returns {Promise<Object>} Object with category counts
+ */
+export async function getNotificationCounts() {
+  if (!supabase) return {};
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return {};
+
+  const { data, error } = await supabase.rpc('get_notification_counts', { p_user_id: user.id });
+
+  if (error) {
+    console.error('Error fetching notification counts:', error);
+    return {};
+  }
+
+  // Convert array to object
+  const counts = {};
+  (data || []).forEach(row => {
+    counts[row.category] = parseInt(row.count);
+  });
+  return counts;
+}
+
+/**
+ * Dismiss a notification (soft delete)
+ * @param {string} id - Notification ID
+ */
+export async function dismissNotification(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('notifications')
+    .update({ dismissed: true })
+    .eq('id', id);
+}
+
+/**
+ * Dismiss all notifications
+ */
+export async function dismissAllNotifications() {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('notifications')
+    .update({ dismissed: true })
+    .eq('user_id', user.id)
+    .eq('dismissed', false);
+}
+
+/**
+ * Delete a notification permanently
+ * @param {string} id - Notification ID
+ */
+export async function deleteNotification(id) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('notifications')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+}
+
+// ============================================================================
+// NOTIFICATION PREFERENCES HELPERS
+// ============================================================================
+
+/**
+ * Get user's notification preferences
+ * @returns {Promise<Object|null>} Notification preferences object
+ */
+export async function getNotificationPreferences() {
+  if (!supabase) return null;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('notification_preferences')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error) {
+    // If no preferences exist, return defaults
+    if (error.code === 'PGRST116') {
+      return getDefaultNotificationPreferences();
+    }
+    console.error('Error fetching notification preferences:', error);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Update user's notification preferences
+ * @param {Object} preferences - Notification preferences to update
+ */
+export async function updateNotificationPreferences(preferences) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // SECURITY: Validate input
+  const validation = validate(NotificationPreferencesSchema, preferences);
+  if (!validation.success) {
+    return { error: { message: validation.error } };
+  }
+
+  // Upsert to handle case where preferences don't exist yet
+  return supabase
+    .from('notification_preferences')
+    .upsert({
+      user_id: user.id,
+      ...validation.data,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id'
+    })
+    .select()
+    .single();
+}
+
+/**
+ * Get default notification preferences
+ * @returns {Object} Default preferences
+ */
+export function getDefaultNotificationPreferences() {
+  return {
+    // Global settings
+    notifications_enabled: true,
+    email_enabled: true,
+    push_enabled: false,
+    quiet_hours_start: null,
+    quiet_hours_end: null,
+
+    // Registration alerts
+    registration_alerts_enabled: true,
+    registration_alert_days: 7,
+    registration_opening_email: true,
+    registration_opening_push: true,
+
+    // Price notifications
+    price_drop_enabled: true,
+    price_drop_email: true,
+    price_drop_threshold: 10,
+    early_bird_reminder_enabled: true,
+    early_bird_days_before: 3,
+
+    // Waitlist notifications
+    waitlist_updates_enabled: true,
+    waitlist_email: true,
+    waitlist_position_change: true,
+    waitlist_spot_available: true,
+
+    // New camp notifications
+    new_camp_match_enabled: true,
+    new_camp_email: false,
+    match_by_category: true,
+    match_by_age: true,
+    match_by_price: true,
+
+    // Schedule notifications
+    schedule_conflict_enabled: true,
+    schedule_conflict_email: false,
+    coverage_gap_enabled: true,
+    coverage_gap_email: false,
+    coverage_reminder_day: 'monday',
+
+    // Friend/Squad notifications
+    friend_activity_enabled: true,
+    friend_activity_email: false,
+    friend_match_enabled: true,
+    friend_match_email: true,
+    squad_updates_enabled: true,
+    squad_email: false,
+
+    // Digest settings
+    weekly_digest_enabled: true,
+    weekly_digest_day: 'sunday',
+    weekly_digest_time: '09:00',
+    digest_include_recommendations: true,
+    digest_include_price_changes: true,
+    digest_include_registration_dates: true,
+    digest_include_coverage_status: true,
+
+    // Budget alerts
+    budget_alerts_enabled: true,
+    budget_warning_threshold: 80,
+    budget_exceeded_email: true,
+  };
+}
+
+// ============================================================================
+// NOTIFICATION SUBSCRIPTIONS HELPERS
+// ============================================================================
+
+/**
+ * Subscribe to notifications for a specific camp
+ * @param {string} campId - Camp ID to watch
+ * @param {Object} options - Subscription options
+ */
+export async function subscribeTocamp(campId, options = {}) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  const subscription = {
+    user_id: user.id,
+    camp_id: campId,
+    watch_registration: options.watchRegistration ?? true,
+    watch_price: options.watchPrice ?? true,
+    watch_availability: options.watchAvailability ?? true,
+    watch_friends: options.watchFriends ?? false,
+    target_price: options.targetPrice ?? null,
+    child_id: options.childId ?? null,
+    week_number: options.weekNumber ?? null,
+  };
+
+  return supabase
+    .from('notification_subscriptions')
+    .upsert(subscription, {
+      onConflict: 'user_id,camp_id,child_id,week_number'
+    })
+    .select()
+    .single();
+}
+
+/**
+ * Unsubscribe from camp notifications
+ * @param {string} campId - Camp ID
+ */
+export async function unsubscribeFromCamp(campId) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  return supabase
+    .from('notification_subscriptions')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('camp_id', campId);
+}
+
+/**
+ * Get all notification subscriptions
+ */
+export async function getNotificationSubscriptions() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('notification_subscriptions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching subscriptions:', error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Create a notification (client-side, for immediate in-app notifications)
+ * Note: Most notifications should be created server-side via triggers/functions
+ */
+export async function createClientNotification(type, title, message, options = {}) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // Use the database function to respect user preferences
+  const { data, error } = await supabase.rpc('create_notification', {
+    p_user_id: user.id,
+    p_type: type,
+    p_title: title,
+    p_message: message,
+    p_category: options.category || 'general',
+    p_priority: options.priority || 'normal',
+    p_camp_id: options.campId || null,
+    p_child_id: options.childId || null,
+    p_squad_id: options.squadId || null,
+    p_scheduled_camp_id: options.scheduledCampId || null,
+    p_data: options.data || {},
+    p_action_url: options.actionUrl || null,
+    p_expires_at: options.expiresAt || null,
+  });
+
+  if (error) {
+    console.error('Error creating notification:', error);
+    return { error };
+  }
+
+  return { data: { id: data } };
 }

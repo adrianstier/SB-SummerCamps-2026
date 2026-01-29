@@ -6,3 +6,6 @@ dist
 coverage
 *.log
 .vercel
+test-results
+playwright-report
+e2e/.auth

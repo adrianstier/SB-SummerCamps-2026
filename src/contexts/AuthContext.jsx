@@ -15,8 +15,16 @@ import {
   getSquadNotifications,
   getUnreadSquadNotificationCount,
   getCampInterests,
-  getFriendInterestCounts
+  getFriendInterestCounts,
+  getSummerWeeks2026
 } from '../lib/supabase';
+import {
+  getRecommendations,
+  getSimilarCamps,
+  getGapSuggestions,
+  getPopularCamps,
+  getPersonalizedHomepage
+} from '../lib/recommendations';
 
 const AuthContext = createContext(null);
 
@@ -318,62 +326,53 @@ export function AuthProvider({ children }) {
     });
   }, [scheduledCamps]);
 
-  // Recommendation scoring weights
-  const SCORE_WEIGHTS = {
-    CATEGORY_MATCH: 30,
-    AGE_MATCH: 25,
-    FAVORITED: 15,
-    HAS_DESCRIPTION: 5,
-    HAS_CONTACT: 5,
-    HAS_WEBSITE: 5,
-    HAS_EXTENDED_CARE: 5,
-    FOOD_INCLUDED: 3,
-  };
+  // Build recommendation context from current user state
+  const buildRecommendationContext = useCallback(function buildRecommendationContext(allCamps) {
+    return {
+      profile,
+      children: familyChildren,
+      favorites,
+      scheduledCamps,
+      allCamps,
+      summerWeeks: getSummerWeeks2026()
+    };
+  }, [profile, familyChildren, favorites, scheduledCamps]);
 
-  // Get recommended camps based on preferences and children
-  const getRecommendationScores = useCallback(function getRecommendationScores(camps) {
-    if (!profile || familyChildren.length === 0) return [];
+  // Get recommended camps based on preferences and children (enhanced version)
+  const getRecommendationScores = useCallback(function getRecommendationScores(camps, limit = 10) {
+    if (!camps || camps.length === 0) return [];
 
-    const preferredCategories = profile.preferred_categories || [];
-    const childAges = familyChildren.map(c => c.age_as_of_summer).filter(Boolean);
+    // Use the new recommendation system
+    const context = buildRecommendationContext(camps);
+    return getRecommendations(camps, context, limit);
+  }, [buildRecommendationContext]);
 
-    return camps.map(camp => {
-      let score = 0;
+  // Get camps similar to a specific camp
+  const findSimilarCamps = useCallback(function findSimilarCamps(camp, allCamps, limit = 4) {
+    if (!camp || !allCamps) return [];
+    return getSimilarCamps(camp, allCamps, limit);
+  }, []);
 
-      // Category match (high weight)
-      if (preferredCategories.includes(camp.category)) {
-        score += SCORE_WEIGHTS.CATEGORY_MATCH;
-      }
+  // Get suggestions to fill coverage gaps
+  const getGapFillingSuggestions = useCallback(function getGapFillingSuggestions(camps) {
+    if (!camps || camps.length === 0) return {};
+    const context = buildRecommendationContext(camps);
+    return getGapSuggestions(camps, context);
+  }, [buildRecommendationContext]);
 
-      // Age match
-      if (childAges.length > 0) {
-        const campMinAge = parseInt(camp.min_age) || 0;
-        const campMaxAge = parseInt(camp.max_age) || 18;
-        const hasMatchingAge = childAges.some(age => age >= campMinAge && age <= campMaxAge);
-        if (hasMatchingAge) {
-          score += SCORE_WEIGHTS.AGE_MATCH;
-        }
-      }
+  // Get popular camps in the area
+  const getPopularInArea = useCallback(function getPopularInArea(camps, limit = 6) {
+    if (!camps || camps.length === 0) return [];
+    // TODO: Fetch actual popularity data from database
+    return getPopularCamps(camps, {}, limit);
+  }, []);
 
-      // Already favorited (boost)
-      if (favorites.some(f => f.camp_id === camp.id)) {
-        score += SCORE_WEIGHTS.FAVORITED;
-      }
-
-      // Has good data (boost)
-      if (camp.description && camp.description.length > 100) score += SCORE_WEIGHTS.HAS_DESCRIPTION;
-      if (camp.contact_email || camp.contact_phone) score += SCORE_WEIGHTS.HAS_CONTACT;
-      if (camp.website_url && camp.website_url !== 'N/A') score += SCORE_WEIGHTS.HAS_WEBSITE;
-
-      // Features boost
-      if (camp.has_extended_care) score += SCORE_WEIGHTS.HAS_EXTENDED_CARE;
-      if (camp.food_included) score += SCORE_WEIGHTS.FOOD_INCLUDED;
-
-      return { camp, score };
-    })
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score);
-  }, [profile, familyChildren, favorites]);
+  // Get personalized homepage content
+  const getHomepageContent = useCallback(function getHomepageContent(camps) {
+    if (!camps || camps.length === 0) return { greeting: 'Find the right camp', sections: [] };
+    const context = buildRecommendationContext(camps);
+    return getPersonalizedHomepage(camps, context);
+  }, [buildRecommendationContext]);
 
   // Get dashboard stats
   const getDashboardStats = useCallback(function getDashboardStats() {
@@ -432,8 +431,12 @@ export function AuthProvider({ children }) {
     refreshSquadNotifications,
     refreshCampInterests,
     refreshFriendInterests,
-    // Recommendations
+    // Recommendations (enhanced)
     getRecommendationScores,
+    findSimilarCamps,
+    getGapFillingSuggestions,
+    getPopularInArea,
+    getHomepageContent,
     getDashboardStats
   }), [
     user,
@@ -468,6 +471,10 @@ export function AuthProvider({ children }) {
     refreshCampInterests,
     refreshFriendInterests,
     getRecommendationScores,
+    findSimilarCamps,
+    getGapFillingSuggestions,
+    getPopularInArea,
+    getHomepageContent,
     getDashboardStats
   ]);
 
