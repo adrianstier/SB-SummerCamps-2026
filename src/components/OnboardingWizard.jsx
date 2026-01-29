@@ -301,7 +301,7 @@ export function OnboardingWizard({ onComplete }) {
                   Setting up...
                 </span>
               ) : (
-                'Start Exploring!'
+                'Start Exploring'
               )}
             </button>
           ) : (
@@ -331,28 +331,28 @@ function WelcomeStep({ profile }) {
         Welcome{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''}!
       </h2>
       <p className="text-lg mb-6" style={{ color: 'var(--earth-700)' }}>
-        Set up your family profile.
+        Quick setup for personalized recommendations.
       </p>
       <div className="flex flex-col gap-4 text-left max-w-md mx-auto p-6 rounded-2xl" style={{ background: 'var(--sand-50)' }}>
         <div className="flex items-start gap-3">
           <span className="text-xl">1.</span>
           <div>
             <p className="font-medium" style={{ color: 'var(--earth-800)' }}>Add your children</p>
-            <p className="text-sm" style={{ color: 'var(--earth-600)' }}>We'll match camps to their ages and interests</p>
+            <p className="text-sm" style={{ color: 'var(--earth-600)' }}>We match camps to their ages</p>
           </div>
         </div>
         <div className="flex items-start gap-3">
           <span className="text-xl">2.</span>
           <div>
             <p className="font-medium" style={{ color: 'var(--earth-800)' }}>Set your preferences</p>
-            <p className="text-sm" style={{ color: 'var(--earth-600)' }}>Tell us what types of camps interest you</p>
+            <p className="text-sm" style={{ color: 'var(--earth-600)' }}>Pick categories you like</p>
           </div>
         </div>
         <div className="flex items-start gap-3">
           <span className="text-xl">3.</span>
           <div>
-            <p className="font-medium" style={{ color: 'var(--earth-800)' }}>Get personalized recommendations</p>
-            <p className="text-sm" style={{ color: 'var(--earth-600)' }}>Find and plan the perfect summer</p>
+            <p className="font-medium" style={{ color: 'var(--earth-800)' }}>Get personalized picks</p>
+            <p className="text-sm" style={{ color: 'var(--earth-600)' }}>See camps that fit</p>
           </div>
         </div>
       </div>
@@ -535,7 +535,7 @@ function PreferencesStep({ preferences, setPreferences, toggleCategory }) {
           What types of camps interest you?
         </h2>
         <p style={{ color: 'var(--earth-600)' }}>
-          Select all that apply. We'll use these to personalize your recommendations.
+          Select all that apply for personalized picks.
         </p>
       </div>
 
@@ -587,7 +587,7 @@ function PreferencesStep({ preferences, setPreferences, toggleCategory }) {
             style={{ borderColor: 'var(--sand-200)' }}
           />
           <p className="text-sm mt-1" style={{ color: 'var(--sand-400)' }}>
-            Helps us show camps closest to you
+            For sorting by distance
           </p>
         </div>
 
@@ -627,7 +627,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
       {tourChoice === null ? (
         <>
           <p className="text-lg mb-8" style={{ color: 'var(--earth-700)' }}>
-            Want a quick tour to see how planning works?
+            How would you like to start?
           </p>
 
           <div className="max-w-md mx-auto space-y-3 mb-6">
@@ -646,7 +646,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
                     Quick Tour with Sample Data <span style={{ color: 'var(--ocean-500)' }}>(Recommended)</span>
                   </p>
                   <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
-                    See how the planner works with example kids and camps. Clear it when ready.
+                    See how planning works with sample data. Clear when ready.
                   </p>
                 </div>
               </div>
@@ -667,7 +667,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
                     Skip Tour, Start Planning
                   </p>
                   <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
-                    Jump straight to your empty planner. Explore on your own.
+                    Go straight to an empty planner.
                   </p>
                 </div>
               </div>
@@ -677,7 +677,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
       ) : (
         <>
           <p className="text-lg mb-8" style={{ color: 'var(--earth-700)' }}>
-            Here's what we learned about your family:
+            Your family at a glance:
           </p>
 
       <div className="max-w-md mx-auto space-y-4 text-left">
@@ -724,7 +724,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
       </div>
 
           <p className="text-sm mt-8" style={{ color: 'var(--sand-400)' }}>
-            Click "Start Exploring!" to {tourChoice === 'tour' ? 'begin your guided tour' : 'see personalized camp recommendations'}
+            Click "Start Exploring" to {tourChoice === 'tour' ? 'begin the tour' : 'see your picks'}
           </p>
         </>
       )}

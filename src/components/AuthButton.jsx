@@ -73,10 +73,13 @@ export function AuthButton() {
           <div
             className="fixed inset-0 z-40"
             onClick={() => setShowMenu(false)}
+            aria-hidden="true"
           />
-          <div
+          <nav
             className="absolute right-0 top-full mt-2 w-64 rounded-xl shadow-lg z-50 overflow-hidden"
             style={{ background: 'white', border: '1px solid var(--sand-200)' }}
+            role="menu"
+            aria-label="User menu"
           >
             <div className="p-4" style={{ borderBottom: '1px solid var(--sand-100)' }}>
               <p className="font-semibold" style={{ color: 'var(--earth-800)' }}>
@@ -87,14 +90,15 @@ export function AuthButton() {
               </p>
             </div>
 
-            <div className="p-2">
+            <div className="p-2" role="group">
               <button
                 onClick={() => {
                   setShowMenu(false);
                   window.dispatchEvent(new CustomEvent('navigate', { detail: 'dashboard' }));
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)]"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)] focus:bg-[var(--sand-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--earth-700)' }}
+                role="menuitem"
               >
                 <DashboardIcon />
                 <span>Dashboard</span>
@@ -106,8 +110,9 @@ export function AuthButton() {
                   // Navigate to schedule planner
                   window.dispatchEvent(new CustomEvent('navigate', { detail: 'planner' }));
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)]"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)] focus:bg-[var(--sand-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--earth-700)' }}
+                role="menuitem"
               >
                 <CalendarIcon />
                 <span>My Schedule</span>
@@ -118,8 +123,9 @@ export function AuthButton() {
                   setShowMenu(false);
                   window.dispatchEvent(new CustomEvent('navigate', { detail: 'favorites' }));
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)]"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)] focus:bg-[var(--sand-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--earth-700)' }}
+                role="menuitem"
               >
                 <HeartIcon />
                 <span>Favorites</span>
@@ -130,8 +136,9 @@ export function AuthButton() {
                   setShowMenu(false);
                   window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }));
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)]"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)] focus:bg-[var(--sand-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--earth-700)' }}
+                role="menuitem"
               >
                 <ChildIcon />
                 <span>My Children</span>
@@ -139,14 +146,15 @@ export function AuthButton() {
             </div>
 
             {profile?.role === 'admin' && (
-              <div className="p-2" style={{ borderTop: '1px solid var(--sand-100)' }}>
+              <div className="p-2" style={{ borderTop: '1px solid var(--sand-100)' }} role="group">
                 <button
                   onClick={() => {
                     setShowMenu(false);
                     window.dispatchEvent(new CustomEvent('navigate', { detail: 'admin' }));
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--ocean-50)]"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--ocean-50)] focus:bg-[var(--ocean-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                   style={{ color: 'var(--ocean-600)' }}
+                  role="menuitem"
                 >
                   <AdminIcon />
                   <span>Admin Dashboard</span>
@@ -154,20 +162,21 @@ export function AuthButton() {
               </div>
             )}
 
-            <div className="p-2" style={{ borderTop: '1px solid var(--sand-100)' }}>
+            <div className="p-2" style={{ borderTop: '1px solid var(--sand-100)' }} role="group">
               <button
                 onClick={() => {
                   setShowMenu(false);
                   signOut();
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--terra-50)]"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--terra-50)] focus:bg-[var(--terra-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--terra-500)' }}
+                role="menuitem"
               >
                 <LogoutIcon />
                 <span>Sign Out</span>
               </button>
             </div>
-          </div>
+          </nav>
         </>
       )}
     </div>

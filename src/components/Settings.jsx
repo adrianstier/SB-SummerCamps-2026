@@ -156,7 +156,7 @@ export function Settings({ onClose }) {
               <div>
                 <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>School Calendar</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
-                  Set your school dates to accurately calculate summer coverage needs.
+                  Set school dates to calculate summer coverage.
                 </p>
 
                 {/* School preset selector */}
@@ -247,7 +247,7 @@ export function Settings({ onClose }) {
               <div>
                 <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>Work Schedule</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
-                  Set your work hours to filter camps that provide coverage during your workday.
+                  Filter camps that cover your workday hours.
                 </p>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -313,7 +313,7 @@ export function Settings({ onClose }) {
 
                 <div className="mt-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--earth-50)' }}>
                   <p className="text-sm" style={{ color: 'var(--earth-600)' }}>
-                    When filtering camps, we'll show camps that cover your hours directly or with extended care.
+                    Filters show camps with direct coverage or extended care.
                   </p>
                 </div>
               </div>
@@ -326,7 +326,7 @@ export function Settings({ onClose }) {
               <div>
                 <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>Summer Budget</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
-                  Set a budget to track your summer camp spending.
+                  Track your total summer spend.
                 </p>
 
                 <div>
@@ -390,7 +390,7 @@ export function Settings({ onClose }) {
               <div>
                 <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>Notification Preferences</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
-                  Choose which notifications you'd like to receive.
+                  Choose what updates you receive.
                 </p>
 
                 <div className="space-y-3">

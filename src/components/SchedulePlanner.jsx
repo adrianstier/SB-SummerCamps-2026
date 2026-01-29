@@ -196,7 +196,7 @@ export function SchedulePlanner({ camps, onClose }) {
             Supabase not configured
           </h2>
           <p className="mb-6" style={{ color: 'var(--earth-700)' }}>
-            Connect to Supabase to enable the schedule planner.
+            Connect to Supabase to start planning.
           </p>
           <button onClick={onClose} className="btn-primary">Got it</button>
         </div>
@@ -513,6 +513,16 @@ export function SchedulePlanner({ camps, onClose }) {
     const blocked = getBlockedWeek(week.weekNum);
     const isBlockMenuOpen = showBlockMenu?.weekNum === week.weekNum;
 
+    // Build accessible label for the week
+    const weekStatus = blocked
+      ? `blocked for ${blocked.label}`
+      : weekCamps.length > 0
+        ? `${weekCamps.length} camp${weekCamps.length > 1 ? 's' : ''} scheduled`
+        : isGap
+          ? 'empty, coverage gap'
+          : 'empty';
+    const ariaLabel = `Week ${week.weekNum}, ${week.display}, ${weekStatus}. ${weekCamps.length === 0 && !blocked ? 'Press Enter to add a camp or block this week.' : ''}`;
+
     return (
       <div
         key={week.weekNum}
@@ -520,6 +530,7 @@ export function SchedulePlanner({ camps, onClose }) {
         style={blocked ? { '--block-color': blocked.color } : { '--child-color': selectedChildData?.color || 'var(--ocean-500)' }}
         role="button"
         tabIndex={0}
+        aria-label={ariaLabel}
         onDragOver={(e) => {
           e.preventDefault();
           if (!blocked) setDragOverWeek(week.weekNum);
@@ -561,6 +572,7 @@ export function SchedulePlanner({ camps, onClose }) {
                   handleUnblockWeek(week.weekNum);
                 }}
                 className="week-blocked-remove"
+                aria-label={`Remove ${blocked.label} block`}
               >
                 <XIcon />
               </button>
@@ -584,6 +596,7 @@ export function SchedulePlanner({ camps, onClose }) {
                       <button
                         onClick={(e) => handleRemoveCamp(sc.id, e)}
                         className="camp-card-remove"
+                        aria-label={`Remove ${campInfo?.camp_name || 'camp'} from schedule`}
                       >
                         <XIcon />
                       </button>
@@ -636,7 +649,7 @@ export function SchedulePlanner({ camps, onClose }) {
           <div className="week-block-menu" onClick={(e) => e.stopPropagation()}>
             <div className="block-menu-header">
               <span>What's happening?</span>
-              <button onClick={() => setShowBlockMenu(null)} className="block-menu-close">
+              <button onClick={() => setShowBlockMenu(null)} className="block-menu-close" aria-label="Close menu">
                 <XIcon />
               </button>
             </div>
@@ -839,17 +852,17 @@ export function SchedulePlanner({ camps, onClose }) {
 
       {/* Main Content Area */}
       {activeTab === 'squads' ? (
-        <div className="planner-main" style={{ padding: 0 }}>
+        <div key="squads" className="planner-main tab-content-enter" style={{ padding: 0 }}>
           <SquadsPanel onClose={onClose} />
         </div>
       ) : activeTab === 'status' ? (
-        <main className="planner-main">
+        <main key="status" className="planner-main tab-content-enter">
           {/* Status Board View */}
           {children.length === 0 ? (
             <div className="planner-empty">
               <div className="planner-empty-icon">👨‍👩‍👧‍👦</div>
               <h2 className="planner-empty-title">Add your children first</h2>
-              <p className="planner-empty-text">Create profiles for each child to start planning their summer adventure.</p>
+              <p className="planner-empty-text">Add children to plan each schedule separately.</p>
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }))}
                 className="btn-primary"
@@ -933,15 +946,15 @@ export function SchedulePlanner({ camps, onClose }) {
           )}
         </main>
       ) : (
-      <main className="planner-main">
+      <main key="schedule" className="planner-main tab-content-enter">
         {/* Sample Data Banner */}
         {hasSampleData && !previewMode && (
           <div className="planner-sample-banner">
             <div className="planner-sample-content">
               <span className="planner-sample-icon">✨</span>
               <div>
-                <p className="planner-sample-title">Sample data loaded</p>
-                <p className="planner-sample-text">Clear when you're ready to plan for real</p>
+                <p className="planner-sample-title">Sample data</p>
+                <p className="planner-sample-text">Clear to start planning</p>
               </div>
             </div>
             <button
@@ -958,7 +971,7 @@ export function SchedulePlanner({ camps, onClose }) {
           <div className="planner-empty">
             <div className="planner-empty-icon">👨‍👩‍👧‍👦</div>
             <h2 className="planner-empty-title">Add your children first</h2>
-            <p className="planner-empty-text">Create profiles for each child to start planning their summer adventure.</p>
+            <p className="planner-empty-text">Add children to plan each schedule separately.</p>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }))}
               className="btn-primary"
@@ -1184,6 +1197,7 @@ export function SchedulePlanner({ camps, onClose }) {
               <button
                 onClick={() => { setShowCampDrawer(false); setShowAddCamp(null); setSearchQuery(''); }}
                 className="planner-drawer-close"
+                aria-label="Close drawer"
               >
                 <XIcon />
               </button>
@@ -1197,6 +1211,7 @@ export function SchedulePlanner({ camps, onClose }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
+                aria-label="Search camps"
               />
             </div>
 

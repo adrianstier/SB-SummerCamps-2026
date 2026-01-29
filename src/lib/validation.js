@@ -11,6 +11,9 @@ import { z } from 'zod';
 // UUID validator
 const uuid = z.string().uuid();
 
+// Camp ID validator - accepts slug-format IDs (e.g. "ucsb-day-camp")
+const campId = z.string().min(1).max(200).regex(/^[a-z0-9][a-z0-9\-]*[a-z0-9]$/, 'Invalid camp ID format');
+
 // Safe text - no script tags or SQL injection attempts
 const safeText = z.string()
   .max(10000)
@@ -35,7 +38,7 @@ const url = z.string().url().max(2000).optional().or(z.literal(''));
 // ============================================================================
 
 export const ReviewSchema = z.object({
-  camp_id: uuid,
+  camp_id: campId,
   overall_rating: z.number().int().min(1).max(5),
   review_text: safeText.min(10).max(5000).optional(),
   pros: safeText.max(1000).optional(),
@@ -68,7 +71,7 @@ export const ChildUpdateSchema = ChildSchema.partial();
 // ============================================================================
 
 export const QuestionSchema = z.object({
-  camp_id: uuid,
+  camp_id: campId,
   question_text: safeText.min(5).max(1000),
 });
 
@@ -97,7 +100,7 @@ export const ProfileUpdateSchema = z.object({
 // ============================================================================
 
 export const ScheduledCampSchema = z.object({
-  camp_id: uuid,
+  camp_id: campId,
   child_id: uuid,
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -122,7 +125,7 @@ export const ScheduledCampUpdateSchema = z.object({
 // ============================================================================
 
 export const FavoriteSchema = z.object({
-  camp_id: uuid,
+  camp_id: campId,
   child_id: uuid.optional().nullable(),
   notes: safeText.max(1000).optional(),
 });
@@ -146,7 +149,7 @@ export const SquadMembershipSchema = z.object({
 
 export const ComparisonListSchema = z.object({
   name: shortText.max(100),
-  camp_ids: z.array(uuid).min(1).max(20),
+  camp_ids: z.array(campId).min(1).max(20),
   child_id: uuid.optional().nullable(),
 });
 

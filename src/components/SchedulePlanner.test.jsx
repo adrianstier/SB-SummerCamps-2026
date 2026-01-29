@@ -117,7 +117,7 @@ describe('SchedulePlanner', () => {
     it('shows instruction text', () => {
       mockAuthContext.isConfigured = false;
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('Connect to Supabase to enable the schedule planner.')).toBeInTheDocument();
+      expect(screen.getByText('Connect to Supabase to start planning.')).toBeInTheDocument();
     });
 
     it('calls onClose when Got it clicked', () => {
@@ -138,7 +138,7 @@ describe('SchedulePlanner', () => {
     it('shows instruction text for no children', () => {
       mockAuthContext.children = [];
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('Create profiles for each child to start planning their summer adventure.')).toBeInTheDocument();
+      expect(screen.getByText('Add children to plan each schedule separately.')).toBeInTheDocument();
     });
 
     it('shows Add Children button', () => {
@@ -557,7 +557,7 @@ describe('SchedulePlanner', () => {
     it('shows sample data banner when sample children exist', () => {
       mockAuthContext.children[0].is_sample = true;
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('Sample data loaded')).toBeInTheDocument();
+      expect(screen.getByText('Sample data')).toBeInTheDocument();
     });
 
     it('shows sample data banner when sample scheduled camps exist', () => {
@@ -565,7 +565,7 @@ describe('SchedulePlanner', () => {
         { id: 'sc-1', camp_id: 'camp-1', child_id: 'child-1', start_date: '2026-06-08', end_date: '2026-06-12', price: 400, status: 'planned', is_sample: true },
       ];
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('Sample data loaded')).toBeInTheDocument();
+      expect(screen.getByText('Sample data')).toBeInTheDocument();
     });
 
     it('shows Clear button', () => {
@@ -599,7 +599,7 @@ describe('SchedulePlanner', () => {
 
     it('does not show banner when no sample data', () => {
       render(<SchedulePlanner camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.queryByText('Sample data loaded')).not.toBeInTheDocument();
+      expect(screen.queryByText('Sample data')).not.toBeInTheDocument();
     });
   });
 

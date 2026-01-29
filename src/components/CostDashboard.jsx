@@ -100,7 +100,7 @@ export function CostDashboard({ camps, onClose }) {
               Summer Budget
             </h2>
             <p className="text-sm" style={{ color: 'var(--earth-500)' }}>
-              Track your summer camp spending
+              Track summer spending
             </p>
           </div>
           <button
@@ -274,7 +274,7 @@ export function CostDashboard({ camps, onClose }) {
               </svg>
               <p style={{ color: 'var(--earth-500)' }}>No camps scheduled yet</p>
               <p className="text-sm" style={{ color: 'var(--earth-400)' }}>
-                Add camps to your schedule to track costs
+                Add camps to track costs
               </p>
             </div>
           )}
@@ -284,7 +284,7 @@ export function CostDashboard({ camps, onClose }) {
         <div className="px-6 py-4 border-t" style={{ borderColor: 'var(--earth-200)' }}>
           <div className="flex items-center justify-between">
             <p className="text-sm" style={{ color: 'var(--earth-500)' }}>
-              Costs are estimates based on camp pricing.
+              Costs are estimates.
             </p>
             <button
               onClick={onClose}

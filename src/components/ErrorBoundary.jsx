@@ -75,7 +75,7 @@ export class ErrorBoundary extends Component {
             <h2 className="error-boundary-title">Something went wrong</h2>
 
             <p className="error-boundary-message">
-              We're sorry for the inconvenience. This error has been logged and we'll look into it.
+              This error has been logged. Try again or refresh the page.
             </p>
 
             <div className="error-boundary-actions">

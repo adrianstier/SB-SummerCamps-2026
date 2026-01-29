@@ -347,7 +347,7 @@ describe('App', () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Quick find')).toBeInTheDocument();
+        expect(screen.getByText('Quick filters')).toBeInTheDocument();
       });
     });
 
@@ -478,7 +478,7 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const filtersButton = screen.getByRole('button', { name: /All Filters/ });
+      const filtersButton = screen.getByRole('button', { name: /Filters/ });
       await user.click(filtersButton);
 
       await waitFor(() => {
@@ -494,7 +494,7 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const filtersButton = screen.getByRole('button', { name: /All Filters/ });
+      const filtersButton = screen.getByRole('button', { name: /Filters/ });
       await user.click(filtersButton);
 
       await waitFor(() => {
@@ -510,7 +510,7 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const filtersButton = screen.getByRole('button', { name: /All Filters/ });
+      const filtersButton = screen.getByRole('button', { name: /Filters/ });
       await user.click(filtersButton);
 
       await waitFor(() => {
@@ -527,7 +527,7 @@ describe('App', () => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      const filtersButton = screen.getByRole('button', { name: /All Filters/ });
+      const filtersButton = screen.getByRole('button', { name: /Filters/ });
       await user.click(filtersButton);
 
       await waitFor(() => {
@@ -589,7 +589,7 @@ describe('App', () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('No camps match all your filters')).toBeInTheDocument();
+        expect(screen.getByText('No camps match these filters')).toBeInTheDocument();
       });
     });
 
@@ -692,7 +692,7 @@ describe('App', () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Data sourced directly from camp websites/)).toBeInTheDocument();
+        expect(screen.getByText(/Data from camp websites/)).toBeInTheDocument();
       });
     });
   });

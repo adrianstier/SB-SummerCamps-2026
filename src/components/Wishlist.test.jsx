@@ -111,7 +111,7 @@ describe('Wishlist', () => {
     it('shows helper text in empty state', () => {
       mockAuthContext.favorites = [];
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('Heart camps to save them here for later')).toBeInTheDocument();
+      expect(screen.getByText('Tap the heart on any camp to save it here')).toBeInTheDocument();
     });
   });
 

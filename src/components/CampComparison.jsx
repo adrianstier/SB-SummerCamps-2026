@@ -127,7 +127,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
             Compare Camps
           </h2>
           <p className="mb-6" style={{ color: 'var(--earth-600)' }}>
-            Select 2-4 camps to compare them side by side. Click the compare icon on camp cards to add them.
+            Select 2-4 camps to compare. Click the compare icon on camp cards.
           </p>
           <button onClick={onClose} className="btn-secondary">
             Got it

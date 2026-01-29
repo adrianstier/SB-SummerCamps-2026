@@ -190,7 +190,7 @@ describe('Dashboard', () => {
     it('shows empty state when no recommendations', () => {
       mockAuthContext.getRecommendationScores.mockReturnValue([]);
       render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
-      expect(screen.getByText('Add preferences to get personalized suggestions')).toBeInTheDocument();
+      expect(screen.getByText('Add preferences for personalized picks')).toBeInTheDocument();
     });
 
     it('calls onSelectCamp when recommendation clicked', () => {

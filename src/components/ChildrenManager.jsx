@@ -27,18 +27,16 @@ export function ChildrenManager({ onClose }) {
 
   if (!isConfigured || !user) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-        <div className="bg-white rounded-2xl p-8 max-w-md text-center">
-          <h2 className="font-serif text-2xl font-semibold mb-4" style={{ color: 'var(--earth-800)' }}>
-            Sign In Required
-          </h2>
-          <p className="mb-6" style={{ color: 'var(--earth-700)' }}>
-            Sign in to add your children and start planning their summer.
+      <div className="modal-overlay">
+        <div className="modal modal-sm" style={{ padding: 'var(--space-8)' }}>
+          <h2 className="heading-lg text-center mb-4">Sign In Required</h2>
+          <p className="body-md text-secondary text-center mb-6">
+            Sign in to manage children and schedules.
           </p>
-          <button onClick={signIn} className="btn-primary w-full mb-3">
+          <button onClick={signIn} className="btn-primary btn-full mb-3">
             Sign in with Google
           </button>
-          <button onClick={onClose} className="btn-secondary w-full">
+          <button onClick={onClose} className="btn-secondary btn-full">
             Cancel
           </button>
         </div>
@@ -117,78 +115,66 @@ export function ChildrenManager({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden">
+    <div className="modal-overlay">
+      <div className="modal modal-md">
         {/* Header */}
-        <div className="p-6" style={{ borderBottom: '1px solid var(--sand-200)' }}>
-          <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl font-semibold" style={{ color: 'var(--earth-800)' }}>
-              My Children
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full transition-colors hover:bg-[var(--sand-100)]"
-              style={{ color: 'var(--sand-400)' }}
-              aria-label="Close"
-            >
-              <XIcon className="w-5 h-5" />
-            </button>
+        <div className="modal-header">
+          <div>
+            <h2 className="heading-md">My Children</h2>
+            <p className="body-sm text-muted mt-1">Each child gets their own schedule.</p>
           </div>
-          <p className="text-sm mt-1" style={{ color: 'var(--earth-700)' }}>
-            Add your children to plan their summer schedules separately.
-          </p>
+          <button
+            onClick={onClose}
+            className="btn-icon btn-icon-sm"
+            aria-label="Close"
+          >
+            <XIcon className="icon-md" />
+          </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 150px)' }}>
+        <div className="modal-body">
           {/* Children list */}
           {children.length > 0 && !showAddForm && (
             <div className="space-y-3 mb-6">
               {children.map(child => (
-                <div
-                  key={child.id}
-                  className="flex items-center gap-4 p-4 rounded-xl"
-                  style={{ background: 'var(--sand-50)', border: '1px solid var(--sand-200)' }}
-                >
+                <div key={child.id} className="card flex items-center gap-4 p-4">
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
                     style={{ background: child.color }}
                   >
                     {(child.name || '?')[0].toUpperCase()}
                   </div>
 
-                  <div className="flex-1">
-                    <p className="font-semibold" style={{ color: 'var(--earth-800)' }}>
-                      {child.name}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="heading-sm">{child.name}</p>
                     {child.age_as_of_summer && (
-                      <p className="text-sm" style={{ color: 'var(--sand-400)' }}>
+                      <p className="body-sm text-muted">
                         Age {child.age_as_of_summer} in Summer 2026
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={() => startEdit(child)}
-                      className="p-2 rounded-lg transition-colors hover:bg-[var(--sand-200)]"
-                      style={{ color: 'var(--earth-700)' }}
+                      className="btn-icon btn-icon-sm"
                       aria-label={`Edit ${child.name}`}
                     >
-                      <EditIcon className="w-4 h-4" />
+                      <EditIcon className="icon-sm" />
                     </button>
                     {confirmDelete === child.id ? (
-                      <span className="flex items-center gap-1 text-xs">
+                      <span className="flex items-center gap-1">
                         <button
                           onClick={() => handleDelete(child.id)}
-                          className="px-2 py-1 rounded bg-red-500 text-white font-medium"
+                          className="btn-danger btn-sm"
                           disabled={loading}
                         >
                           Confirm
                         </button>
                         <button
                           onClick={() => setConfirmDelete(null)}
-                          className="px-2 py-1 rounded bg-gray-200 font-medium"
+                          className="btn-ghost btn-sm"
                         >
                           Cancel
                         </button>
@@ -196,7 +182,7 @@ export function ChildrenManager({ onClose }) {
                     ) : (
                       <button
                         onClick={() => setConfirmDelete(child.id)}
-                        className="p-2 rounded-lg transition-colors hover:bg-[var(--terra-50)]"
+                        className="btn-icon btn-icon-sm"
                         style={{ color: 'var(--terra-500)' }}
                         aria-label={`Delete ${child.name}`}
                       >
@@ -211,24 +197,19 @@ export function ChildrenManager({ onClose }) {
 
           {/* Error message */}
           {error && (
-            <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: 'var(--terra-50)', color: 'var(--terra-600)' }}>
-              {error}
-            </div>
+            <div className="alert alert-error mb-4">{error}</div>
           )}
 
           {/* Add/Edit form */}
           {showAddForm ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Child's Name *
-                </label>
+                <label className="label">Child's Name *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all"
-                  style={{ borderColor: 'var(--sand-200)' }}
+                  className="input"
                   placeholder="e.g., Emma"
                   required
                   autoFocus
@@ -236,14 +217,11 @@ export function ChildrenManager({ onClose }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Age in Summer 2026
-                </label>
+                <label className="label">Age in Summer 2026</label>
                 <select
                   value={formData.age_as_of_summer}
                   onChange={(e) => setFormData({ ...formData, age_as_of_summer: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all"
-                  style={{ borderColor: 'var(--sand-200)', background: 'white' }}
+                  className="select"
                 >
                   <option value="">Not specified</option>
                   {[...Array(16)].map((_, i) => (
@@ -253,36 +231,37 @@ export function ChildrenManager({ onClose }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Calendar Color
-                </label>
-                <div className="flex gap-2">
-                  {childColors.map(color => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, color })}
-                      className={`w-10 h-10 rounded-full transition-all ${
-                        formData.color === color ? 'ring-2 ring-offset-2' : ''
-                      }`}
-                      style={{
-                        background: color,
-                        ringColor: color
-                      }}
-                    />
-                  ))}
+                <label id="color-label" className="label">Calendar Color</label>
+                <div className="flex gap-2" role="radiogroup" aria-labelledby="color-label">
+                  {childColors.map((color, index) => {
+                    const colorNames = ['Blue', 'Purple', 'Pink', 'Orange', 'Green', 'Cyan'];
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, color })}
+                        className={`w-10 h-10 rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--ocean-500)] ${
+                          formData.color === color ? 'ring-2 ring-offset-2' : ''
+                        }`}
+                        style={{
+                          background: color,
+                          ringColor: color
+                        }}
+                        role="radio"
+                        aria-checked={formData.color === color}
+                        aria-label={`${colorNames[index]} color`}
+                      />
+                    );
+                  })}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Notes (optional)
-                </label>
+                <label className="label">Notes (optional)</label>
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all resize-none"
-                  style={{ borderColor: 'var(--sand-200)' }}
+                  className="textarea"
                   placeholder="e.g., Loves swimming, allergic to peanuts"
                   rows={2}
                 />
@@ -312,7 +291,7 @@ export function ChildrenManager({ onClose }) {
               className="w-full p-4 rounded-xl border-2 border-dashed flex items-center justify-center gap-2 transition-colors hover:border-[var(--ocean-400)] hover:bg-[var(--ocean-50)]"
               style={{ borderColor: 'var(--sand-300)', color: 'var(--earth-700)' }}
             >
-              <PlusIcon className="w-5 h-5" />
+              <PlusIcon className="icon-md" />
               <span className="font-medium">Add a Child</span>
             </button>
           )}

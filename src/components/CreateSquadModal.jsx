@@ -81,7 +81,7 @@ export default function CreateSquadModal({ onClose }) {
                 />
                 <div>
                   <div className="text-sm text-earth-800">Share my schedule with this squad</div>
-                  <div className="text-xs text-earth-500">Squad members will see your camp plans</div>
+                  <div className="text-xs text-earth-500">Members see your camp plans</div>
                 </div>
               </label>
 

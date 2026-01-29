@@ -98,88 +98,83 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-      <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="modal-overlay">
+      <div className="modal modal-lg">
         {/* Header */}
-        <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--earth-200)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="font-serif text-xl font-semibold" style={{ color: 'var(--earth-800)' }}>
-                Considering
-              </h2>
-              <p className="text-sm" style={{ color: 'var(--earth-500)' }}>
-                {wishlistCamps.length} camp{wishlistCamps.length !== 1 ? 's' : ''} saved
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label="Close"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        <div className="modal-header">
+          <div>
+            <h2 className="heading-md">Considering</h2>
+            <p className="body-sm text-muted mt-1">
+              {wishlistCamps.length} camp{wishlistCamps.length !== 1 ? 's' : ''} saved
+            </p>
           </div>
+          <button
+            onClick={onClose}
+            className="btn-icon btn-icon-sm"
+            aria-label="Close"
+          >
+            <svg className="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-4">
-            {/* Child filter */}
-            {children.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm" style={{ color: 'var(--earth-600)' }}>For:</span>
-                <select
-                  value={selectedChild}
-                  onChange={(e) => setSelectedChild(e.target.value)}
-                  className="text-sm px-2 py-1 border rounded-lg"
-                  style={{ borderColor: 'var(--earth-300)' }}
-                >
-                  <option value="all">All children</option>
-                  {children.map(child => (
-                    <option key={child.id} value={child.id}>{child.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Sort */}
+        {/* Filters bar */}
+        <div className="flex items-center gap-4 px-6 py-3" style={{ borderBottom: '1px solid var(--sand-200)', background: 'var(--sand-50)' }}>
+          {/* Child filter */}
+          {children.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-sm" style={{ color: 'var(--earth-600)' }}>Sort:</span>
+              <span className="body-sm text-secondary">For:</span>
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="text-sm px-2 py-1 border rounded-lg"
-                style={{ borderColor: 'var(--earth-300)' }}
+                value={selectedChild}
+                onChange={(e) => setSelectedChild(e.target.value)}
+                className="select input-sm"
+                style={{ width: 'auto', padding: '6px 32px 6px 12px' }}
               >
-                <option value="registration">Registration Date</option>
-                <option value="name">Name</option>
-                <option value="price">Price</option>
+                <option value="all">All children</option>
+                {children.map(child => (
+                  <option key={child.id} value={child.id}>{child.name}</option>
+                ))}
               </select>
             </div>
+          )}
 
-            {/* Compare button */}
-            {selectedForCompare.length >= 2 && (
-              <button
-                onClick={handleCompare}
-                className="ml-auto px-3 py-1.5 text-sm font-medium text-white rounded-lg"
-                style={{ backgroundColor: 'var(--accent-500)' }}
-              >
-                Compare {selectedForCompare.length} Camps
-              </button>
-            )}
+          {/* Sort */}
+          <div className="flex items-center gap-2">
+            <span className="body-sm text-secondary">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="select input-sm"
+              style={{ width: 'auto', padding: '6px 32px 6px 12px' }}
+            >
+              <option value="registration">Registration Date</option>
+              <option value="name">Name</option>
+              <option value="price">Price</option>
+            </select>
           </div>
+
+          {/* Compare button */}
+          {selectedForCompare.length >= 2 && (
+            <button
+              onClick={handleCompare}
+              className="btn-primary btn-sm ml-auto"
+            >
+              Compare {selectedForCompare.length} Camps
+            </button>
+          )}
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="modal-body">
           {wishlistCamps.length === 0 ? (
             <div className="text-center py-12">
               <svg className="w-16 h-16 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-              <p className="text-lg font-medium" style={{ color: 'var(--earth-600)' }}>No camps saved yet</p>
-              <p className="text-sm mt-1" style={{ color: 'var(--earth-400)' }}>
-                Heart camps to save them here for later
+              <p className="heading-sm text-secondary">No camps saved yet</p>
+              <p className="body-sm text-muted mt-1">
+                Tap the heart on any camp to save it here
               </p>
             </div>
           ) : (
@@ -187,8 +182,7 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
               {wishlistCamps.map(item => (
                 <div
                   key={item.id}
-                  className="flex items-start gap-4 p-4 rounded-xl border transition-all hover:shadow-md"
-                  style={{ borderColor: 'var(--earth-200)' }}
+                  className="card card-interactive flex items-start gap-4 p-4"
                 >
                   {/* Compare checkbox */}
                   <div className="pt-1">
@@ -197,7 +191,7 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                       checked={selectedForCompare.includes(item.camp_id)}
                       onChange={() => toggleCompare(item.camp_id)}
                       className="w-4 h-4 rounded"
-                      style={{ accentColor: 'var(--accent-500)' }}
+                      style={{ accentColor: 'var(--ocean-500)' }}
                     />
                   </div>
 
@@ -205,24 +199,22 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-medium" style={{ color: 'var(--earth-800)' }}>
-                          {item.camp.camp_name}
-                        </h3>
-                        <p className="text-sm" style={{ color: 'var(--earth-500)' }}>
+                        <h3 className="heading-sm">{item.camp.camp_name}</h3>
+                        <p className="body-sm text-muted">
                           {item.camp.category} | Ages {item.camp.ages} | {formatPrice(item.camp)}/week
                         </p>
                       </div>
 
                       {/* Registration badge */}
-                      <div
-                        className="px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap"
+                      <span
+                        className="badge badge-pill"
                         style={{
                           backgroundColor: `${item.regStatus.color}20`,
                           color: item.regStatus.color
                         }}
                       >
                         {item.regStatus.label}
-                      </div>
+                      </span>
                     </div>
 
                     {/* Child badge */}
@@ -234,9 +226,7 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                         >
                           {item.childName.charAt(0)}
                         </div>
-                        <span className="text-sm" style={{ color: 'var(--earth-600)' }}>
-                          For {item.childName}
-                        </span>
+                        <span className="body-sm text-secondary">For {item.childName}</span>
                       </div>
                     )}
 
@@ -247,36 +237,35 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
                           placeholder="Add notes about this camp..."
-                          className="w-full px-3 py-2 text-sm border rounded-lg resize-none"
-                          style={{ borderColor: 'var(--earth-300)' }}
+                          className="textarea"
+                          style={{ minHeight: '60px' }}
                           rows={2}
                         />
                         <div className="flex gap-2 mt-2">
                           <button
                             onClick={() => handleSaveNotes(item.camp_id)}
-                            className="px-3 py-1 text-sm font-medium text-white rounded-lg"
-                            style={{ backgroundColor: 'var(--accent-500)' }}
+                            className="btn-primary btn-sm"
                           >
                             Save
                           </button>
                           <button
                             onClick={() => setEditingNotes(null)}
-                            className="px-3 py-1 text-sm rounded-lg hover:bg-gray-100"
+                            className="btn-ghost btn-sm"
                           >
                             Cancel
                           </button>
                         </div>
                       </div>
                     ) : item.notes ? (
-                      <div className="mt-2 p-2 rounded-lg bg-gray-50">
-                        <p className="text-sm" style={{ color: 'var(--earth-600)' }}>{item.notes}</p>
+                      <div className="mt-2 p-3 rounded-lg" style={{ background: 'var(--sand-50)' }}>
+                        <p className="body-sm text-secondary">{item.notes}</p>
                         <button
                           onClick={() => {
                             setNoteText(item.notes);
                             setEditingNotes(item.camp_id);
                           }}
-                          className="text-xs mt-1 hover:underline"
-                          style={{ color: 'var(--accent-500)' }}
+                          className="btn-link btn-sm mt-1"
+                          style={{ padding: 0 }}
                         >
                           Edit note
                         </button>
@@ -287,8 +276,8 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                           setNoteText('');
                           setEditingNotes(item.camp_id);
                         }}
-                        className="mt-2 text-sm hover:underline"
-                        style={{ color: 'var(--accent-500)' }}
+                        className="btn-link btn-sm mt-2"
+                        style={{ padding: 0 }}
                       >
                         + Add note
                       </button>
@@ -300,8 +289,7 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                     {onScheduleCamp && (
                       <button
                         onClick={() => onScheduleCamp(item.camp)}
-                        className="px-3 py-1.5 text-sm font-medium text-white rounded-lg whitespace-nowrap"
-                        style={{ backgroundColor: 'var(--sage-600)' }}
+                        className="btn-success btn-sm"
                       >
                         Schedule
                       </button>
@@ -312,8 +300,7 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                         href={item.camp.website_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 text-sm text-center rounded-lg border hover:bg-gray-50"
-                        style={{ borderColor: 'var(--earth-300)', color: 'var(--earth-600)' }}
+                        className="btn-secondary btn-sm text-center"
                       >
                         Website
                       </a>
@@ -321,7 +308,8 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
 
                     <button
                       onClick={() => handleRemove(item.camp_id)}
-                      className="px-3 py-1.5 text-sm rounded-lg hover:bg-red-50 text-red-600"
+                      className="btn-ghost btn-sm text-error"
+                      style={{ color: 'var(--terra-600)' }}
                     >
                       Remove
                     </button>
@@ -333,14 +321,9 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--earth-200)' }}>
-          <p className="text-sm" style={{ color: 'var(--earth-500)' }}>
-            Select camps to compare side-by-side
-          </p>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100"
-          >
+        <div className="modal-footer">
+          <p className="body-sm text-muted flex-1">Check 2-4 camps to compare</p>
+          <button onClick={onClose} className="btn-secondary btn-sm">
             Close
           </button>
         </div>

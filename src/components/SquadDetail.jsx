@@ -191,7 +191,7 @@ export default function SquadDetail({ squad, onBack, onClose }) {
           <div className="text-center py-8">
             <p className="text-sm text-earth-500">No camps scheduled yet</p>
             <p className="text-xs text-earth-400 mt-1">
-              Add camps to your schedule to see overlaps
+              Add camps to see overlaps
             </p>
           </div>
         ) : (
@@ -441,7 +441,7 @@ function SquadSettings({ squad, membership, isOwner, onBack, onLeave, onDelete }
             <label className="flex items-center justify-between">
               <div>
                 <div className="text-sm text-earth-800">Share schedule</div>
-                <div className="text-xs text-earth-500">Squad members see your camp plans</div>
+                <div className="text-xs text-earth-500">Members see your camp plans</div>
               </div>
               <button
                 onClick={() => handleToggle('share_schedule', !shareSchedule)}
@@ -523,7 +523,7 @@ function SquadSettings({ squad, membership, isOwner, onBack, onLeave, onDelete }
       {showLeaveConfirm && (
         <ConfirmModal
           title="Leave Squad?"
-          message="You'll no longer be able to see squad members' schedules or receive match notifications."
+          message="You won't see schedules or get match notifications."
           confirmText="Leave"
           onConfirm={onLeave}
           onCancel={() => setShowLeaveConfirm(false)}
@@ -534,7 +534,7 @@ function SquadSettings({ squad, membership, isOwner, onBack, onLeave, onDelete }
       {showDeleteConfirm && (
         <ConfirmModal
           title="Delete Squad?"
-          message="This will permanently delete the squad for all members. This action cannot be undone."
+          message="This permanently deletes the squad for everyone."
           confirmText="Delete"
           danger
           onConfirm={onDelete}

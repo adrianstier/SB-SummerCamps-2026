@@ -110,12 +110,25 @@ describe('ReviewSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('rejects invalid UUID', () => {
+  it('rejects invalid camp ID format', () => {
+    // Camp IDs are slugs (lowercase alphanumeric + hyphens), not UUIDs
     const result = validate(ReviewSchema, {
-      camp_id: 'not-a-uuid',
+      camp_id: '-starts-with-hyphen',
       overall_rating: 3,
     });
     expect(result.success).toBe(false);
+
+    const result2 = validate(ReviewSchema, {
+      camp_id: 'Has Uppercase And Spaces',
+      overall_rating: 3,
+    });
+    expect(result2.success).toBe(false);
+
+    const result3 = validate(ReviewSchema, {
+      camp_id: '',
+      overall_rating: 3,
+    });
+    expect(result3.success).toBe(false);
   });
 
   it('rejects review text with script tags', () => {

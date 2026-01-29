@@ -75,7 +75,7 @@ describe('OnboardingWizard', () => {
       render(<OnboardingWizard onComplete={mockOnComplete} />);
       expect(screen.getByText('Add your children')).toBeInTheDocument();
       expect(screen.getByText('Set your preferences')).toBeInTheDocument();
-      expect(screen.getByText('Get personalized recommendations')).toBeInTheDocument();
+      expect(screen.getByText('Get personalized picks')).toBeInTheDocument();
     });
 
     it('shows Continue button', () => {
@@ -253,7 +253,7 @@ describe('OnboardingWizard', () => {
 
     it('Start Exploring button is shown', () => {
       navigateToComplete();
-      expect(screen.getByText('Start Exploring!')).toBeInTheDocument();
+      expect(screen.getByText('Start Exploring')).toBeInTheDocument();
     });
 
     it('shows family summary after tour choice selected', () => {
@@ -267,7 +267,7 @@ describe('OnboardingWizard', () => {
     it('calls handleComplete with skip tour', async () => {
       navigateToComplete();
       fireEvent.click(screen.getByText(/Skip Tour, Start Planning/));
-      fireEvent.click(screen.getByText('Start Exploring!'));
+      fireEvent.click(screen.getByText('Start Exploring'));
 
       await waitFor(() => {
         expect(mockAddChild).toHaveBeenCalled();
@@ -281,7 +281,7 @@ describe('OnboardingWizard', () => {
     it('calls addChild with child data (skip tour)', async () => {
       navigateToComplete();
       fireEvent.click(screen.getByText(/Skip Tour, Start Planning/));
-      fireEvent.click(screen.getByText('Start Exploring!'));
+      fireEvent.click(screen.getByText('Start Exploring'));
 
       await waitFor(() => {
         expect(mockAddChild).toHaveBeenCalled();
@@ -296,13 +296,13 @@ describe('OnboardingWizard', () => {
       mockAddChild.mockRejectedValueOnce(new Error('Failed'));
       navigateToComplete();
       fireEvent.click(screen.getByText(/Skip Tour, Start Planning/));
-      fireEvent.click(screen.getByText('Start Exploring!'));
+      fireEvent.click(screen.getByText('Start Exploring'));
 
       await waitFor(() => {
         // onComplete should NOT be called when there's an error
         expect(mockOnComplete).not.toHaveBeenCalled();
         // Loading should be reset
-        expect(screen.getByText('Start Exploring!')).toBeInTheDocument();
+        expect(screen.getByText('Start Exploring')).toBeInTheDocument();
       });
     });
 
@@ -310,7 +310,7 @@ describe('OnboardingWizard', () => {
       mockAddChild.mockReturnValue(new Promise(() => {}));
       navigateToComplete();
       fireEvent.click(screen.getByText(/Skip Tour, Start Planning/));
-      fireEvent.click(screen.getByText('Start Exploring!'));
+      fireEvent.click(screen.getByText('Start Exploring'));
       expect(screen.getByText('Setting up...')).toBeInTheDocument();
     });
   });

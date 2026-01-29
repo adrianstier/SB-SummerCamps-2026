@@ -1,22 +1,35 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, memo } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useScrollReveal } from './hooks/useScrollReveal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthButton } from './components/AuthButton';
 import { FavoriteButton } from './components/FavoriteButton';
-import { SchedulePlanner } from './components/SchedulePlanner';
-import { ChildrenManager } from './components/ChildrenManager';
-import { OnboardingWizard } from './components/OnboardingWizard';
-import { Dashboard } from './components/Dashboard';
-import { CampComparison } from './components/CampComparison';
-import { ReviewsList, ReviewsSummary } from './components/Reviews';
-import { AdminDashboard } from './components/AdminDashboard';
-import JoinSquad from './components/JoinSquad';
-import { Settings } from './components/Settings';
-import { CostDashboard } from './components/CostDashboard';
-import { Wishlist } from './components/Wishlist';
 import { supabase, getRegistrationStatus, checkWorkScheduleCoverage } from './lib/supabase';
 import { formatPrice } from './lib/formatters';
+
+// Lazy load heavy modal components for better initial load performance
+const SchedulePlanner = lazy(() => import('./components/SchedulePlanner').then(m => ({ default: m.SchedulePlanner })));
+const ChildrenManager = lazy(() => import('./components/ChildrenManager').then(m => ({ default: m.ChildrenManager })));
+const OnboardingWizard = lazy(() => import('./components/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const CampComparison = lazy(() => import('./components/CampComparison').then(m => ({ default: m.CampComparison })));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const JoinSquad = lazy(() => import('./components/JoinSquad'));
+const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
+const CostDashboard = lazy(() => import('./components/CostDashboard').then(m => ({ default: m.CostDashboard })));
+const Wishlist = lazy(() => import('./components/Wishlist').then(m => ({ default: m.Wishlist })));
+
+// Loading fallback for lazy-loaded modals
+const ModalLoadingFallback = memo(function ModalLoadingFallback() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4">
+        <LoadingSpinner className="w-8 h-8" />
+        <p style={{ color: 'var(--earth-700)' }}>Loading...</p>
+      </div>
+    </div>
+  );
+});
 
 // SECURITY: Validate URL schemes before rendering as href
 function safeUrl(url) {
@@ -244,71 +257,79 @@ const categoryIcons = [
   { name: 'Overnight', emoji: '🏕️' },
 ];
 
-// Search Icon
-const SearchIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
-);
+// Memoized icon components to prevent unnecessary re-renders
+const SearchIcon = memo(function SearchIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+});
 
-// Filter Icon
-const FilterIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-  </svg>
-);
+const FilterIcon = memo(function FilterIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+    </svg>
+  );
+});
 
-// Grid Icon
-const GridIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-  </svg>
-);
+const GridIcon = memo(function GridIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+    </svg>
+  );
+});
 
-// Table Icon
-const TableIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-  </svg>
-);
+const TableIcon = memo(function TableIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+    </svg>
+  );
+});
 
-// External Link Icon
-const ExternalLinkIcon = () => (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-  </svg>
-);
+const ExternalLinkIcon = memo(function ExternalLinkIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+    </svg>
+  );
+});
 
-// Chevron Icon
-const ChevronIcon = ({ expanded }) => (
-  <svg className={`w-5 h-5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-  </svg>
-);
+const ChevronIcon = memo(function ChevronIcon({ expanded }) {
+  return (
+    <svg className={`w-5 h-5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+});
 
-// Loading Spinner Component
-const LoadingSpinner = ({ className = "w-5 h-5" }) => (
-  <svg
-    className={`${className} animate-spin`}
-    fill="none"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    />
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-    />
-  </svg>
-);
+const LoadingSpinner = memo(function LoadingSpinner({ className = "w-5 h-5" }) {
+  return (
+    <svg
+      className={`${className} animate-spin`}
+      fill="none"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
+  );
+});
 
 // Brand Icon (California sun over wave)
 const BrandIcon = ({ className = "w-8 h-8" }) => (
@@ -447,24 +468,25 @@ export default function App() {
     };
   }, [modalCamp]);
 
-  // Comparison functions
-  const toggleCompare = (campId) => {
+  // Comparison functions - memoized to prevent unnecessary child re-renders
+  const toggleCompare = useCallback((campId) => {
     setCompareList(prev =>
       prev.includes(campId)
         ? prev.filter(id => id !== campId)
         : prev.length < 4 ? [...prev, campId] : prev
     );
-  };
+  }, []);
 
-  const addToCompare = (campId) => {
-    if (!compareList.includes(campId) && compareList.length < 4) {
-      setCompareList(prev => [...prev, campId]);
-    }
-  };
+  const addToCompare = useCallback((campId) => {
+    setCompareList(prev => {
+      if (prev.includes(campId) || prev.length >= 4) return prev;
+      return [...prev, campId];
+    });
+  }, []);
 
-  const removeFromCompare = (campId) => {
+  const removeFromCompare = useCallback((campId) => {
     setCompareList(prev => prev.filter(id => id !== campId));
-  };
+  }, []);
 
   // Load initial data
   useEffect(() => {
@@ -529,17 +551,17 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [loadCamps, search, selectedCategory, childAge, maxPrice, selectedKeywords, extendedCare, foodIncluded, hasTransport, siblingDiscount]);
 
-  // Toggle keyword selection
-  const toggleKeyword = (keyword) => {
+  // Toggle keyword selection - memoized
+  const toggleKeyword = useCallback((keyword) => {
     setSelectedKeywords(prev =>
       prev.includes(keyword)
         ? prev.filter(k => k !== keyword)
         : [...prev, keyword]
     );
-  };
+  }, []);
 
-  // Clear all filters
-  const clearFilters = () => {
+  // Clear all filters - memoized
+  const clearFilters = useCallback(() => {
     setSearch('');
     setSelectedCategory('All');
     setChildAge('');
@@ -550,7 +572,7 @@ export default function App() {
     setHasTransport(false);
     setSiblingDiscount(false);
     setMatchWorkSchedule(false);
-  };
+  }, []);
 
   // Count active filters
   const activeFilterCount = useMemo(() => {
@@ -743,6 +765,7 @@ export default function App() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="search-input"
+                aria-label="Search camps by name or activity"
               />
 
               {/* Clear button */}
@@ -751,9 +774,10 @@ export default function App() {
                   className="absolute right-5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-sand-200 transition-colors"
                   onClick={() => setSearch('')}
                   title="Clear search"
+                  aria-label="Clear search"
                   style={{ color: 'var(--sand-400)' }}
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -1000,7 +1024,7 @@ export default function App() {
 
       {/* Expanded Filters Panel */}
       {showFilters && (
-        <section style={{ background: 'white', borderBottom: '1px solid var(--sand-200)' }}>
+        <section className="filter-panel-animated" style={{ background: 'white', borderBottom: '1px solid var(--sand-200)' }}>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
@@ -1113,9 +1137,10 @@ export default function App() {
                     key={key}
                     onClick={() => setter(!state)}
                     className={`filter-pill ${state ? 'active' : ''}`}
+                    aria-pressed={state}
                   >
                     {state && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     )}
@@ -1135,6 +1160,7 @@ export default function App() {
                       key={keyword}
                       onClick={() => toggleKeyword(keyword)}
                       className={`filter-pill text-sm ${selectedKeywords.includes(keyword) ? 'active' : ''}`}
+                      aria-pressed={selectedKeywords.includes(keyword)}
                     >
                       {keyword}
                     </button>
@@ -1325,15 +1351,88 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Modals */}
-      {showPlanner && (
-        <SchedulePlanner camps={camps} onClose={() => setShowPlanner(false)} />
-      )}
+      {/* Modals - Lazy loaded with Suspense for better performance */}
+      <Suspense fallback={<ModalLoadingFallback />}>
+        {showPlanner && (
+          <SchedulePlanner camps={camps} onClose={() => setShowPlanner(false)} />
+        )}
 
-      {showChildren && (
-        <ChildrenManager onClose={() => setShowChildren(false)} />
-      )}
+        {showChildren && (
+          <ChildrenManager onClose={() => setShowChildren(false)} />
+        )}
 
+        {showDashboard && (
+          <Dashboard
+            camps={camps}
+            onClose={() => setShowDashboard(false)}
+            onOpenPlanner={() => {
+              setShowDashboard(false);
+              setShowPlanner(true);
+            }}
+            onSelectCamp={(camp) => {
+              setShowDashboard(false);
+              if (isMobile) {
+                // Mobile: inline expand
+                setExpandedCamp(camp.id);
+              } else {
+                // Desktop: open modal
+                setModalCamp(camp);
+                document.body.classList.add('modal-open');
+              }
+            }}
+          />
+        )}
+
+        {showComparison && (
+          <CampComparison
+            camps={camps}
+            selectedCampIds={compareList}
+            onClose={() => setShowComparison(false)}
+            onRemoveCamp={removeFromCompare}
+            onAddCamp={addToCompare}
+          />
+        )}
+
+        {showOnboarding && (
+          <OnboardingWizard onComplete={completeOnboarding} />
+        )}
+
+        {showAdmin && (
+          <AdminDashboard
+            camps={camps}
+            onClose={() => setShowAdmin(false)}
+          />
+        )}
+
+        {showSettings && (
+          <Settings onClose={() => setShowSettings(false)} />
+        )}
+
+        {showCostDashboard && (
+          <CostDashboard
+            camps={camps}
+            onClose={() => setShowCostDashboard(false)}
+          />
+        )}
+
+        {showWishlist && (
+          <Wishlist
+            camps={camps}
+            onClose={() => setShowWishlist(false)}
+            onScheduleCamp={(camp) => {
+              setShowWishlist(false);
+              setShowPlanner(true);
+            }}
+            onCompareCamps={(campIds) => {
+              setCompareList(campIds);
+            setShowWishlist(false);
+            setShowComparison(true);
+          }}
+        />
+      )}
+      </Suspense>
+
+      {/* FavoritesModal is not lazy loaded as it's small */}
       {showFavorites && (
         <FavoritesModal
           camps={camps}
@@ -1341,76 +1440,6 @@ export default function App() {
           onOpenPlanner={() => {
             setShowFavorites(false);
             setShowPlanner(true);
-          }}
-        />
-      )}
-
-      {showDashboard && (
-        <Dashboard
-          camps={camps}
-          onClose={() => setShowDashboard(false)}
-          onOpenPlanner={() => {
-            setShowDashboard(false);
-            setShowPlanner(true);
-          }}
-          onSelectCamp={(camp) => {
-            setShowDashboard(false);
-            if (isMobile) {
-              // Mobile: inline expand
-              setExpandedCamp(camp.id);
-            } else {
-              // Desktop: open modal
-              setModalCamp(camp);
-              document.body.classList.add('modal-open');
-            }
-          }}
-        />
-      )}
-
-      {showComparison && (
-        <CampComparison
-          camps={camps}
-          selectedCampIds={compareList}
-          onClose={() => setShowComparison(false)}
-          onRemoveCamp={removeFromCompare}
-          onAddCamp={addToCompare}
-        />
-      )}
-
-      {showOnboarding && (
-        <OnboardingWizard onComplete={completeOnboarding} />
-      )}
-
-      {showAdmin && (
-        <AdminDashboard
-          camps={camps}
-          onClose={() => setShowAdmin(false)}
-        />
-      )}
-
-      {showSettings && (
-        <Settings onClose={() => setShowSettings(false)} />
-      )}
-
-      {showCostDashboard && (
-        <CostDashboard
-          camps={camps}
-          onClose={() => setShowCostDashboard(false)}
-        />
-      )}
-
-      {showWishlist && (
-        <Wishlist
-          camps={camps}
-          onClose={() => setShowWishlist(false)}
-          onScheduleCamp={(camp) => {
-            setShowWishlist(false);
-            setShowPlanner(true);
-          }}
-          onCompareCamps={(campIds) => {
-            setCompareList(campIds);
-            setShowWishlist(false);
-            setShowComparison(true);
           }}
         />
       )}
@@ -1582,50 +1611,58 @@ function FavoritesModal({ camps, onClose, onOpenPlanner }) {
   );
 }
 
-// Calendar Plan Icon
-const CalendarPlanIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-);
+// Memoized icon components for header/actions
+const CalendarPlanIcon = memo(function CalendarPlanIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+});
 
-// Dashboard Icon
-const DashboardIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-  </svg>
-);
+const DashboardIcon = memo(function DashboardIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+    </svg>
+  );
+});
 
-// Compare Icon
-const CompareIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-);
+const CompareIcon = memo(function CompareIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  );
+});
 
-// X Modal Icon
-const XModalIcon = ({ className }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
+const XModalIcon = memo(function XModalIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+});
 
-// Heart Outline Icon
-const HeartOutlineIcon = ({ className, style }) => (
-  <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-  </svg>
-);
+const HeartOutlineIcon = memo(function HeartOutlineIcon({ className, style }) {
+  return (
+    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  );
+});
 
 // Verified/Shield Icon for trust signals
-const VerifiedIcon = () => (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--ocean-500)' }}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-  </svg>
-);
+const VerifiedIcon = memo(function VerifiedIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--ocean-500)' }}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  );
+});
 
-// Featured Card Component for Editor's Picks section
-function FeaturedCard({ camp, badge, onClick }) {
+// Featured Card Component for Editor's Picks section - memoized to prevent unnecessary re-renders
+const FeaturedCard = memo(function FeaturedCard({ camp, badge, onClick }) {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -1642,6 +1679,7 @@ function FeaturedCard({ camp, badge, onClick }) {
             src={camp.image_url}
             alt={camp.camp_name}
             loading="lazy"
+            decoding="async"
             onError={() => setImageError(true)}
           />
         ) : (
@@ -1668,10 +1706,11 @@ function FeaturedCard({ camp, badge, onClick }) {
       </div>
     </div>
   );
-}
+});
 
-// Camp Card Component with scroll-triggered reveal
-function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare, friendInterestCounts = {}, hasSquads = false }) {
+// Camp Card Component with scroll-triggered reveal - memoized for performance
+// Only re-renders when camp data, expanded state, or compare state changes
+const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare, friendInterestCounts = {}, hasSquads = false }) {
   const categoryClass = categoryClasses[camp.category] || 'category-multi-activity';
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
   const [imageError, setImageError] = useState(false);
@@ -1699,6 +1738,7 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
             src={camp.image_url}
             alt={camp.camp_name}
             loading="lazy"
+            decoding="async"
             onError={() => setImageError(true)}
           />
           <div className="camp-card-image-overlay" style={{ background: categoryGradient }}></div>
@@ -1723,8 +1763,9 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
               }}
               title={isComparing ? 'Remove from compare' : 'Add to compare'}
               aria-label={isComparing ? 'Remove from compare' : 'Add to compare'}
+              aria-pressed={isComparing}
             >
-              <svg className="w-5 h-5" fill={isComparing ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-5 h-5" fill={isComparing ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </button>
@@ -2005,10 +2046,22 @@ function CampCard({ camp, expanded, onToggle, index, isComparing = false, onTogg
       )}
     </article>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison for React.memo - only re-render when these props change
+  const prevFriendCount = prevProps.friendInterestCounts?.[prevProps.camp.id] || 0;
+  const nextFriendCount = nextProps.friendInterestCounts?.[nextProps.camp.id] || 0;
+  return (
+    prevProps.camp.id === nextProps.camp.id &&
+    prevProps.expanded === nextProps.expanded &&
+    prevProps.isComparing === nextProps.isComparing &&
+    prevProps.index === nextProps.index &&
+    prevProps.hasSquads === nextProps.hasSquads &&
+    prevFriendCount === nextFriendCount
+  );
+});
 
-// Detail Row Component
-function DetailRow({ label, value }) {
+// Detail Row Component - memoized
+const DetailRow = memo(function DetailRow({ label, value }) {
   if (!value || value === 'Unknown' || value === 'N/A') return null;
   return (
     <div>
@@ -2016,10 +2069,10 @@ function DetailRow({ label, value }) {
       <p className="font-medium" style={{ color: 'var(--earth-800)' }}>{value}</p>
     </div>
   );
-}
+});
 
-// Camp Detail Modal - Editorial Magazine Style
-function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isFavorite, onToggleCompare, isInCompare }) {
+// Camp Detail Modal - Editorial Magazine Style - memoized
+const CampDetailModal = memo(function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isFavorite, onToggleCompare, isInCompare }) {
   const [imageError, setImageError] = useState(false);
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
 
@@ -2067,6 +2120,7 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
               src={camp.image_url}
               alt={camp.camp_name}
               className="modal-hero-img"
+              decoding="async"
               onError={() => setImageError(true)}
             />
           ) : (
@@ -2417,10 +2471,10 @@ function CampDetailModal({ camp, onClose, onAddToSchedule, onToggleFavorite, isF
       </article>
     </div>
   );
-}
+});
 
-// Modal Detail Row
-function DetailRowModal({ icon, label, value, isEmail }) {
+// Modal Detail Row - memoized
+const DetailRowModal = memo(function DetailRowModal({ icon, label, value, isEmail }) {
   if (!value || value === 'Unknown' || value === 'N/A') return null;
   return (
     <div className="camp-modal-detail-row">
@@ -2435,10 +2489,10 @@ function DetailRowModal({ icon, label, value, isEmail }) {
       </div>
     </div>
   );
-}
+});
 
-// Camp Table Component
-function CampTable({ camps, sortBy, sortDir, onSort, expandedCamp, onToggle }) {
+// Camp Table Component - memoized for performance with large lists
+const CampTable = memo(function CampTable({ camps, sortBy, sortDir, onSort, expandedCamp, onToggle }) {
   const columns = [
     { key: 'camp_name', label: 'Camp Name' },
     { key: 'ages', label: 'Ages' },
@@ -2548,4 +2602,4 @@ function CampTable({ camps, sortBy, sortDir, onSort, expandedCamp, onToggle }) {
       </table>
     </div>
   );
-}
+});

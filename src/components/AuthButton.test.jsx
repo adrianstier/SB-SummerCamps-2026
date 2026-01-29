@@ -155,10 +155,10 @@ describe('AuthButton', () => {
 
       await user.click(screen.getByText('T'));
 
-      expect(screen.getByRole('button', { name: /dashboard/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /my schedule/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /favorites/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /my children/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /dashboard/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /my schedule/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /favorites/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /my children/i })).toBeInTheDocument();
     });
 
     it('dispatches navigate event for dashboard', async () => {
@@ -166,7 +166,7 @@ describe('AuthButton', () => {
       render(<AuthButton />);
 
       await user.click(screen.getByText('T'));
-      await user.click(screen.getByRole('button', { name: /dashboard/i }));
+      await user.click(screen.getByRole('menuitem', { name: /dashboard/i }));
 
       expect(dispatchEventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -181,7 +181,7 @@ describe('AuthButton', () => {
       render(<AuthButton />);
 
       await user.click(screen.getByText('T'));
-      await user.click(screen.getByRole('button', { name: /my schedule/i }));
+      await user.click(screen.getByRole('menuitem', { name: /my schedule/i }));
 
       expect(dispatchEventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -196,7 +196,7 @@ describe('AuthButton', () => {
       render(<AuthButton />);
 
       await user.click(screen.getByText('T'));
-      await user.click(screen.getByRole('button', { name: /favorites/i }));
+      await user.click(screen.getByRole('menuitem', { name: /favorites/i }));
 
       expect(dispatchEventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -211,7 +211,7 @@ describe('AuthButton', () => {
       render(<AuthButton />);
 
       await user.click(screen.getByText('T'));
-      await user.click(screen.getByRole('button', { name: /my children/i }));
+      await user.click(screen.getByRole('menuitem', { name: /my children/i }));
 
       expect(dispatchEventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -226,7 +226,7 @@ describe('AuthButton', () => {
       render(<AuthButton />);
 
       await user.click(screen.getByText('T'));
-      await user.click(screen.getByRole('button', { name: /sign out/i }));
+      await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
 
       expect(mockSignOut).toHaveBeenCalledTimes(1);
     });
@@ -252,7 +252,7 @@ describe('AuthButton', () => {
       render(<AuthButton />);
 
       await user.click(screen.getByText('T'));
-      await user.click(screen.getByRole('button', { name: /dashboard/i }));
+      await user.click(screen.getByRole('menuitem', { name: /dashboard/i }));
 
       // Menu should be closed
       expect(screen.queryByText('Test User')).not.toBeInTheDocument();
@@ -277,7 +277,7 @@ describe('AuthButton', () => {
 
       await user.click(screen.getByText('A'));
 
-      expect(screen.getByRole('button', { name: /admin dashboard/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /admin dashboard/i })).toBeInTheDocument();
     });
 
     it('dispatches navigate event for admin dashboard', async () => {
@@ -285,7 +285,7 @@ describe('AuthButton', () => {
       render(<AuthButton />);
 
       await user.click(screen.getByText('A'));
-      await user.click(screen.getByRole('button', { name: /admin dashboard/i }));
+      await user.click(screen.getByRole('menuitem', { name: /admin dashboard/i }));
 
       expect(dispatchEventSpy).toHaveBeenCalledWith(
         expect.objectContaining({

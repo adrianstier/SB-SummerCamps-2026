@@ -252,7 +252,7 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
           Sign in to write a review
         </h3>
         <p className="text-sm" style={{ color: 'var(--sand-400)' }}>
-          Share your experience to help other families
+          Help other families make decisions
         </p>
       </div>
     );
@@ -261,25 +261,15 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center mb-6">
-        <h3 className="font-serif text-xl font-semibold" style={{ color: 'var(--earth-800)' }}>
-          Review {campName}
-        </h3>
-        <p className="text-sm mt-1" style={{ color: 'var(--sand-400)' }}>
-          Share your experience to help other families
-        </p>
+        <h3 className="heading-md">Review {campName}</h3>
+        <p className="body-sm text-muted mt-1">Help other families make decisions</p>
       </div>
 
-      {error && (
-        <div className="p-3 rounded-lg text-sm" style={{ background: 'var(--terra-100)', color: 'var(--terra-600)' }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="alert alert-error">{error}</div>}
 
       {/* Overall Rating */}
       <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-          Overall Rating *
-        </label>
+        <label className="label">Overall Rating *</label>
         <StarRating
           rating={form.overall_rating}
           onChange={(rating) => setForm({ ...form, overall_rating: rating })}
@@ -296,9 +286,7 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
           { key: 'safety_rating', label: 'Safety' }
         ].map(({ key, label }) => (
           <div key={key}>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
-              {label}
-            </label>
+            <label className="label">{label}</label>
             <StarRating
               rating={form[key]}
               onChange={(rating) => setForm({ ...form, [key]: rating })}
@@ -310,45 +298,36 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
 
       {/* Title */}
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
-          Review Title
-        </label>
+        <label className="label">Review Title</label>
         <input
           type="text"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           placeholder="Sum up your experience in a few words"
-          className="w-full px-4 py-2.5 rounded-xl border-2 focus:outline-none focus:ring-2"
-          style={{ borderColor: 'var(--sand-200)' }}
+          className="input"
         />
       </div>
 
       {/* Review Text */}
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
-          Your Review *
-        </label>
+        <label className="label">Your Review *</label>
         <textarea
           value={form.review_text}
           onChange={(e) => setForm({ ...form, review_text: e.target.value })}
           placeholder="What did you like? What could be improved? Would you recommend this camp?"
           rows={5}
-          className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 resize-none"
-          style={{ borderColor: 'var(--sand-200)' }}
+          className="textarea"
         />
       </div>
 
       {/* Context */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
-            Year Attended
-          </label>
+          <label className="label">Year Attended</label>
           <select
             value={form.year_attended}
             onChange={(e) => setForm({ ...form, year_attended: parseInt(e.target.value) })}
-            className="w-full px-4 py-2.5 rounded-xl border-2 focus:outline-none focus:ring-2"
-            style={{ borderColor: 'var(--sand-200)' }}
+            className="select"
           >
             {[...Array(5)].map((_, i) => {
               const year = new Date().getFullYear() - i;
@@ -357,14 +336,11 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
-            Child's Age at Time
-          </label>
+          <label className="label">Child's Age at Time</label>
           <select
             value={form.child_age_at_time}
             onChange={(e) => setForm({ ...form, child_age_at_time: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl border-2 focus:outline-none focus:ring-2"
-            style={{ borderColor: 'var(--sand-200)' }}
+            className="select"
           >
             <option value="">Select age</option>
             {[...Array(16)].map((_, i) => (
@@ -375,7 +351,7 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
       </div>
 
       {/* Would Recommend */}
-      <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: 'var(--sand-50)' }}>
+      <div className="card flex items-center gap-3 p-4">
         <input
           type="checkbox"
           id="would_recommend"
@@ -383,7 +359,7 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
           onChange={(e) => setForm({ ...form, would_recommend: e.target.checked })}
           className="w-5 h-5 rounded"
         />
-        <label htmlFor="would_recommend" className="font-medium" style={{ color: 'var(--earth-800)' }}>
+        <label htmlFor="would_recommend" className="heading-sm">
           I would recommend this camp to other families
         </label>
       </div>
@@ -434,15 +410,13 @@ export function ReviewsList({ campId, campName }) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-serif text-lg font-semibold" style={{ color: 'var(--earth-800)' }}>
-          Reviews ({reviews.length})
-        </h3>
+        <h3 className="heading-md">Reviews ({reviews.length})</h3>
         {user && !userHasReviewed && (
           <button
             onClick={() => setShowWriteForm(true)}
             className="btn-primary"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             Write a Review
@@ -452,8 +426,8 @@ export function ReviewsList({ campId, campName }) {
 
       {/* Write Review Modal */}
       {showWriteForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="modal-overlay">
+          <div className="modal modal-md" style={{ padding: 'var(--space-6)' }}>
             <WriteReviewForm
               campId={campId}
               campName={campName}

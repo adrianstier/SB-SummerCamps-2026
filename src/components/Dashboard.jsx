@@ -140,7 +140,7 @@ export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
                 </div>
               ) : (
                 <div className="dashboard-empty">
-                  <p className="dashboard-empty-text">Add preferences to get personalized suggestions</p>
+                  <p className="dashboard-empty-text">Add preferences for personalized picks</p>
                 </div>
               )}
             </section>

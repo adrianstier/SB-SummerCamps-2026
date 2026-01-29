@@ -47,7 +47,23 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  position: relative;
+  transition:
+    background-color 0.2s var(--ease-default),
+    color 0.15s ease;
+}
+
+/* Tab underline indicator */
+.planner-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--ocean-500);
+  border-radius: 1px;
+  transition: width 0.2s var(--ease-default), left 0.2s var(--ease-default);
 }
 
 .planner-tab:hover {
@@ -58,6 +74,11 @@
 .planner-tab.active {
   background: var(--ocean-50);
   color: var(--ocean-600);
+}
+
+.planner-tab.active::after {
+  width: 100%;
+  left: 0;
 }
 
 .planner-tab svg {
@@ -2275,6 +2296,95 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────
+   ACCESSIBILITY: Focus Styles for Planner Components
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Week card focus */
+.week-card:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px white,
+    0 0 0 5px var(--ocean-400),
+    0 8px 24px -8px rgba(31, 26, 22, 0.15);
+}
+
+/* Tab focus */
+.planner-tab:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ocean-400);
+}
+
+/* Child pill focus */
+.planner-child-pill:focus-visible,
+.planner-child-pill-mobile:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px white, 0 0 0 5px var(--ocean-400);
+}
+
+/* Close button focus */
+.planner-close-btn:focus-visible,
+.planner-drawer-close:focus-visible,
+.block-menu-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--ocean-400);
+}
+
+/* Sidebar camp focus (for keyboard navigation) */
+.planner-sidebar-camp:focus-visible {
+  outline: none;
+  border-color: var(--ocean-400);
+  box-shadow: 0 0 0 3px var(--ocean-100), 0 4px 12px -4px rgba(0, 0, 0, 0.15);
+}
+
+/* Block menu option focus */
+.block-menu-option:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ocean-400);
+}
+
+/* Camp remove button focus */
+.camp-card-remove:focus-visible,
+.week-blocked-remove:focus-visible,
+.status-card-remove:focus-visible {
+  outline: none;
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--ocean-400);
+}
+
+/* Bottom bar action buttons focus */
+.planner-bottom-action-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px white, 0 0 0 5px var(--ocean-400);
+}
+
+/* FAB focus */
+.planner-fab:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px white,
+    0 0 0 5px var(--ocean-400),
+    0 4px 20px -4px rgba(232, 90, 53, 0.5);
+}
+
+/* Navigation buttons focus */
+.planner-nav-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--ocean-400);
+}
+
+/* Status card focus */
+.status-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px white, 0 0 0 5px var(--ocean-400);
+}
+
+/* Preview toggle focus */
+.planner-preview-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--ocean-400);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
    ACCESSIBILITY: Inline Status Message Banner
    ───────────────────────────────────────────────────────────────────── */
 
@@ -2391,4 +2501,17 @@
 
 .planner-confirm-ok:hover {
   background: var(--ocean-700, #1d4ed8);
+}
+
+/* Reduced motion support for planner tabs */
+@media (prefers-reduced-motion: reduce) {
+  .planner-tab::after {
+    transition: none;
+  }
+  
+  .tab-content-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
