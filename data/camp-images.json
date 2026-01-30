@@ -183,5 +183,45 @@
     "id": "winshape-camps",
     "camp_name": "WinShape Camps",
     "image_url": "https://winshapecamps.wpenginepowered.com/wp-content/uploads/2023/02/9bfd538d-7ca8-56fa-b778-68e3529b22ea-scaled-e1695845360969.jpg"
+  },
+  {
+    "id": "nature-rangers",
+    "camp_name": "Nature Rangers",
+    "image_url": "https://naturerangers.org/wp-content/uploads/2024/05/IMG_6153-scaled.jpeg"
+  },
+  {
+    "id": "ensemble-theatre-company",
+    "camp_name": "Ensemble Theatre Company",
+    "image_url": "https://etcsb.org/wp-content/uploads/2025/01/YAC2024PageHeader.jpg"
+  },
+  {
+    "id": "camp-stow",
+    "camp_name": "Camp Stow",
+    "image_url": "https://goletahistory.org/wp-content/uploads/2019/09/IMG_2275.jpeg"
+  },
+  {
+    "id": "refugio-jr-guards",
+    "camp_name": "Refugio Jr. Guards",
+    "image_url": "https://www.parks.ca.gov/pages/22375/images/RefugioJGs_Bnr1.png"
+  },
+  {
+    "id": "montessori-center-school-camp",
+    "camp_name": "Montessori Center School Camp",
+    "image_url": "https://cdn.prod.website-files.com/68ffd65bba83385ed54983ce/68ffd65bba83385ed54983f8_Rectangle%206.jpg"
+  },
+  {
+    "id": "fairview-gardens",
+    "camp_name": "Fairview Gardens",
+    "image_url": "https://fairviewgardens.org/wp-content/uploads/2024/09/Orange-on-vine.png"
+  },
+  {
+    "id": "south-coast-railroad-museum",
+    "camp_name": "South Coast Railroad Museum",
+    "image_url": "https://goletadepot.org/wp-content/uploads/Hop-Aboard-the-Goleta-Short-Line-300x300.png"
+  },
+  {
+    "id": "safety-town",
+    "camp_name": "Safety Town",
+    "image_url": "https://i0.wp.com/www.noozhawk.com/wp-content/uploads/2010/07/072910-safetytown-300.jpg"
   }
 ]
