@@ -132,7 +132,7 @@ export const PLANNING_TIPS = [
   {
     id: 'check_gaps',
     condition: (stats) => stats.gapCount > 0 && stats.scheduledCount > 0,
-    tip: `You have ${stats.gapCount} ${stats.gapCount === 1 ? 'gap' : 'gaps'} in your schedule. Consider filling them to avoid last-minute scrambling.`,
+    tip: (stats) => `You have ${stats.gapCount} ${stats.gapCount === 1 ? 'gap' : 'gaps'} in your schedule. Consider filling them to avoid last-minute scrambling.`,
     icon: '📋'
   },
   {
@@ -445,7 +445,12 @@ export function AchievementsProvider({ children }) {
 
   // Get relevant tips based on current state
   const relevantTips = useMemo(() => {
-    return PLANNING_TIPS.filter(tip => tip.condition(planningStats));
+    return PLANNING_TIPS
+      .filter(tip => tip.condition(planningStats))
+      .map(tip => ({
+        ...tip,
+        tip: typeof tip.tip === 'function' ? tip.tip(planningStats) : tip.tip
+      }));
   }, [planningStats]);
 
   // Get current tip
