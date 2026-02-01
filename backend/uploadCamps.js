@@ -59,7 +59,7 @@ async function uploadCamps() {
     food_included: camp.food_included || false,
     extended_care: camp.extended_care || null,
     extended_care_cost: camp.extended_care_cost || null,
-    has_extended_care: camp.has_extended_care || false,
+    has_extended_care: camp.has_extended_care || (camp.extended_care && /^yes/i.test(camp.extended_care)) || false,
     sibling_discount: camp.sibling_discount || null,
     has_sibling_discount: camp.has_sibling_discount || false,
     multi_week_discount: camp['multi-week_discount'] || camp.multi_week_discount || null,

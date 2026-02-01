@@ -335,7 +335,7 @@ export function useFilters(priceRange = { min: 0, max: 1000 }) {
 
     // Feature filters
     if (filters.extendedCare) {
-      result = result.filter(camp => camp.has_extended_care);
+      result = result.filter(camp => camp.has_extended_care || (camp.extended_care && /^yes/i.test(camp.extended_care)));
     }
     if (filters.foodIncluded) {
       result = result.filter(camp => camp.food_included);
