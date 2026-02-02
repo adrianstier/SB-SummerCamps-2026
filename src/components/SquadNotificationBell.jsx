@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { markSquadNotificationRead, markAllSquadNotificationsRead } from '../lib/supabase';
+import BrandIcon from './BrandIcon';
 
 export default function SquadNotificationBell() {
   const { squadNotifications, squadUnreadCount, refreshSquadNotifications } = useAuth();
@@ -34,15 +35,15 @@ export default function SquadNotificationBell() {
   function getNotificationIcon(type) {
     switch (type) {
       case 'friend_match':
-        return '🎉';
+        return <BrandIcon name="confetti" size={16} />;
       case 'looking_for_friends':
-        return '👀';
+        return <BrandIcon name="eye" size={16} />;
       case 'new_member':
         return '👤';
       case 'schedule_change':
-        return '📅';
+        return <BrandIcon name="calendar" size={16} />;
       default:
-        return '🔔';
+        return <BrandIcon name="bell" size={16} />;
     }
   }
 

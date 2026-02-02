@@ -2,6 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FavoriteButton } from './FavoriteButton';
 import { formatPriceShort } from '../lib/formatters';
+import BrandIcon from './BrandIcon';
 import './RecommendationSection.css';
 
 /**
@@ -208,7 +209,7 @@ export const GapSuggestions = memo(function GapSuggestions({
           <h2 className="gap-suggestions-title">Complete Your Summer</h2>
           <p className="gap-suggestions-subtitle">Fill coverage gaps</p>
         </div>
-        <span className="gap-suggestions-icon">📅</span>
+        <span className="gap-suggestions-icon"><BrandIcon name="calendar" size={16} /></span>
       </div>
 
       {children.map(child => {
@@ -275,7 +276,7 @@ export const PopularCampsSection = memo(function PopularCampsSection({
           <h2 className="popular-camps-title">Popular in Santa Barbara</h2>
           <p className="popular-camps-subtitle">Local families love these</p>
         </div>
-        <span className="popular-camps-icon">⭐</span>
+        <span className="popular-camps-icon"><BrandIcon name="star" size={16} /></span>
       </div>
 
       <div className="popular-camps-grid">

@@ -12,6 +12,7 @@ import { MobileNav, InstallBanner, OfflineIndicator, UpdateToast, PullToRefreshI
 import { SwipeableCampCard, SwipeHint } from './components/SwipeableCampCard';
 import { supabase, getRegistrationStatus, checkWorkScheduleCoverage } from './lib/supabase';
 import { formatPrice } from './lib/formatters';
+import BrandIcon from './components/BrandIcon';
 
 // Lazy load heavy modal components for better initial load performance
 const SchedulePlanner = lazy(() => import('./components/SchedulePlanner').then(m => ({ default: m.SchedulePlanner })));
@@ -173,12 +174,12 @@ function getRegUrgency(regDate) {
 
   // Check for "open now" type messages
   if (lower.includes('open') || lower.includes('now') || lower.includes('rolling')) {
-    return { type: 'open', label: 'Open Now', icon: '✓' };
+    return { type: 'open', label: 'Open Now', icon: 'check' };
   }
 
   // Check for "filled" or "closed"
   if (lower.includes('fill') || lower.includes('full') || lower.includes('closed') || lower.includes('waitlist')) {
-    return { type: 'full', label: 'Waitlist', icon: '⏳' };
+    return { type: 'full', label: 'Waitlist', icon: 'hourglass' };
   }
 
   // Try to parse a date
@@ -200,11 +201,11 @@ function getRegUrgency(regDate) {
     const daysUntil = Math.ceil((regDateObj - now) / (1000 * 60 * 60 * 24));
 
     if (daysUntil <= 0) {
-      return { type: 'open', label: 'Open Now', icon: '✓' };
+      return { type: 'open', label: 'Open Now', icon: 'check' };
     } else if (daysUntil <= 7) {
-      return { type: 'soon', label: `Opens in ${daysUntil}d`, icon: '🔔' };
+      return { type: 'soon', label: `Opens in ${daysUntil}d`, icon: 'bell' };
     } else if (daysUntil <= 30) {
-      return { type: 'upcoming', label: `Opens ${regDate}`, icon: '📅' };
+      return { type: 'upcoming', label: `Opens ${regDate}`, icon: 'calendar' };
     }
   }
 
@@ -247,22 +248,22 @@ const categoryGradients = {
   'Overnight': 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
 };
 
-// Category icons with emojis for browse grid
+// Category icons for browse grid
 const categoryIcons = [
-  { name: 'Beach/Surf', emoji: '🏄' },
-  { name: 'Sports', emoji: '⚽' },
-  { name: 'Art', emoji: '🎨' },
-  { name: 'Science/STEM', emoji: '🔬' },
-  { name: 'Nature/Outdoor', emoji: '🌲' },
-  { name: 'Theater', emoji: '🎭' },
-  { name: 'Dance', emoji: '💃' },
-  { name: 'Music', emoji: '🎵' },
-  { name: 'Cooking', emoji: '👨‍🍳' },
-  { name: 'Animals/Zoo', emoji: '🦁' },
-  { name: 'Multi-Activity', emoji: '🎯' },
-  { name: 'Education', emoji: '📚' },
-  { name: 'Faith-Based', emoji: '✨' },
-  { name: 'Overnight', emoji: '🏕️' },
+  { name: 'Beach/Surf', icon: 'beach-surf' },
+  { name: 'Sports', icon: 'sports' },
+  { name: 'Art', icon: 'art' },
+  { name: 'Science/STEM', icon: 'science-stem' },
+  { name: 'Nature/Outdoor', icon: 'nature-outdoor' },
+  { name: 'Theater', icon: 'theater' },
+  { name: 'Dance', icon: 'dance' },
+  { name: 'Music', icon: 'music' },
+  { name: 'Cooking', icon: 'cooking' },
+  { name: 'Animals/Zoo', icon: 'animals-zoo' },
+  { name: 'Multi-Activity', icon: 'multi-activity' },
+  { name: 'Education', icon: 'education' },
+  { name: 'Faith-Based', icon: 'faith-based' },
+  { name: 'Overnight', icon: 'overnight' },
 ];
 
 // Memoized icon components to prevent unnecessary re-renders
@@ -339,8 +340,8 @@ const LoadingSpinner = memo(function LoadingSpinner({ className = "w-5 h-5" }) {
   );
 });
 
-// Brand Icon (California sun over wave)
-const BrandIcon = ({ className = "w-8 h-8" }) => (
+// Brand Logo (California sun over wave)
+const AppLogo = ({ className = "w-8 h-8" }) => (
   <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="16" cy="11" r="5" fill="#f9cf45" />
     <path d="M16 3v3M16 14v3M9 11H6M26 11h-3M10.5 5.5l2 2M19.5 7.5l2-2M10.5 16.5l2-2M19.5 14.5l2 2" stroke="#f9cf45" strokeWidth="1.5" strokeLinecap="round" />
@@ -734,7 +735,7 @@ export default function App() {
           {/* Top Bar */}
           <div className="flex items-center justify-between mb-12 md:mb-16">
             <div className="flex items-center gap-3">
-              <BrandIcon className="w-9 h-9" />
+              <AppLogo className="w-9 h-9" />
               <span className="font-sans font-medium text-sm tracking-wide uppercase" style={{ color: 'var(--earth-700)', letterSpacing: '0.1em' }}>
                 Santa Barbara
               </span>
@@ -1427,7 +1428,7 @@ export default function App() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <h2 className="category-browse-title">Browse by Interest</h2>
             <div className="category-browse-grid">
-              {categoryIcons.map(({ name, icon, emoji }) => {
+              {categoryIcons.map(({ name, icon }) => {
                 const count = stats?.categories?.[name] || 0;
                 if (count === 0) return null;
                 return (
@@ -1439,7 +1440,7 @@ export default function App() {
                     }}
                     className={`category-browse-card ${selectedCategory === name ? 'active' : ''}`}
                   >
-                    <span className="category-browse-icon">{emoji}</span>
+                    <span className="category-browse-icon"><BrandIcon name={icon} size={28} /></span>
                     <span className="category-browse-name">{name}</span>
                     <span className="category-browse-count">{count} {count === 1 ? 'camp' : 'camps'}</span>
                   </button>
@@ -1554,7 +1555,7 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <BrandIcon className="w-7 h-7" />
+              <AppLogo className="w-7 h-7" />
               <span className="font-serif text-lg" style={{ color: 'var(--sand-100)' }}>
                 Santa Barbara Summer Camps
               </span>
@@ -1939,7 +1940,7 @@ const FeaturedCard = memo(function FeaturedCard({ camp, badge, onClick }) {
             className="w-full h-full flex items-center justify-center"
             style={{ background: categoryGradients[camp.category] || 'var(--sand-200)' }}
           >
-            <span className="text-white text-4xl opacity-50">🏕️</span>
+            <span className="text-white opacity-50"><BrandIcon name="overnight" size={40} /></span>
           </div>
         )}
         <span className="featured-card-badge">{badge}</span>
@@ -2095,7 +2096,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
         {/* Friend Interest Indicator */}
         {hasSquads && friendCount > 0 && (
           <div className="friend-interest-badge mb-3">
-            <span className="friend-interest-icon">👥</span>
+            <span className="friend-interest-icon"><BrandIcon name="people" size={16} /></span>
             <span className="friend-interest-label">
               {friendCount} {friendCount === 1 ? 'friend' : 'friends'} interested
             </span>
@@ -2136,7 +2137,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
           {/* Food Information Section */}
           <div className="mt-5 p-4 rounded-xl" style={{ background: 'var(--ocean-50)', border: '1px solid var(--ocean-200)' }}>
             <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--ocean-600)' }}>
-              <span>🍽️</span> Food
+              <BrandIcon name="utensils" size={16} /> Food
             </p>
             <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
               {camp.food_provided && camp.food_provided !== 'N/A' && camp.food_provided !== 'Unknown'
@@ -2151,7 +2152,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
           {camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A' && (
             <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--terra-50)', border: '1px solid var(--terra-200)' }}>
               <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--terra-600)' }}>
-                <span>📋</span> Cancellation
+                <BrandIcon name="clipboard" size={16} /> Cancellation
               </p>
               <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
                 {camp.refund_policy}
@@ -2163,7 +2164,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
           {camp.extracted?.activities && camp.extracted.activities.length > 0 && (
             <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--sage-50)', border: '1px solid var(--sage-200)' }}>
               <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--sage-600)' }}>
-                <span>🎯</span> Activities
+                <BrandIcon name="target" size={16} /> Activities
               </p>
               <div className="flex flex-wrap gap-1">
                 {camp.extracted.activities.slice(0, 8).map((activity, i) => (
@@ -2184,7 +2185,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
           {(camp.extracted?.staff_ratio || camp.extracted?.certifications?.length > 0) && (
             <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--ocean-50)', border: '1px solid var(--ocean-200)' }}>
               <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--ocean-600)' }}>
-                <span>👥</span> Staff & Safety
+                <BrandIcon name="people" size={16} /> Staff & Safety
               </p>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {camp.extracted?.staff_ratio && (
@@ -2362,18 +2363,18 @@ const CampDetailModal = memo(function CampDetailModal({
   const featurePills = [];
   if (regStatus.status !== 'unknown') {
     featurePills.push({
-      icon: regStatus.isOpen ? '✓' : regStatus.status === 'upcoming' ? '📅' : '⏳',
+      icon: regStatus.isOpen ? 'check' : regStatus.status === 'upcoming' ? 'calendar' : 'hourglass',
       label: regStatus.label,
       type: regStatus.isOpen ? 'open' : regStatus.status === 'upcoming' ? (regStatus.daysUntil <= 7 ? 'soon' : 'upcoming') : 'full',
       key: 'registration',
       color: regStatus.color
     });
   }
-  if (camp.has_extended_care) featurePills.push({ icon: '⏰', label: 'Extended Care', key: 'extended' });
-  if (camp.food_included) featurePills.push({ icon: '🍽️', label: 'Meals Included', key: 'food' });
-  if (camp.has_transport) featurePills.push({ icon: '🚐', label: 'Transport', key: 'transport' });
-  if (camp.has_sibling_discount) featurePills.push({ icon: '👨‍👩‍👧', label: 'Sibling Discount', key: 'sibling' });
-  if (camp.fsa_eligible) featurePills.push({ icon: '💳', label: 'FSA Eligible', key: 'fsa', type: 'fsa' });
+  if (camp.has_extended_care) featurePills.push({ icon: 'clock-plus', label: 'Extended Care', key: 'extended' });
+  if (camp.food_included) featurePills.push({ icon: 'utensils', label: 'Meals Included', key: 'food' });
+  if (camp.has_transport) featurePills.push({ icon: 'van', label: 'Transport', key: 'transport' });
+  if (camp.has_sibling_discount) featurePills.push({ icon: 'people-percent', label: 'Sibling Discount', key: 'sibling' });
+  if (camp.fsa_eligible) featurePills.push({ icon: 'card-check', label: 'FSA Eligible', key: 'fsa', type: 'fsa' });
 
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={`${camp.camp_name} details`}>
@@ -2448,7 +2449,7 @@ const CampDetailModal = memo(function CampDetailModal({
                   key={pill.key}
                   className={`modal-pill ${pill.type ? `modal-pill--${pill.type}` : ''}`}
                 >
-                  <span className="modal-pill-icon">{pill.icon}</span>
+                  <span className="modal-pill-icon"><BrandIcon name={pill.icon} size={14} /></span>
                   {pill.label}
                 </span>
               ))}
@@ -2598,7 +2599,7 @@ const CampDetailModal = memo(function CampDetailModal({
           {/* Availability */}
           {camp.extracted?.availability && (camp.extracted.availability.isOpen || camp.extracted.availability.hasWaitlist || (camp.extracted.availability.soldOutSessions && camp.extracted.availability.soldOutSessions.length > 0)) && (
             <div className="modal-callout modal-callout--availability">
-              <span className="modal-callout-icon">{camp.extracted.availability.isOpen ? '✅' : '⏳'}</span>
+              <span className="modal-callout-icon"><BrandIcon name={camp.extracted.availability.isOpen ? 'check-square' : 'hourglass'} size={18} /></span>
               <div>
                 <strong>{camp.extracted.availability.isOpen ? 'Open Now' : 'Limited Spots'}</strong>
                 {camp.extracted.availability.hasWaitlist && <p>Waitlist open</p>}
@@ -2615,7 +2616,7 @@ const CampDetailModal = memo(function CampDetailModal({
           {/* Food Info */}
           {(camp.food_provided || camp.food_included) && camp.food_provided !== 'Unknown' && (
             <div className="modal-callout modal-callout--ocean">
-              <span className="modal-callout-icon">🍽️</span>
+              <span className="modal-callout-icon"><BrandIcon name="utensils" size={18} /></span>
               <div>
                 <strong>Food</strong>
                 <p>
@@ -2642,7 +2643,7 @@ const CampDetailModal = memo(function CampDetailModal({
           {/* Staff & Safety */}
           {(camp.extracted?.staff_ratio || camp.extracted?.certifications?.length > 0) && (
             <div className="modal-callout modal-callout--sage">
-              <span className="modal-callout-icon">👥</span>
+              <span className="modal-callout-icon"><BrandIcon name="people" size={18} /></span>
               <div>
                 <strong>Staff & Safety</strong>
                 {camp.extracted?.staff_ratio && <p>Staff ratio: {camp.extracted.staff_ratio}</p>}
@@ -2685,7 +2686,7 @@ const CampDetailModal = memo(function CampDetailModal({
           {/* Notes */}
           {camp.notes && (
             <div className="modal-callout modal-callout--sun">
-              <span className="modal-callout-icon">📝</span>
+              <span className="modal-callout-icon"><BrandIcon name="pencil" size={18} /></span>
               <div>
                 <strong>Notes</strong>
                 <p>{camp.notes}</p>

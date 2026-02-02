@@ -1,5 +1,6 @@
 import React, { memo, useState, useMemo } from 'react';
 import { useAchievements, ACHIEVEMENTS } from '../contexts/AchievementsContext';
+import BrandIcon from './BrandIcon';
 import './AchievementBadges.css';
 
 // Category display names
@@ -77,7 +78,7 @@ export const AchievementBadges = memo(function AchievementBadges({
             className="achievement-inline-badge"
             title={achievement.title}
           >
-            {achievement.icon}
+            <BrandIcon name={achievement.icon} size={16} />
           </span>
         ))}
         {earned.length > 5 && (
@@ -107,7 +108,7 @@ export const AchievementBadges = memo(function AchievementBadges({
                 title={isEarned ? achievement.title : 'Locked'}
               >
                 <span className="achievement-compact-icon">
-                  {isEarned ? achievement.icon : '🔒'}
+                  {isEarned ? <BrandIcon name={achievement.icon} size={16} /> : <BrandIcon name="lock" size={16} />}
                 </span>
               </button>
             );
@@ -212,7 +213,7 @@ const AchievementCard = memo(function AchievementCard({ achievement, isEarned, o
       onClick={onClick}
     >
       <div className="achievement-card-icon">
-        {isEarned ? achievement.icon : '🔒'}
+        {isEarned ? <BrandIcon name={achievement.icon} size={20} /> : <BrandIcon name="lock" size={20} />}
       </div>
       <div className="achievement-card-content">
         <span className="achievement-card-title">
@@ -248,7 +249,7 @@ const AchievementModal = memo(function AchievementModal({ achievement, isEarned,
         </button>
 
         <div className="achievement-modal-icon">
-          {isEarned ? achievement.icon : '🔒'}
+          {isEarned ? <BrandIcon name={achievement.icon} size={32} /> : <BrandIcon name="lock" size={32} />}
         </div>
 
         <h3 className="achievement-modal-title">
@@ -267,7 +268,7 @@ const AchievementModal = memo(function AchievementModal({ achievement, isEarned,
 
         {achievement.isLegendary && (
           <div className="achievement-modal-legendary">
-            <span className="achievement-legendary-star">⭐</span>
+            <span className="achievement-legendary-star"><BrandIcon name="star" size={16} /></span>
             Legendary Achievement
           </div>
         )}

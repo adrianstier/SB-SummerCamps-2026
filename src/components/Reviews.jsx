@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getReviews, getCampRatings, addReview, voteReviewHelpful, removeReviewVote } from '../lib/supabase';
+import BrandIcon from './BrandIcon';
 
 // Star Rating Component
 function StarRating({ rating, onChange, readonly = false, size = 'md' }) {
@@ -93,7 +94,7 @@ export function ReviewsSummary({ campId }) {
         </div>
       </div>
       <div className="flex items-center justify-center gap-2 pt-3" style={{ borderTop: '1px solid var(--sun-200)' }}>
-        <span className="text-2xl">👍</span>
+        <span className="text-2xl"><BrandIcon name="thumbs-up" size={16} /></span>
         <span className="font-medium" style={{ color: 'var(--sage-600)' }}>
           {ratings.recommend_percent}% would recommend
         </span>
@@ -167,7 +168,7 @@ function ReviewCard({ review, onHelpful }) {
       {review.would_recommend && (
         <div className="flex items-center gap-2 mb-4">
           <span className="text-sm px-3 py-1 rounded-full" style={{ background: 'var(--sage-100)', color: 'var(--sage-600)' }}>
-            ✓ Would recommend
+            <BrandIcon name="check" size={14} /> Would recommend
           </span>
         </div>
       )}
@@ -247,7 +248,7 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
   if (!user) {
     return (
       <div className="text-center py-8">
-        <span className="text-4xl block mb-3">✍️</span>
+        <span className="text-4xl block mb-3"><BrandIcon name="writing" size={36} /></span>
         <h3 className="font-semibold mb-2" style={{ color: 'var(--earth-800)' }}>
           Sign in to write a review
         </h3>
@@ -447,7 +448,7 @@ export function ReviewsList({ campId, campName }) {
         </div>
       ) : (
         <div className="text-center py-12 rounded-xl" style={{ background: 'var(--sand-50)' }}>
-          <span className="text-4xl block mb-3">📝</span>
+          <span className="text-4xl block mb-3"><BrandIcon name="pencil" size={20} /></span>
           <h4 className="font-medium mb-2" style={{ color: 'var(--earth-800)' }}>
             No reviews yet
           </h4>

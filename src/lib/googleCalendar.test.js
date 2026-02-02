@@ -252,7 +252,7 @@ describe('googleCalendar', () => {
       const result = formatCampForCalendar(mockCamp, mockSchedule);
 
       expect(result.campId).toBe('camp-1');
-      expect(result.title).toBe('🏕️ Adventure Surf Camp');
+      expect(result.title).toBe('Adventure Surf Camp');
       expect(result.location).toBe('123 Beach Blvd, Santa Barbara');
       expect(result.startDate).toBe('2026-06-08');
       expect(result.endDate).toBe('2026-06-12');
@@ -315,7 +315,7 @@ describe('googleCalendar', () => {
       const result = formatCampForCalendar(minimalCamp, minimalSchedule);
 
       expect(result.campId).toBe('camp-min');
-      expect(result.title).toBe('🏕️ Basic Camp');
+      expect(result.title).toBe('Basic Camp');
       expect(result.location).toBe('');
       expect(result.description).toBe('');
     });
@@ -495,7 +495,7 @@ describe('googleCalendar', () => {
 
     it('handles Unicode characters in event data', () => {
       const event = {
-        title: '夏のキャンプ 🏕️ Camp été',
+        title: '夏のキャンプ Camp été',
         description: 'Schöne Sommerferien',
         location: 'São Paulo, Brasil',
         startDate: '2026-06-08',

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FavoriteButton } from './FavoriteButton';
+import BrandIcon from './BrandIcon';
 import { createComparisonList, shareComparisonList } from '../lib/supabase';
 import './CampComparison.css';
 
@@ -57,18 +58,18 @@ function getAgeRange(camp) {
 }
 
 const COMPARISON_FIELDS = [
-  { key: 'category', label: 'Category', icon: '🏷️', visualType: 'category' },
-  { key: 'ages', label: 'Age Range', icon: '👶', visualType: 'ageRange' },
-  { key: 'price', label: 'Price', icon: '💰', format: formatPrice, visualType: 'priceBar' },
-  { key: 'hours', label: 'Hours', icon: '🕐' },
-  { key: 'indoor_outdoor', label: 'Indoor/Outdoor', icon: '🏠', visualType: 'badge' },
-  { key: 'has_extended_care', label: 'Extended Care', icon: '⏰', type: 'boolean', highlight: true },
-  { key: 'food_included', label: 'Food Included', icon: '🍽️', type: 'boolean', highlight: true },
-  { key: 'has_transport', label: 'Transportation', icon: '🚌', type: 'boolean' },
-  { key: 'has_sibling_discount', label: 'Sibling Discount', icon: '👨‍👩‍👧‍👦', type: 'boolean' },
-  { key: 'address', label: 'Location', icon: '📍' },
-  { key: 'contact_email', label: 'Email', icon: '📧' },
-  { key: 'contact_phone', label: 'Phone', icon: '📞' }
+  { key: 'category', label: 'Category', icon: 'tag', visualType: 'category' },
+  { key: 'ages', label: 'Age Range', icon: 'child', visualType: 'ageRange' },
+  { key: 'price', label: 'Price', icon: 'coin', format: formatPrice, visualType: 'priceBar' },
+  { key: 'hours', label: 'Hours', icon: 'clock' },
+  { key: 'indoor_outdoor', label: 'Indoor/Outdoor', icon: 'home', visualType: 'badge' },
+  { key: 'has_extended_care', label: 'Extended Care', icon: 'clock-plus', type: 'boolean', highlight: true },
+  { key: 'food_included', label: 'Food Included', icon: 'utensils', type: 'boolean', highlight: true },
+  { key: 'has_transport', label: 'Transportation', icon: 'van', type: 'boolean' },
+  { key: 'has_sibling_discount', label: 'Sibling Discount', icon: 'family', type: 'boolean' },
+  { key: 'address', label: 'Location', icon: 'pin' },
+  { key: 'contact_email', label: 'Email', icon: 'email' },
+  { key: 'contact_phone', label: 'Phone', icon: 'phone' }
 ];
 
 export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, onAddCamp }) {
@@ -173,7 +174,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
         <div className="bg-white rounded-2xl w-full max-w-md p-8 text-center">
-          <span className="text-5xl block mb-4">⚖️</span>
+          <span className="block mb-4"><BrandIcon name="scale" size={48} /></span>
           <h2 className="font-serif text-2xl font-semibold mb-3" style={{ color: 'var(--earth-800)' }}>
             Compare Camps
           </h2>
@@ -368,7 +369,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
             {/* Visual Price Comparison */}
             <div className="comparison-section">
               <h4 className="comparison-section-title">
-                <span className="comparison-section-icon">💰</span>
+                <span className="comparison-section-icon"><BrandIcon name="coin" size={18} /></span>
                 Price Comparison
               </h4>
               <div className="comparison-price-bars">
@@ -406,7 +407,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
             {/* Visual Age Range Comparison */}
             <div className="comparison-section">
               <h4 className="comparison-section-title">
-                <span className="comparison-section-icon">👶</span>
+                <span className="comparison-section-icon"><BrandIcon name="child" size={18} /></span>
                 Age Range Coverage
               </h4>
               <div className="comparison-age-timeline">
@@ -445,7 +446,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
             {/* Feature Checklist Grid */}
             <div className="comparison-section">
               <h4 className="comparison-section-title">
-                <span className="comparison-section-icon">✓</span>
+                <span className="comparison-section-icon"><BrandIcon name="check" size={14} /></span>
                 Features at a Glance
               </h4>
               <div className="comparison-features-grid">
@@ -460,7 +461,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                 {COMPARISON_FIELDS.filter(f => f.type === 'boolean').map(field => (
                   <div key={field.key} className="comparison-features-row">
                     <div className="comparison-features-label">
-                      <span className="comparison-features-icon">{field.icon}</span>
+                      <span className="comparison-features-icon"><BrandIcon name={field.icon} size={16} /></span>
                       {field.label}
                     </div>
                     {selectedCamps.map(camp => {
@@ -550,7 +551,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                 >
                   <td className="sticky left-0 p-4" style={{ background: index % 2 === 0 ? 'var(--sand-50)' : 'white' }}>
                     <div className="flex items-center gap-2">
-                      <span>{field.icon}</span>
+                      <BrandIcon name={field.icon} size={16} />
                       <span className="text-sm font-medium" style={{ color: 'var(--earth-700)' }}>
                         {field.label}
                       </span>
@@ -568,7 +569,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
               <tr style={{ background: 'white' }}>
                 <td className="sticky left-0 p-4 align-top" style={{ background: 'white' }}>
                   <div className="flex items-center gap-2">
-                    <span>📝</span>
+                    <BrandIcon name="pencil" size={16} />
                     <span className="text-sm font-medium" style={{ color: 'var(--earth-700)' }}>
                       Description
                     </span>
@@ -587,7 +588,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
               <tr style={{ background: 'var(--sand-50)' }}>
                 <td className="sticky left-0 p-4" style={{ background: 'var(--sand-50)' }}>
                   <div className="flex items-center gap-2">
-                    <span>🌐</span>
+                    <span><BrandIcon name="globe" size={16} /></span>
                     <span className="text-sm font-medium" style={{ color: 'var(--earth-700)' }}>
                       Website
                     </span>
@@ -736,7 +737,7 @@ function ComparisonCell({ camp, field, allCamps, priceStats }) {
           'bg-gray-50 text-gray-500'
         }`}
       >
-        {isBoth ? '🏡🌳' : isOutdoor ? '🌳' : isIndoor ? '🏡' : '—'}
+        {isBoth ? <><BrandIcon name="home" size={14} /><BrandIcon name="tree" size={14} /></> : isOutdoor ? <BrandIcon name="tree" size={14} /> : isIndoor ? <BrandIcon name="home" size={14} /> : null}
         {value || '—'}
       </span>
     );

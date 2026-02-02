@@ -13,7 +13,7 @@ const DEFAULT_FILTERS = {
   categories: [],
   childAge: '',
   priceMin: 0,
-  priceMax: 1000,
+  priceMax: Infinity,
   selectedWeeks: [],
   extendedCare: false,
   foodIncluded: false,
@@ -37,7 +37,7 @@ function encodeFiltersToURL(filters) {
   if (filters.categories?.length) params.set('cat', filters.categories.join(','));
   if (filters.childAge) params.set('age', filters.childAge);
   if (filters.priceMin > 0) params.set('pmin', filters.priceMin.toString());
-  if (filters.priceMax < 1000) params.set('pmax', filters.priceMax.toString());
+  if (Number.isFinite(filters.priceMax)) params.set('pmax', filters.priceMax.toString());
   if (filters.selectedWeeks?.length) params.set('weeks', filters.selectedWeeks.join(','));
   if (filters.extendedCare) params.set('ec', '1');
   if (filters.foodIncluded) params.set('food', '1');
@@ -163,7 +163,7 @@ function getHoursDuration(hoursStr) {
 }
 
 // Main useFilters hook
-export function useFilters(priceRange = { min: 0, max: 1000 }) {
+export function useFilters(priceRange = { min: 0, max: Infinity }) {
   // Initialize filters from URL or defaults
   const [filters, setFilters] = useState(() => {
     if (typeof window === 'undefined') return DEFAULT_FILTERS;
@@ -173,7 +173,7 @@ export function useFilters(priceRange = { min: 0, max: 1000 }) {
 
     // Apply price range defaults if not set in URL
     if (!params.has('pmax')) {
-      urlFilters.priceMax = priceRange.max || 1000;
+      urlFilters.priceMax = priceRange.max || Infinity;
     }
 
     return urlFilters;
@@ -250,7 +250,7 @@ export function useFilters(priceRange = { min: 0, max: 1000 }) {
   const clearFilters = useCallback(() => {
     setFilters({
       ...DEFAULT_FILTERS,
-      priceMax: priceRange.max || 1000
+      priceMax: priceRange.max || Infinity
     });
   }, [priceRange.max]);
 
@@ -258,7 +258,7 @@ export function useFilters(priceRange = { min: 0, max: 1000 }) {
   const applyPreset = useCallback((preset) => {
     const newFilters = {
       ...DEFAULT_FILTERS,
-      priceMax: priceRange.max || 1000,
+      priceMax: priceRange.max || Infinity,
       ...preset.filters
     };
     setFilters(newFilters);
@@ -408,7 +408,7 @@ export function useFilters(priceRange = { min: 0, max: 1000 }) {
     if (filters.categories?.length > 0) count++;
     if (filters.childAge) count++;
     if (filters.priceMin > 0) count++;
-    if (filters.priceMax < (priceRange?.max || 1000)) count++;
+    if (filters.priceMax < (priceRange?.max || Infinity)) count++;
     if (filters.selectedWeeks?.length > 0) count++;
     if (filters.extendedCare) count++;
     if (filters.foodIncluded) count++;

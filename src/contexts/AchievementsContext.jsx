@@ -10,7 +10,7 @@ export const ACHIEVEMENTS = {
     id: 'first_camp',
     title: 'First Steps',
     description: 'Schedule your first camp',
-    icon: '🏕️',
+    icon: 'overnight',
     celebration: 'You scheduled your first camp!',
     category: 'milestone'
   },
@@ -18,7 +18,7 @@ export const ACHIEVEMENTS = {
     id: 'week_covered',
     title: 'Week Warrior',
     description: 'Fill your first week',
-    icon: '📅',
+    icon: 'calendar',
     celebration: 'First week covered!',
     category: 'milestone'
   },
@@ -26,7 +26,7 @@ export const ACHIEVEMENTS = {
     id: 'half_summer',
     title: 'Halfway There',
     description: 'Cover half your summer',
-    icon: '☀️',
+    icon: 'sun',
     celebration: 'Halfway through your summer plan!',
     category: 'milestone'
   },
@@ -34,7 +34,7 @@ export const ACHIEVEMENTS = {
     id: 'full_summer',
     title: 'Summer Sorted',
     description: 'Cover your entire summer',
-    icon: '🏆',
+    icon: 'trophy',
     celebration: 'Your summer is fully planned!',
     category: 'milestone',
     isLegendary: true
@@ -43,7 +43,7 @@ export const ACHIEVEMENTS = {
     id: 'multi_child',
     title: 'Family Planner',
     description: 'Schedule camps for multiple children',
-    icon: '👨‍👩‍👧‍👦',
+    icon: 'family',
     celebration: 'Managing schedules like a pro!',
     category: 'planning'
   },
@@ -51,7 +51,7 @@ export const ACHIEVEMENTS = {
     id: 'variety_seeker',
     title: 'Variety Pack',
     description: 'Schedule 3+ different categories',
-    icon: '🎨',
+    icon: 'art',
     celebration: 'What a diverse summer lineup!',
     category: 'planning'
   },
@@ -59,7 +59,7 @@ export const ACHIEVEMENTS = {
     id: 'early_bird',
     title: 'Early Bird',
     description: 'Plan before March 1st',
-    icon: '🐦',
+    icon: 'bird',
     celebration: 'Ahead of the game!',
     category: 'timing'
   },
@@ -67,7 +67,7 @@ export const ACHIEVEMENTS = {
     id: 'budget_pro',
     title: 'Budget Boss',
     description: 'Stay under your summer budget',
-    icon: '💰',
+    icon: 'coin',
     celebration: 'Smart spending!',
     category: 'planning'
   },
@@ -75,7 +75,7 @@ export const ACHIEVEMENTS = {
     id: 'favorite_five',
     title: 'Camp Collector',
     description: 'Save 5+ camps to favorites',
-    icon: '❤️',
+    icon: 'heart',
     celebration: 'Building your dream list!',
     category: 'engagement'
   },
@@ -83,7 +83,7 @@ export const ACHIEVEMENTS = {
     id: 'compare_master',
     title: 'Comparison Pro',
     description: 'Compare camps side-by-side',
-    icon: '⚖️',
+    icon: 'scale',
     celebration: 'Making informed decisions!',
     category: 'engagement'
   },
@@ -91,7 +91,7 @@ export const ACHIEVEMENTS = {
     id: 'streak_3',
     title: 'On a Roll',
     description: '3-day planning streak',
-    icon: '🔥',
+    icon: 'flame',
     celebration: 'Three days strong!',
     category: 'streak'
   },
@@ -99,7 +99,7 @@ export const ACHIEVEMENTS = {
     id: 'streak_7',
     title: 'Week Warrior',
     description: '7-day planning streak',
-    icon: '⚡',
+    icon: 'lightning',
     celebration: 'A whole week of planning!',
     category: 'streak'
   },
@@ -107,7 +107,7 @@ export const ACHIEVEMENTS = {
     id: 'squad_joiner',
     title: 'Squad Goals',
     description: 'Join a friend squad',
-    icon: '👥',
+    icon: 'people',
     celebration: 'Better together!',
     category: 'social'
   },
@@ -115,7 +115,7 @@ export const ACHIEVEMENTS = {
     id: 'explorer',
     title: 'Explorer',
     description: 'View 10+ camp details',
-    icon: '🔍',
+    icon: 'search',
     celebration: 'Thorough researcher!',
     category: 'engagement'
   }
@@ -127,61 +127,61 @@ export const PLANNING_TIPS = [
     id: 'start_early',
     condition: (stats) => stats.scheduledCount === 0,
     tip: 'Popular camps fill fast. Start scheduling early to get your first choice.',
-    icon: '💡'
+    icon: 'lightbulb'
   },
   {
     id: 'check_gaps',
     condition: (stats) => stats.gapCount > 0 && stats.scheduledCount > 0,
     tip: (stats) => `You have ${stats.gapCount} ${stats.gapCount === 1 ? 'gap' : 'gaps'} in your schedule. Consider filling them to avoid last-minute scrambling.`,
-    icon: '📋'
+    icon: 'clipboard'
   },
   {
     id: 'variety',
     condition: (stats) => stats.categoryCount === 1 && stats.scheduledCount >= 3,
     tip: 'Mix it up! Kids often enjoy variety across different camp types.',
-    icon: '🎯'
+    icon: 'target'
   },
   {
     id: 'budget_warning',
     condition: (stats) => stats.budget && stats.totalCost > stats.budget * 0.8,
     tip: 'Approaching your budget limit. Consider more affordable options for remaining weeks.',
-    icon: '💵'
+    icon: 'dollar-alert'
   },
   {
     id: 'extended_care',
     condition: (stats) => stats.hasWorkSchedule && !stats.hasExtendedCare,
     tip: 'Working parent? Look for camps with extended care to match your work hours.',
-    icon: '⏰'
+    icon: 'clock-plus'
   },
   {
     id: 'half_done',
     condition: (stats) => stats.coveragePercent >= 40 && stats.coveragePercent < 60,
     tip: 'Almost halfway there! Keep the momentum going.',
-    icon: '🚀'
+    icon: 'rocket'
   },
   {
     id: 'almost_done',
     condition: (stats) => stats.coveragePercent >= 80 && stats.coveragePercent < 100,
     tip: 'So close! Just a few more weeks to cover.',
-    icon: '🎉'
+    icon: 'confetti'
   },
   {
     id: 'favorites_empty',
     condition: (stats) => stats.favoritesCount === 0 && stats.viewedCamps >= 5,
     tip: 'Heart camps you like to easily find them later.',
-    icon: '❤️'
+    icon: 'heart'
   },
   {
     id: 'compare_camps',
     condition: (stats) => stats.favoritesCount >= 2 && !stats.hasCompared,
     tip: 'Compare your favorite camps side-by-side to make the best choice.',
-    icon: '⚖️'
+    icon: 'scale'
   },
   {
     id: 'join_squad',
     condition: (stats) => stats.hasScheduled && !stats.hasSquad,
     tip: 'Friends going to the same camp? Create a squad to coordinate.',
-    icon: '👥'
+    icon: 'people'
   }
 ];
 

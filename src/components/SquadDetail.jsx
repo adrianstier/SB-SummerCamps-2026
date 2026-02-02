@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import BrandIcon from './BrandIcon';
 import {
   getSquadCampInterests,
   updateSquadMembership,
@@ -282,11 +283,11 @@ function CampInterestCard({ campId, interests, currentUserId }) {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'booked':
-        return <span className="text-green-600">✓</span>;
+        return <span className="text-green-600"><BrandIcon name="check" size={14} /></span>;
       case 'scheduled':
-        return <span className="text-ocean-600">✓</span>;
+        return <span className="text-ocean-600"><BrandIcon name="check" size={14} /></span>;
       default:
-        return <span className="text-earth-400">👀</span>;
+        return <span className="text-earth-400"><BrandIcon name="eye" size={14} /></span>;
     }
   };
 
@@ -296,7 +297,7 @@ function CampInterestCard({ campId, interests, currentUserId }) {
         <span className="text-sm font-medium text-earth-900">{campId}</span>
         {hasMatch && (
           <span className="text-xs font-medium text-green-600 flex items-center gap-1">
-            <span>🎉</span> Match!
+            <BrandIcon name="confetti" size={16} /> Match!
           </span>
         )}
       </div>

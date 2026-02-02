@@ -1,5 +1,6 @@
 import React, { memo, useState, useEffect, useCallback } from 'react';
 import { useAchievements } from '../contexts/AchievementsContext';
+import BrandIcon from './BrandIcon';
 import './PlanningTips.css';
 
 // Tip display component
@@ -17,7 +18,7 @@ export const PlanningTip = memo(function PlanningTip({
   if (variant === 'compact') {
     return (
       <div className="planning-tip-compact">
-        <span className="planning-tip-compact-icon">{tip.icon}</span>
+        <span className="planning-tip-compact-icon"><BrandIcon name={tip.icon} size={16} /></span>
         <span className="planning-tip-compact-text">{tip.tip}</span>
       </div>
     );
@@ -26,7 +27,7 @@ export const PlanningTip = memo(function PlanningTip({
   if (variant === 'inline') {
     return (
       <div className="planning-tip-inline">
-        <span className="planning-tip-inline-icon">{tip.icon}</span>
+        <span className="planning-tip-inline-icon"><BrandIcon name={tip.icon} size={16} /></span>
         <p className="planning-tip-inline-text">{tip.tip}</p>
         {onDismiss && (
           <button className="planning-tip-inline-dismiss" onClick={onDismiss} aria-label="Dismiss tip">
@@ -41,7 +42,7 @@ export const PlanningTip = memo(function PlanningTip({
 
   return (
     <div className="planning-tip">
-      <div className="planning-tip-icon">{tip.icon}</div>
+      <div className="planning-tip-icon"><BrandIcon name={tip.icon} size={20} /></div>
       <div className="planning-tip-content">
         <p className="planning-tip-text">{tip.tip}</p>
         {showNavigation && totalCount > 1 && (
@@ -161,7 +162,7 @@ export const DidYouKnow = memo(function DidYouKnow({
   if (variant === 'compact') {
     return (
       <div className={`did-you-know-compact ${className}`}>
-        <span className="did-you-know-compact-icon">💡</span>
+        <span className="did-you-know-compact-icon"><BrandIcon name="lightbulb" size={16} /></span>
         <span className={`did-you-know-compact-text ${visible ? 'visible' : ''}`}>
           {fact}
         </span>

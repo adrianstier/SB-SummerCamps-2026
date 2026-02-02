@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { addChild, updateProfile, completeOnboarding, addScheduledCamp, supabase } from '../lib/supabase';
 import { generateSampleChildren, generateSampleSchedule } from '../lib/sampleData';
+import BrandIcon from './BrandIcon';
 
 const STEPS = [
   { id: 'welcome', title: 'Welcome' },
@@ -11,18 +12,18 @@ const STEPS = [
 ];
 
 const CAMP_CATEGORIES = [
-  { id: 'Beach/Surf', label: 'Beach & Surf', icon: '🏄' },
-  { id: 'Sports', label: 'Sports', icon: '⚽' },
-  { id: 'Art', label: 'Art & Creativity', icon: '🎨' },
-  { id: 'Science/STEM', label: 'Science & STEM', icon: '🔬' },
-  { id: 'Nature/Outdoor', label: 'Nature & Outdoors', icon: '🌲' },
-  { id: 'Music', label: 'Music', icon: '🎵' },
-  { id: 'Theater', label: 'Theater & Drama', icon: '🎭' },
-  { id: 'Dance', label: 'Dance', icon: '💃' },
-  { id: 'Animals/Zoo', label: 'Animals', icon: '🐴' },
-  { id: 'Cooking', label: 'Cooking', icon: '👨‍🍳' },
-  { id: 'Multi-Activity', label: 'Multi-Activity', icon: '🎪' },
-  { id: 'Faith-Based', label: 'Faith-Based', icon: '✝️' }
+  { id: 'Beach/Surf', label: 'Beach & Surf', icon: 'beach-surf' },
+  { id: 'Sports', label: 'Sports', icon: 'sports' },
+  { id: 'Art', label: 'Art & Creativity', icon: 'art' },
+  { id: 'Science/STEM', label: 'Science & STEM', icon: 'science-stem' },
+  { id: 'Nature/Outdoor', label: 'Nature & Outdoors', icon: 'nature-outdoor' },
+  { id: 'Music', label: 'Music', icon: 'music' },
+  { id: 'Theater', label: 'Theater & Drama', icon: 'theater' },
+  { id: 'Dance', label: 'Dance', icon: 'dance' },
+  { id: 'Animals/Zoo', label: 'Animals', icon: 'animals-zoo' },
+  { id: 'Cooking', label: 'Cooking', icon: 'cooking' },
+  { id: 'Multi-Activity', label: 'Multi-Activity', icon: 'multi-activity' },
+  { id: 'Faith-Based', label: 'Faith-Based', icon: 'faith-based' }
 ];
 
 const CHILD_EMOJIS = ['👧', '👦', '🧒', '👶', '🧒🏻', '👧🏻', '👦🏻', '🧒🏽', '👧🏽', '👦🏽', '🧒🏿', '👧🏿', '👦🏿'];
@@ -561,7 +562,7 @@ function PreferencesStep({ preferences, setPreferences, toggleCategory }) {
               border: '1px solid'
             }}
           >
-            <span className="text-2xl block mb-1">{category.icon}</span>
+            <span className="block mb-1" style={{ color: 'var(--ocean-500)' }}><BrandIcon name={category.icon} size={28} /></span>
             <span className="text-sm font-medium" style={{ color: 'var(--earth-800)' }}>
               {category.label}
             </span>
@@ -617,8 +618,8 @@ function PreferencesStep({ preferences, setPreferences, toggleCategory }) {
 function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
   return (
     <div className="text-center">
-      <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center text-5xl" style={{ background: 'var(--sage-100)' }}>
-        🎉
+      <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sage-100)', color: 'var(--ocean-500)' }}>
+        <BrandIcon name="confetti" size={48} />
       </div>
       <h2 className="font-serif text-3xl font-semibold mb-4" style={{ color: 'var(--earth-800)' }}>
         You're all set!
@@ -640,7 +641,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
               }}
             >
               <div className="flex items-start gap-4">
-                <span className="text-3xl">🗺️</span>
+                <span className="text-3xl" style={{ color: 'var(--ocean-500)' }}><BrandIcon name="search" size={32} /></span>
                 <div>
                   <p className="font-semibold text-lg mb-1" style={{ color: 'var(--earth-800)' }}>
                     Quick Tour with Sample Data <span style={{ color: 'var(--ocean-500)' }}>(Recommended)</span>
@@ -661,7 +662,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
               }}
             >
               <div className="flex items-start gap-4">
-                <span className="text-3xl">🚀</span>
+                <span className="text-3xl" style={{ color: 'var(--earth-600)' }}><BrandIcon name="rocket" size={32} /></span>
                 <div>
                   <p className="font-semibold text-lg mb-1" style={{ color: 'var(--earth-800)' }}>
                     Skip Tour, Start Planning
@@ -684,7 +685,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
         {/* Children summary */}
         <div className="p-4 rounded-xl" style={{ background: 'var(--ocean-50)', border: '1px solid var(--ocean-200)' }}>
           <p className="font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--ocean-600)' }}>
-            <span>👨‍👩‍👧‍👦</span> Your Children
+            <BrandIcon name="family" size={18} /> Your Children
           </p>
           <div className="flex flex-wrap gap-2">
             {children.map(child => (
@@ -703,7 +704,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
         {preferences.preferred_categories.length > 0 && (
           <div className="p-4 rounded-xl" style={{ background: 'var(--sage-50)', border: '1px solid var(--sage-200)' }}>
             <p className="font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--sage-600)' }}>
-              <span>🎯</span> Interested In
+              <BrandIcon name="target" size={18} /> Interested In
             </p>
             <div className="flex flex-wrap gap-2">
               {preferences.preferred_categories.map(cat => {
@@ -714,7 +715,7 @@ function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
                     className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm"
                     style={{ background: 'white', color: 'var(--earth-800)' }}
                   >
-                    {category?.icon} {category?.label}
+                    {category?.icon && <BrandIcon name={category.icon} size={16} />} {category?.label}
                   </span>
                 );
               })}

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import BrandIcon from './BrandIcon';
 import './CampInsights.css';
 
 // Category colors matching the existing design system
@@ -180,10 +181,10 @@ export function CampInsights({ camps, onClose, onSelectCamp, onCompare }) {
         {/* Tab Navigation */}
         <nav className="insights-tabs">
           {[
-            { id: 'overview', label: 'Overview', icon: '📊' },
-            { id: 'price', label: 'Price', icon: '💰' },
-            { id: 'ages', label: 'Ages', icon: '👶' },
-            { id: 'map', label: 'Map', icon: '📍' },
+            { id: 'overview', label: 'Overview', icon: <BrandIcon name="chart" size={16} /> },
+            { id: 'price', label: 'Price', icon: <BrandIcon name="coin" size={16} /> },
+            { id: 'ages', label: 'Ages', icon: <BrandIcon name="child" size={16} /> },
+            { id: 'map', label: 'Map', icon: <BrandIcon name="pin" size={16} /> },
           ].map(tab => (
             <button
               key={tab.id}

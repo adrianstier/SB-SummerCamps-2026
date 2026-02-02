@@ -6,6 +6,7 @@ import { GuidedTour } from './GuidedTour';
 import SquadsPanel from './SquadsPanel';
 import SquadNotificationBell from './SquadNotificationBell';
 import { ShareableSummerCard, ShareButton } from './ShareableSummerCard';
+import BrandIcon from './BrandIcon';
 import './SchedulePlanner.css';
 
 const summerWeeks = getSummerWeeks2026();
@@ -26,10 +27,10 @@ const CATEGORY_COLORS = {
 
 // Block types for non-camp weeks
 const BLOCK_TYPES = [
-  { id: 'vacation', label: 'Vacation', icon: '🏖️', color: '#60a5fa' },
-  { id: 'family', label: 'Family Time', icon: '👨‍👩‍👧‍👦', color: '#a78bfa' },
-  { id: 'travel', label: 'Travel', icon: '✈️', color: '#34d399' },
-  { id: 'other', label: 'Other Plans', icon: '📅', color: '#f472b6' },
+  { id: 'vacation', label: 'Vacation', icon: 'beach-surf', color: '#60a5fa' },
+  { id: 'family', label: 'Family Time', icon: 'family', color: '#a78bfa' },
+  { id: 'travel', label: 'Travel', icon: 'van', color: '#34d399' },
+  { id: 'other', label: 'Other Plans', icon: 'calendar', color: '#f472b6' },
 ];
 
 // Conflict types
@@ -988,7 +989,7 @@ export function SchedulePlanner({ camps, onClose }) {
         <div className="week-card-content">
           {blocked ? (
             <div className="week-blocked" style={{ '--block-color': blocked.color }}>
-              <span className="week-blocked-icon">{blocked.icon}</span>
+              <span className="week-blocked-icon"><BrandIcon name={blocked.icon} size={16} /></span>
               <span className="week-blocked-label">{blocked.label}</span>
               <button
                 onClick={(e) => {
@@ -1083,7 +1084,7 @@ export function SchedulePlanner({ camps, onClose }) {
                         }}
                         className={`camp-card-friends ${lookingForFriends ? 'active' : ''}`}
                       >
-                        <span>👥</span>
+                        <BrandIcon name="people" size={16} />
                         <span>{lookingForFriends ? 'Looking for friends' : 'Find friends'}</span>
                       </button>
                     )}
@@ -1125,7 +1126,7 @@ export function SchedulePlanner({ camps, onClose }) {
               }}
               className="block-menu-option block-menu-camp"
             >
-              <span className="block-menu-icon">🏕️</span>
+              <span className="block-menu-icon"><BrandIcon name="overnight" size={16} /></span>
               <span>Add a Camp</span>
             </button>
             <div className="block-menu-divider">
@@ -1138,7 +1139,7 @@ export function SchedulePlanner({ camps, onClose }) {
                 className="block-menu-option"
                 style={{ '--block-color': block.color }}
               >
-                <span className="block-menu-icon">{block.icon}</span>
+                <span className="block-menu-icon"><BrandIcon name={block.icon} size={16} /></span>
                 <span>{block.label}</span>
               </button>
             ))}
@@ -1294,7 +1295,7 @@ export function SchedulePlanner({ camps, onClose }) {
       {previewMode && (
         <div className="planner-preview-banner">
           <div className="planner-preview-content">
-            <span className="planner-preview-icon">🔮</span>
+            <span className="planner-preview-icon"><BrandIcon name="crystal-ball" size={20} /></span>
             <div className="planner-preview-info">
               <p className="planner-preview-title">What-If Planning Mode</p>
               <p className="planner-preview-text">
@@ -1338,7 +1339,7 @@ export function SchedulePlanner({ camps, onClose }) {
           {/* Status Board View */}
           {children.length === 0 ? (
             <div className="planner-empty">
-              <div className="planner-empty-icon">👨‍👩‍👧‍👦</div>
+              <div className="planner-empty-icon"><BrandIcon name="family" size={32} /></div>
               <h2 className="planner-empty-title">Add your children first</h2>
               <p className="planner-empty-text">Add children to plan each schedule separately.</p>
               <button
@@ -1352,11 +1353,11 @@ export function SchedulePlanner({ camps, onClose }) {
             <div className="status-board">
               {/* Status columns: planned, registered, confirmed, waitlisted, cancelled */}
               {[
-                { status: 'planned', label: 'Planned', color: '#94a3b8', icon: '📋' },
-                { status: 'registered', label: 'Registered', color: '#3b82f6', icon: '✍️' },
-                { status: 'confirmed', label: 'Confirmed', color: '#22c55e', icon: '✅' },
-                { status: 'waitlisted', label: 'Waitlisted', color: '#f59e0b', icon: '⏳' },
-                { status: 'cancelled', label: 'Cancelled', color: '#ef4444', icon: '❌' }
+                { status: 'planned', label: 'Planned', color: '#94a3b8', icon: 'clipboard' },
+                { status: 'registered', label: 'Registered', color: '#3b82f6', icon: 'pencil' },
+                { status: 'confirmed', label: 'Confirmed', color: '#22c55e', icon: 'check-square' },
+                { status: 'waitlisted', label: 'Waitlisted', color: '#f59e0b', icon: 'hourglass' },
+                { status: 'cancelled', label: 'Cancelled', color: '#ef4444', icon: 'x-circle' }
               ].map(column => {
                 const columnCamps = scheduledCamps
                   .filter(sc => sc.child_id === selectedChild && sc.status === column.status)
@@ -1374,7 +1375,7 @@ export function SchedulePlanner({ camps, onClose }) {
                     onDrop={(e) => handleStatusDrop(column.status, e)}
                   >
                     <div className="status-column-header" style={{ '--status-color': column.color }}>
-                      <span className="status-column-icon">{column.icon}</span>
+                      <span className="status-column-icon"><BrandIcon name={column.icon} size={14} /></span>
                       <h3 className="status-column-title">{column.label}</h3>
                       <span className="status-column-count">{columnCamps.length}</span>
                     </div>
@@ -1429,7 +1430,7 @@ export function SchedulePlanner({ camps, onClose }) {
         {hasSampleData && !previewMode && (
           <div className="planner-sample-banner">
             <div className="planner-sample-content">
-              <span className="planner-sample-icon">✨</span>
+              <span className="planner-sample-icon"><BrandIcon name="faith-based" size={20} /></span>
               <div>
                 <p className="planner-sample-title">Sample data</p>
                 <p className="planner-sample-text">Clear to start planning</p>
@@ -1447,7 +1448,7 @@ export function SchedulePlanner({ camps, onClose }) {
 
         {children.length === 0 ? (
           <div className="planner-empty">
-            <div className="planner-empty-icon">👨‍👩‍👧‍👦</div>
+            <div className="planner-empty-icon"><BrandIcon name="family" size={32} /></div>
             <h2 className="planner-empty-title">Add your children first</h2>
             <p className="planner-empty-text">Add children to plan each schedule separately.</p>
             <button
@@ -1575,7 +1576,7 @@ export function SchedulePlanner({ camps, onClose }) {
                     })}
                     {sidebarCamps.length === 0 && (
                       <div className="planner-sidebar-empty">
-                        <span className="sidebar-empty-icon">🔍</span>
+                        <span className="sidebar-empty-icon"><BrandIcon name="search" size={24} /></span>
                         <span>No camps found</span>
                       </div>
                     )}
@@ -1711,7 +1712,7 @@ export function SchedulePlanner({ camps, onClose }) {
                   {camp.image_url ? (
                     <img src={camp.image_url} alt="" className="planner-drawer-camp-img" />
                   ) : (
-                    <div className="planner-drawer-camp-placeholder">🏕️</div>
+                    <div className="planner-drawer-camp-placeholder"><BrandIcon name="overnight" size={20} /></div>
                   )}
                   <div className="planner-drawer-camp-info">
                     <span className="planner-drawer-camp-name">{camp.camp_name}</span>

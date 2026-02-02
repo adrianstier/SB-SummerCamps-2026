@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import BrandIcon from './BrandIcon';
 
 // Santa Barbara area coordinates (downtown)
 const SB_DEFAULT_LOCATION = { lat: 34.4208, lng: -119.6982 };
@@ -347,7 +348,7 @@ export const AdvancedFilters = memo(function AdvancedFilters({
     if (filters.categories?.length > 0) count++;
     if (filters.childAge) count++;
     if (filters.priceMin > (priceRange?.min || 0)) count++;
-    if (filters.priceMax < (priceRange?.max || 1000)) count++;
+    if (filters.priceMax < (priceRange?.max || Infinity)) count++;
     if (filters.selectedWeeks?.length > 0) count++;
     if (filters.extendedCare) count++;
     if (filters.foodIncluded) count++;
@@ -499,10 +500,10 @@ export const AdvancedFilters = memo(function AdvancedFilters({
         <h4 className="filter-section-title">Features</h4>
         <div className="feature-toggles">
           {[
-            { key: 'extendedCare', label: 'Extended Care', icon: '⏰' },
-            { key: 'foodIncluded', label: 'Food Included', icon: '🍽️' },
-            { key: 'hasTransport', label: 'Transportation', icon: '🚐' },
-            { key: 'siblingDiscount', label: 'Sibling Discount', icon: '👨‍👩‍👧' },
+            { key: 'extendedCare', label: 'Extended Care', icon: <BrandIcon name="clock-plus" size={16} /> },
+            { key: 'foodIncluded', label: 'Food Included', icon: <BrandIcon name="utensils" size={16} /> },
+            { key: 'hasTransport', label: 'Transportation', icon: <BrandIcon name="van" size={16} /> },
+            { key: 'siblingDiscount', label: 'Sibling Discount', icon: <BrandIcon name="people-percent" size={16} /> },
           ].map(({ key, label, icon }) => (
             <button
               key={key}

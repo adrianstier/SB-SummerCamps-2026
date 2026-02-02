@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import CreateSquadModal from './CreateSquadModal';
 import SquadDetail from './SquadDetail';
+import BrandIcon from './BrandIcon';
 
 export default function SquadsPanel({ onClose }) {
   const { squads, squadNotifications, squadUnreadCount } = useAuth();
@@ -138,12 +139,12 @@ function SquadCard({ squad, summary, onClick }) {
           <div className="mt-1.5">
             {summary.hasMatch ? (
               <div className="flex items-center gap-1.5 text-sm text-green-600">
-                <span className="text-base">🎯</span>
+                <span className="text-base"><BrandIcon name="target" size={16} /></span>
                 <span>Match found!</span>
               </div>
             ) : summary.hasLooking ? (
               <div className="flex items-center gap-1.5 text-sm text-ocean-600">
-                <span className="text-base">👀</span>
+                <span className="text-base"><BrandIcon name="eye" size={16} /></span>
                 <span>Friend looking for company</span>
               </div>
             ) : summary.unreadCount > 0 ? (

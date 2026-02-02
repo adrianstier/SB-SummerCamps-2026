@@ -196,7 +196,7 @@ export function formatCampForCalendar(camp, schedule) {
 
   return {
     campId: camp.id,
-    title: `🏕️ ${camp.camp_name}`,
+    title: camp.camp_name,
     description: descParts.join('\n\n'),
     location: camp.address || camp.location || '',
     startDate: schedule.start_date,

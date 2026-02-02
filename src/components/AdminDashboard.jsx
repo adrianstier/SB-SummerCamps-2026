@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import BrandIcon from './BrandIcon';
 
 // Admin Dashboard Component
 export function AdminDashboard({ camps, onClose }) {
@@ -142,7 +143,7 @@ export function AdminDashboard({ camps, onClose }) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
         <div className="bg-white rounded-2xl p-8 max-w-md text-center">
-          <div className="text-5xl mb-4">🔒</div>
+          <div className="text-5xl mb-4"><BrandIcon name="lock" size={48} /></div>
           <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--earth-800)' }}>
             Access Denied
           </h2>
@@ -172,12 +173,12 @@ export function AdminDashboard({ camps, onClose }) {
 
         <nav className="p-4 space-y-1" role="tablist">
           {[
-            { id: 'overview', icon: '📊', label: 'Overview' },
-            { id: 'camps', icon: '🏕️', label: 'Camps' },
-            { id: 'users', icon: '👥', label: 'Users' },
-            { id: 'reviews', icon: '⭐', label: 'Reviews', badge: reviews.length },
-            { id: 'reports', icon: '🚩', label: 'Reports', badge: reports.length },
-            { id: 'settings', icon: '⚙️', label: 'Settings' }
+            { id: 'overview', icon: 'chart', label: 'Overview' },
+            { id: 'camps', icon: 'overnight', label: 'Camps' },
+            { id: 'users', icon: 'people', label: 'Users' },
+            { id: 'reviews', icon: 'star', label: 'Reviews', badge: reviews.length },
+            { id: 'reports', icon: 'flag', label: 'Reports', badge: reports.length },
+            { id: 'settings', icon: 'gear', label: 'Settings' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -191,7 +192,7 @@ export function AdminDashboard({ camps, onClose }) {
                 color: activeTab === tab.id ? 'var(--ocean-600)' : 'var(--earth-700)'
               }}
             >
-              <span>{tab.icon}</span>
+              <BrandIcon name={tab.icon} size={18} />
               <span className="flex-1">{tab.label}</span>
               {tab.badge > 0 && (
                 <span
@@ -252,12 +253,12 @@ function OverviewTab({ stats, camps }) {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-        <StatCard icon="🏕️" value={stats?.totalCamps || 0} label="Total Camps" color="ocean" />
-        <StatCard icon="👥" value={stats?.totalUsers || 0} label="Users" color="sage" />
-        <StatCard icon="👶" value={stats?.totalChildren || 0} label="Children" color="sun" />
-        <StatCard icon="📅" value={stats?.totalScheduled || 0} label="Bookings" color="terra" />
-        <StatCard icon="⭐" value={stats?.totalReviews || 0} label="Reviews" color="ocean" />
-        <StatCard icon="⏳" value={stats?.pendingReviews || 0} label="Pending" color="terra" />
+        <StatCard icon="overnight" value={stats?.totalCamps || 0} label="Total Camps" color="ocean" />
+        <StatCard icon="people" value={stats?.totalUsers || 0} label="Users" color="sage" />
+        <StatCard icon="family" value={stats?.totalChildren || 0} label="Children" color="sun" />
+        <StatCard icon="calendar" value={stats?.totalScheduled || 0} label="Bookings" color="terra" />
+        <StatCard icon="star" value={stats?.totalReviews || 0} label="Reviews" color="ocean" />
+        <StatCard icon="hourglass" value={stats?.pendingReviews || 0} label="Pending" color="terra" />
       </div>
 
       {/* Quick Actions */}
@@ -267,15 +268,15 @@ function OverviewTab({ stats, camps }) {
           <div className="space-y-2">
             <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
               style={{ color: 'var(--earth-700)' }}>
-              🔄 Trigger Camp Scrape
+              <BrandIcon name="refresh" size={16} /> Trigger Camp Scrape
             </button>
             <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
               style={{ color: 'var(--earth-700)' }}>
-              📧 Send Weekly Digest
+              <BrandIcon name="email" size={16} /> Send Weekly Digest
             </button>
             <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
               style={{ color: 'var(--earth-700)' }}>
-              📊 Export User Data
+              <BrandIcon name="chart" size={16} /> Export User Data
             </button>
           </div>
         </div>
@@ -517,7 +518,7 @@ function ReviewsTab({ reviews, camps, onUpdateStatus }) {
 
       {reviews.length === 0 ? (
         <div className="bg-white rounded-xl p-8 text-center" style={{ border: '1px solid var(--sand-200)' }}>
-          <span className="text-4xl block mb-3">✓</span>
+          <span className="text-4xl block mb-3"><BrandIcon name="check" size={14} /></span>
           <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>All caught up!</h3>
           <p className="text-sm" style={{ color: 'var(--sand-400)' }}>No reviews pending moderation.</p>
         </div>
@@ -607,7 +608,7 @@ function ReportsTab({ reports, onResolve }) {
 
       {reports.length === 0 ? (
         <div className="bg-white rounded-xl p-8 text-center" style={{ border: '1px solid var(--sand-200)' }}>
-          <span className="text-4xl block mb-3">✓</span>
+          <span className="text-4xl block mb-3"><BrandIcon name="check" size={14} /></span>
           <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>No pending reports</h3>
           <p className="text-sm" style={{ color: 'var(--sand-400)' }}>All reports have been reviewed.</p>
         </div>
@@ -742,15 +743,15 @@ function SettingsTab() {
           <div className="space-y-3">
             <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
               style={{ border: '1px solid var(--sand-200)', color: 'var(--earth-700)' }}>
-              📥 Export All Camp Data (JSON)
+              <BrandIcon name="download" size={16} /> Export All Camp Data (JSON)
             </button>
             <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
               style={{ border: '1px solid var(--sand-200)', color: 'var(--earth-700)' }}>
-              📊 Export User Analytics (CSV)
+              <BrandIcon name="chart" size={16} /> Export User Analytics (CSV)
             </button>
             <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
               style={{ border: '1px solid var(--sand-200)', color: 'var(--earth-700)' }}>
-              📋 Export Reviews (CSV)
+              <BrandIcon name="clipboard" size={16} /> Export Reviews (CSV)
             </button>
           </div>
         </div>
@@ -774,7 +775,7 @@ function StatCard({ icon, value, label, color }) {
         className="w-10 h-10 rounded-lg flex items-center justify-center text-lg mb-3"
         style={{ background: colors[color]?.bg || 'var(--sand-100)' }}
       >
-        {icon}
+        <BrandIcon name={icon} size={22} />
       </div>
       <p className="text-2xl font-bold" style={{ color: colors[color]?.text || 'var(--earth-800)' }}>
         {value}

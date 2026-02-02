@@ -186,7 +186,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "Rolling (fills fast)",
+        "registrationNotes": "Registration open. Multiple sessions available June-August."
       },
       "testimonials": [
         "Lobster Jo’s was wonderful. My 11 year old learned new skills, made friends and was never bored. Came home each day had a snack and a nap, which never happens. She loved it!!",
@@ -294,8 +295,8 @@
     "contact_email": "Camps@SantaBarbaraCA.gov",
     "address": "620 Laguna Street, Santa Barbara",
     "website": "sbparksandrec.santabarbaraca.gov",
-    "2026_reg_date": "Feb 3 at 9am",
-    "reg_status": "Opens Feb 3",
+    "2026_reg_date": "February 4, 2026 at 9:00 AM",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "10+",
     "staff_ratio": "Varies",
@@ -685,9 +686,10 @@
       "special_needs_friendly": true,
       "availability": {
         "isOpen": false,
-        "openingDate": "February 4, 2026 at 9:00am",
+        "openingDate": "February 4, 2026 at 9:00 AM",
         "registrationCloses": "Wednesday before each session at 11:30pm",
-        "method": "PerfectMind account"
+        "method": "PerfectMind account",
+        "registrationNotes": "Registration opens February 4, 2026 at 9am. Online registration via SB Parks & Rec portal."
       },
       "testimonials": [],
       "setting": "Outdoor",
@@ -827,8 +829,8 @@
     "contact_email": "camps@recreation.ucsb.edu",
     "address": "UCSB Campus, Santa Barbara",
     "website": "recreation.ucsb.edu/youth-programs/summer-day-camp",
-    "2026_reg_date": "Now Open",
-    "reg_status": "Open - Early bird available",
+    "2026_reg_date": "February 18, 2026 at 8:30 AM",
+    "reg_status": "Not yet open",
     "summer_dates": "June 16 - Aug 15 2025",
     "weeks_available": "9",
     "staff_ratio": "Varies",
@@ -1325,8 +1327,10 @@
       ],
       "special_needs_friendly": true,
       "availability": {
-        "openingDate": "February 18, 2026 at 8:30am",
-        "registrationDeadline": "Wednesday before each session at 8pm"
+        "openingDate": "February 18, 2026 at 8:30 AM",
+        "registrationDeadline": "Wednesday before each session at 8pm",
+        "isOpen": false,
+        "registrationNotes": "Registration opens February 18, 2026 at 8:30am. Fills very fast."
       },
       "testimonials": [
         "n Surf Camp, Jr Lifeguards, the Summer Day camp and Beach"
@@ -1601,7 +1605,7 @@
     "contact_email": "peak2pacific@gmail.com",
     "address": "West Beach / SB Harbor",
     "website": "peak2pacific.com",
-    "2026_reg_date": "Rolling",
+    "2026_reg_date": "Now open",
     "reg_status": "Open",
     "summer_dates": "June-August",
     "weeks_available": "11",
@@ -1753,7 +1757,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open for 2026 season."
       },
       "testimonials": [],
       "setting": "Outdoor",
@@ -1854,8 +1859,8 @@
     "contact_email": "info@wyp.org",
     "address": "5386 Hollister Ave Suite D, Goleta",
     "website": "wyp.org",
-    "2026_reg_date": "Feb 12-19 (lottery)",
-    "reg_status": "Lottery Feb 12-19",
+    "2026_reg_date": "February 11-18, 2026 (lottery)",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "Limited",
     "staff_ratio": "Small group",
@@ -1982,7 +1987,10 @@
         "lotteryDates": "February 11-18, 2026",
         "placementAnnouncement": "March 5, 2026",
         "maxWeeksPerChild": 3,
-        "hasScholarships": true
+        "hasScholarships": true,
+        "isOpen": false,
+        "openingDate": "February 11-18, 2026 (lottery)",
+        "registrationNotes": "Lottery-based registration window February 11-18, 2026. Sliding scale pricing."
       },
       "testimonials": [],
       "programs": [
@@ -2148,8 +2156,8 @@
     "contact_email": "education@sbzoo.org",
     "address": "500 Niños Dr, Santa Barbara",
     "website": "sbzoo.org/zoo-camp",
-    "2026_reg_date": "Jan 12 at 10am",
-    "reg_status": "Opens Jan 12 2026",
+    "2026_reg_date": "Now open",
+    "reg_status": "Open",
     "summer_dates": "June 15 - Aug 21 2026",
     "weeks_available": "10",
     "staff_ratio": "1:10",
@@ -2532,7 +2540,7 @@
       ],
       "special_needs_friendly": true,
       "availability": {
-        "isOpen": false,
+        "isOpen": true,
         "hasWaitlist": false,
         "soldOutSessions": [
           "Jr. Zookeeper"
@@ -2543,7 +2551,8 @@
           "Jr. Vet",
           "Backyard Biologist"
         ],
-        "openingDate": "January 12, 2026 at 10 AM"
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open. Member priority pricing available."
       },
       "testimonials": [
         "s award-winning Zoo Camp runs for five days during Spring Break. Age-appropriate themed programs include behind-the-scenes visits, up-close animal introductions, hands-on science, animal-related craf."
@@ -2656,8 +2665,8 @@
     "contact_email": "info@girlsincsb.org",
     "address": "4973 Hollister Ave, Goleta",
     "website": "girlsincsb.org/programs/elementary",
-    "2026_reg_date": "Contact for date",
-    "reg_status": "Contact for info",
+    "2026_reg_date": "March 2, 2026",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "Unknown",
     "staff_ratio": "Unknown",
@@ -2926,7 +2935,9 @@
       "availability": {
         "openingDate": "March 2, 2026",
         "registrationPortal": "parents.c360.org",
-        "hasFinancialAssistance": true
+        "hasFinancialAssistance": true,
+        "isOpen": false,
+        "registrationNotes": "Registration opens March 2, 2026."
       },
       "_extraction_date": "2026-01-27T00:11:31.565Z"
     },
@@ -2965,8 +2976,8 @@
     "contact_email": "camps@moxi.org",
     "address": "125 State Street, Santa Barbara",
     "website": "moxi.org/programs/for-families/camps/",
-    "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "2026_reg_date": "March 3, 2026",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "16 campers max",
@@ -3254,11 +3265,12 @@
       ],
       "special_needs_friendly": true,
       "availability": {
-        "isOpen": true,
+        "isOpen": false,
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": "March 3, 2026"
+        "openingDate": "March 3, 2026",
+        "registrationNotes": "Registration opens March 3, 2026. Member priority access likely."
       },
       "testimonials": [],
       "setting": "Outdoor",
@@ -3343,8 +3355,8 @@
     "contact_email": "camp@sbbotanicgarden.org",
     "address": "1212 Mission Canyon Road, Santa Barbara",
     "website": "sbbotanicgarden.org",
-    "2026_reg_date": "Members Mar 4; Public Mar 18",
-    "reg_status": "Members early access",
+    "2026_reg_date": "March 3, 2026 (members); March 19, 2026 (public)",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "1:8",
@@ -3610,7 +3622,15 @@
         "platform": "UltraCamp"
       },
       "staff_ratio": "1:8",
-      "extended_care_cost": "$370"
+      "extended_care_cost": "$370",
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "March 3, 2026 (members); March 19, 2026 (public)",
+        "registrationNotes": "Member registration March 3. Public registration March 19, 2026."
+      }
     },
     "has_registration_open": true,
     "has_pricing": false,
@@ -3646,8 +3666,8 @@
     "contact_email": "registrar@nature-rangers.org",
     "address": "Various locations in Goleta/SB",
     "website": "naturerangers.org/camp/",
-    "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "2026_reg_date": "February 2, 2026",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "1:6 max",
@@ -3738,7 +3758,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "February 2, 2026",
+        "registrationNotes": "Registration opens February 2, 2026."
       },
       "testimonials": [],
       "hours": {
@@ -3826,7 +3847,7 @@
     "contact_email": "See website",
     "address": "Various locations (TBD for 2026)",
     "website": "camphaverim.org",
-    "2026_reg_date": "Rolling (early bird by Jun 15)",
+    "2026_reg_date": "Now open",
     "reg_status": "Open",
     "summer_dates": "June-July",
     "weeks_available": "4 (2-week sessions)",
@@ -3971,6 +3992,14 @@
         "register": "https://camphaverim.org/about-us/employment-opportunities",
         "camps": "https://camphaverim.org/programs-activities",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": true,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open for summer 2026."
       }
     },
     "has_registration_open": true,
@@ -4007,7 +4036,7 @@
     "contact_email": "ozwicke@artexplorerssantabarbara.org",
     "address": "Vieja Valley School, 434 Nogal Dr (2026)",
     "website": "terrificscientific.org",
-    "2026_reg_date": "Rolling (fills fast)",
+    "2026_reg_date": "Now open",
     "reg_status": "Open",
     "summer_dates": "June-August",
     "weeks_available": "9",
@@ -4646,7 +4675,8 @@
         "hasWaitlist": true,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": "February 9"
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open for Art Explorers and Terrific Scientific camps."
       },
       "testimonials": [],
       "handles_allergies": true,
@@ -4720,7 +4750,7 @@
     "contact_email": "ozwicke@terrificscientific.org",
     "address": "Vieja Valley School, 434 Nogal Dr (2026)",
     "website": "terrificscientific.org",
-    "2026_reg_date": "Rolling (fills fast)",
+    "2026_reg_date": "Now open",
     "reg_status": "Open",
     "summer_dates": "June-August",
     "weeks_available": "9",
@@ -5287,7 +5317,8 @@
         "hasWaitlist": true,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": "February 9"
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open. 65 STEAM camps available."
       },
       "testimonials": [],
       "handles_allergies": true,
@@ -5372,7 +5403,7 @@
     "address": "1130 State Street, Santa Barbara",
     "website": "sbma.net/learn/kidsfamilies/summer-camp-2025",
     "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "6+",
     "staff_ratio": "Unknown",
@@ -5712,9 +5743,11 @@
         ]
       },
       "availability": {
-        "isOpen": true,
+        "isOpen": false,
         "hasWaitlist": true,
-        "contact": "communityprograms@sbma.net"
+        "contact": "communityprograms@sbma.net",
+        "openingDate": "TBD - Expected February/March 2026",
+        "registrationNotes": "2026 summer camp info not yet posted."
       },
       "_extraction_date": "2026-01-27T00:10:27.781Z"
     },
@@ -5753,7 +5786,7 @@
     "address": "721 E. Cota St, Santa Barbara",
     "website": "boxtales.org/education/summer-camp",
     "2026_reg_date": "Early March (only 15 spots)",
-    "reg_status": "Limited spots",
+    "reg_status": "Not yet open",
     "summer_dates": "3-week intensive",
     "weeks_available": "1",
     "staff_ratio": "Unknown",
@@ -5983,7 +6016,15 @@
         "email": "info@boxtales.org",
         "location": "Marjorie Luke Theatre, 721 E Cota St"
       },
-      "capacity": 15
+      "capacity": 15,
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "TBD",
+        "registrationNotes": "2026 dates not yet announced."
+      }
     },
     "has_registration_open": true,
     "has_pricing": false,
@@ -6020,7 +6061,7 @@
     "address": "33 W. Victoria St, Santa Barbara",
     "website": "etcsb.org/education-and-outreach/the-young-actors-conservatory",
     "2026_reg_date": "Feb 1",
-    "reg_status": "Opens Feb 1",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "4+",
     "staff_ratio": "Unknown",
@@ -6125,6 +6166,14 @@
         "standard": "10:00 AM - 3:00 PM",
         "dropOff": null,
         "pickUp": null
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "TBD",
+        "registrationNotes": "2026 summer camp info not yet available."
       }
     },
     "has_registration_open": false,
@@ -6161,8 +6210,8 @@
     "contact_email": "hannah@sbdancearts.com",
     "address": "630 Chapala St, Santa Barbara",
     "website": "sbdancearts.com/summer-camps-mini",
-    "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "2026_reg_date": "February 11, 2026 at noon",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "Unknown",
@@ -6363,11 +6412,12 @@
         "Dance"
       ],
       "availability": {
-        "isOpen": true,
+        "isOpen": false,
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": "February 11, 2026"
+        "openingDate": "February 11, 2026 at noon",
+        "registrationNotes": "Registration opens February 11, 2026 at noon."
       },
       "testimonials": [],
       "setting": "Outdoor",
@@ -6441,7 +6491,7 @@
     "address": "12 E. Figueroa St, Santa Barbara",
     "website": "momentumdancesb.com/summer",
     "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "Unknown",
@@ -6653,11 +6703,12 @@
         "Games & Recreation"
       ],
       "availability": {
-        "isOpen": true,
+        "isOpen": false,
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": "February 5"
+        "openingDate": "TBD",
+        "registrationNotes": "2026 summer camp info not yet posted."
       },
       "testimonials": [
         "s Summer Dance Camp!  Dancers will combine all things stars and stripes with the most star spangled dance moves in this 3 Day festive dance camp! Combining Hip Hop, Jazz, and tumbling with all the sen",
@@ -6734,7 +6785,7 @@
     "contact_email": "jeff@nextlevelsportscamp.com",
     "address": "Goleta Valley South Little League fields",
     "website": "nextlevelsportscamp.com",
-    "2026_reg_date": "Rolling",
+    "2026_reg_date": "Now open",
     "reg_status": "Open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
@@ -6985,7 +7036,7 @@
       ],
       "has_packing_list": true,
       "availability": {
-        "isOpen": false,
+        "isOpen": true,
         "hasWaitlist": false,
         "soldOutSessions": [
           "Session 1",
@@ -6993,7 +7044,8 @@
           "Session 1"
         ],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open for summer 2026."
       },
       "testimonials": [],
       "has_extended_care": null,
@@ -7066,7 +7118,7 @@
     "address": "Girsh Park, 7050 Phelps Rd, Goleta",
     "website": "santabarbarasc.org/recreational-programs/camps/",
     "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "6+",
     "staff_ratio": "Unknown",
@@ -7306,6 +7358,14 @@
       "extended_care_details": null,
       "hours_detail": {
         "dropOff": "8:30-9:00am (free early drop-off)"
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "TBD - Expected early 2026",
+        "registrationNotes": "Registration date not yet announced. Check website for updates."
       }
     },
     "has_registration_open": false,
@@ -7342,7 +7402,7 @@
     "contact_email": "info@surfhappens.com",
     "address": "3825 Santa Claus Lane, Carpinteria",
     "website": "surfhappens.com/surf-camps/day-surf-camps/",
-    "2026_reg_date": "Rolling (fills fast)",
+    "2026_reg_date": "Now open",
     "reg_status": "Open",
     "summer_dates": "Spring/Summer/Fall",
     "weeks_available": "12+ summer",
@@ -7474,6 +7534,14 @@
         "register": "https://surfhappens.com/registration/",
         "camps": "https://surfhappens.com/surf-camps/day-surf-camps/#",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": true,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open for 2026 surf camps."
       }
     },
     "has_registration_open": false,
@@ -7511,8 +7579,8 @@
     "contact_email": "See website",
     "address": "Santa Claus Lane Beach, Carpinteria",
     "website": "aframesurf.com/beach-camp/",
-    "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "2026_reg_date": "Possibly defunct",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "12+",
     "staff_ratio": "1:5",
@@ -7741,11 +7809,12 @@
         "Swimming"
       ],
       "availability": {
-        "isOpen": true,
+        "isOpen": false,
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "Possibly defunct",
+        "registrationNotes": "Website redirects to Sea League. May no longer operate independently."
       },
       "testimonials": [],
       "setting": "Outdoor",
@@ -7818,8 +7887,8 @@
     "contact_email": "ajwagner55@gmail.com (host church)",
     "address": "Goleta Valley Jr High School",
     "website": "camps.winshape.org",
-    "2026_reg_date": "March (fills in days)",
-    "reg_status": "Opens March - fills fast",
+    "2026_reg_date": "March 2, 2026",
+    "reg_status": "Not yet open",
     "summer_dates": "One week only",
     "weeks_available": "1",
     "staff_ratio": "Unknown",
@@ -8104,6 +8173,14 @@
         "register": "https://overnightregistration.winshape.org/",
         "camps": "https://camps.winshape.org/day-camps/",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "March 2, 2026",
+        "registrationNotes": "Registration opens March 2, 2026. Early bird pricing available."
       }
     },
     "has_registration_open": true,
@@ -8141,7 +8218,7 @@
     "address": "4125 Paloma Dr (Hope Ranch); 260 San Ysidro Rd (Montecito)",
     "website": "lagunablanca.org",
     "2026_reg_date": "Feb 28 at 9am",
-    "reg_status": "Opens Feb 28",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "Unknown",
@@ -8255,7 +8332,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "TBD - Expected February 2026",
+        "registrationNotes": "Registration typically opens in February. Check website."
       },
       "testimonials": [],
       "setting": "Outdoor",
@@ -8345,8 +8423,8 @@
     "contact_email": "info@atozcookingschool.org",
     "address": "2300 Garden Street, Santa Barbara",
     "website": "atozcookingschool.org",
-    "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "2026_reg_date": "February 28, 2026 at 6:30 AM",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "Unknown",
@@ -8522,6 +8600,14 @@
         "register": "https://www.atozcookingschool.org/joinourteam-standard",
         "camps": "https://www.atozcookingschool.org/https/atozcookingschoolscadlrcom/event-gallery",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "February 28, 2026 at 6:30 AM",
+        "registrationNotes": "Registration opens February 28, 2026 at 6:30am. Sells out quickly."
       }
     },
     "has_registration_open": true,
@@ -8559,7 +8645,7 @@
     "address": "304 N. Los Carneros Road, Goleta",
     "website": "goletahistory.org/camp-stow/",
     "2026_reg_date": "Spring",
-    "reg_status": "Opens Spring",
+    "reg_status": "Not yet open",
     "summer_dates": "July 7-25 only",
     "weeks_available": "3",
     "staff_ratio": "Unknown",
@@ -9103,6 +9189,14 @@
         "register": "https://goletahistory.org/goletathegoodland/",
         "camps": "https://goletahistory.org/camp-stow/",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "TBD",
+        "registrationNotes": "2026 registration not yet announced."
       }
     },
     "has_registration_open": true,
@@ -9141,7 +9235,7 @@
     "address": "6985 Santa Felicia Drive, Goleta",
     "website": "iceinparadise.org/in-house-camps",
     "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "6+",
     "staff_ratio": "Unknown",
@@ -9367,7 +9461,8 @@
           "Session 1"
         ],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "TBD",
+        "registrationNotes": "2026 summer camp info not yet available."
       },
       "testimonials": [
         "s Day Skating Camp 2025\nGoleta, 6985 Santa Felicia Dr, Goleta, CA 93117, USA\nJoin us this Veteran"
@@ -9426,7 +9521,7 @@
     "address": "Multiple locations countywide",
     "website": "unitedbg.org/programs/",
     "2026_reg_date": "Spring",
-    "reg_status": "Opens Spring",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "10+",
     "staff_ratio": "Unknown",
@@ -9582,7 +9677,15 @@
           }
         ]
       },
-      "scholarships": true
+      "scholarships": true,
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "TBD - Expected February/March 2026",
+        "registrationNotes": "Registration not yet open. Typically opens in early spring."
+      }
     },
     "has_registration_open": true,
     "has_pricing": true,
@@ -9618,8 +9721,8 @@
     "contact_email": "info@ciymca.org",
     "address": "36 Hitchcock Way (SB); 591 Santa Rosa Ln (Montecito)",
     "website": "ciymca.org/summer-camp",
-    "2026_reg_date": "Feb 1",
-    "reg_status": "Opens Feb 1",
+    "2026_reg_date": "February 1, 2026",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "10+",
     "staff_ratio": "Unknown",
@@ -9662,11 +9765,13 @@
       ],
       "has_extended_care": null,
       "availability": {
-        "isOpen": true,
+        "isOpen": false,
         "closedDates": [
           "June 19",
           "July 4"
-        ]
+        ],
+        "openingDate": "February 1, 2026",
+        "registrationNotes": "Registration opens February 1, 2026."
       },
       "_extraction_source": "claude-session",
       "activities": [
@@ -9729,8 +9834,8 @@
     "contact_email": "pyc@pageyouthcenter.org",
     "address": "4540 Hollister Ave, Santa Barbara",
     "website": "pageyouthcenter.org/summer-camps",
-    "2026_reg_date": "Jan/Feb",
-    "reg_status": "Opens Jan/Feb",
+    "2026_reg_date": "Now open",
+    "reg_status": "Open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "Unknown",
@@ -9845,11 +9950,12 @@
         "Multi-Sport"
       ],
       "availability": {
-        "isOpen": false,
+        "isOpen": true,
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open for summer 2026."
       },
       "testimonials": [
         "re a seasoned athlete or just starting out, our camps cater to all skill levels, providing an opportunity for you to improve your game, make new friends, and have a blast while doing so! Don"
@@ -9912,8 +10018,8 @@
     "contact_email": "refugio.guards@parks.ca.gov",
     "address": "10 Refugio Beach Road, Goleta",
     "website": "parks.ca.gov",
-    "2026_reg_date": "Feb (dates announced Jan 31)",
-    "reg_status": "Opens Feb",
+    "2026_reg_date": "March 30, 2026 at 8:00 AM",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "4+",
     "staff_ratio": "Unknown",
@@ -9956,8 +10062,9 @@
       "has_extended_care": null,
       "availability": {
         "isOpen": false,
-        "openingDate": "March 30, 2026 at 8 AM",
-        "hasWaitlist": false
+        "openingDate": "March 30, 2026 at 8:00 AM",
+        "hasWaitlist": false,
+        "registrationNotes": "Registration opens March 30, 2026 at 8am. Extremely popular, sells out fast."
       },
       "notes": "Bus transportation from Goleta available in 2026 (fees under review)",
       "_extraction_source": "claude-session",
@@ -10051,8 +10158,8 @@
     "contact_email": "See GUSD website",
     "address": "Ellwood/Brandon Elementary, Goleta",
     "website": "sites.google.com/goleta.k12.ca.us/afterschool2019/summer-thrive-camp",
-    "2026_reg_date": "Spring (school notification)",
-    "reg_status": "Via school",
+    "2026_reg_date": "February 17, 2026",
+    "reg_status": "Not yet open",
     "summer_dates": "June-July",
     "weeks_available": "4",
     "staff_ratio": "Unknown",
@@ -10151,7 +10258,8 @@
         "hasWaitlist": true,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "February 17, 2026",
+        "registrationNotes": "Registration opens February 17, 2026. GUSD students only."
       },
       "testimonials": [],
       "setting": "Outdoor",
@@ -10223,8 +10331,8 @@
     "contact_email": "dsouza@elingspark.org",
     "address": "Elings Park, 1298 Las Positas Rd",
     "website": "elingspark.org/summer-camp/",
-    "2026_reg_date": "Spring",
-    "reg_status": "Opens Spring",
+    "2026_reg_date": "February 2, 2026 at 10:00 AM PST",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "Unknown",
@@ -10599,6 +10707,14 @@
         "register": "https://elingspark.org/off-leash-dogs/become-a-member-or-renew/#register",
         "camps": "https://elingspark.org/summer-camp/",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "February 2, 2026 at 10:00 AM PST",
+        "registrationNotes": "Registration opens February 2, 2026 at 10am PST."
       }
     },
     "has_registration_open": true,
@@ -10635,8 +10751,8 @@
     "contact_email": "ldorr@westmont.edu",
     "address": "Westmont College, 955 La Paz Rd",
     "website": "westmont.edu/athletics/summercamps",
-    "2026_reg_date": "Spring",
-    "reg_status": "Opens Spring",
+    "2026_reg_date": "Now open",
+    "reg_status": "Open",
     "summer_dates": "June-August",
     "weeks_available": "6+",
     "staff_ratio": "Unknown",
@@ -11198,6 +11314,14 @@
         "register": "https://www.westmont.edu/admissions-aid/apply-westmont",
         "camps": "https://www.westmont.edu/student-life/campus-activities",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": true,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "Now open",
+        "registrationNotes": "Registration form available but may have technical issues."
       }
     },
     "has_registration_open": true,
@@ -11235,8 +11359,8 @@
     "contact_email": "See website",
     "address": "Various locations",
     "website": "sbefoundation.org/community-programs/the-nick-rail-summer-band-camp/",
-    "2026_reg_date": "Spring",
-    "reg_status": "Opens Spring",
+    "2026_reg_date": "February 2, 2026 at noon",
+    "reg_status": "Not yet open",
     "summer_dates": "June-July",
     "weeks_available": "2",
     "staff_ratio": "Unknown",
@@ -11575,6 +11699,14 @@
             "text": "solicita la beca aquí"
           }
         ]
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "February 2, 2026 at noon",
+        "registrationNotes": "Registration opens February 2, 2026 at noon."
       }
     },
     "has_registration_open": false,
@@ -11612,7 +11744,7 @@
     "address": "Twin Lakes Golf Course, 6034 Hollister Ave, Goleta",
     "website": "twinlakesgolf.com/junior-golf",
     "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
     "staff_ratio": "Unknown",
@@ -11744,7 +11876,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": "daily 7"
+        "openingDate": "TBD",
+        "registrationNotes": "2026 summer camp schedule not yet posted."
       },
       "testimonials": [],
       "has_extended_care": null,
@@ -11819,7 +11952,7 @@
     "address": "322 State St, Santa Barbara (closed)",
     "website": "sbrockgym.com",
     "2026_reg_date": "N/A",
-    "reg_status": "CLOSED",
+    "reg_status": "Not yet open",
     "summer_dates": "N/A",
     "weeks_available": "0",
     "staff_ratio": "N/A",
@@ -11863,7 +11996,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "TBD",
+        "registrationNotes": "2026 summer camp info not yet available."
       },
       "testimonials": [],
       "activities": [
@@ -11928,8 +12062,8 @@
     "contact_email": "info@teamoctobots.org",
     "address": "7266 Alameda Ave, Goleta",
     "website": "teamoctobots.org/campseducation",
-    "2026_reg_date": "Spring",
-    "reg_status": "Opens Spring",
+    "2026_reg_date": "February 2, 2026",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "4+",
     "staff_ratio": "Unknown",
@@ -12061,7 +12195,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "February 2, 2026",
+        "registrationNotes": "Registration opens February 2, 2026."
       },
       "testimonials": [],
       "has_extended_care": null,
@@ -12134,7 +12269,7 @@
     "address": "814 Santa Barbara St, Santa Barbara",
     "website": "anacapaschool.org/summer-2025",
     "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "6+",
     "staff_ratio": "Unknown",
@@ -12311,6 +12446,14 @@
         "register": "https://www.anacapaschool.org/register-summer-camp-2025",
         "camps": "https://www.anacapaschool.org/programs",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": false,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "TBD",
+        "registrationNotes": "2026 summer program info not yet posted."
       }
     },
     "has_registration_open": true,
@@ -12348,7 +12491,7 @@
     "contact_email": "seanbestucamp@yahoo.com",
     "address": "Notre Dame School, 33 E. Micheltorena St",
     "website": "BestUCamp.com",
-    "2026_reg_date": "Rolling",
+    "2026_reg_date": "Now open",
     "reg_status": "Open",
     "summer_dates": "June-August",
     "weeks_available": "8+",
@@ -12527,6 +12670,14 @@
         "register": "https://www.bestucamp.com/registration",
         "camps": "https://www.bestucamp.com/cart",
         "pdfs": []
+      },
+      "availability": {
+        "isOpen": true,
+        "hasWaitlist": false,
+        "soldOutSessions": [],
+        "availableSessions": [],
+        "openingDate": "Now open",
+        "registrationNotes": "Registration open for summer 2026."
       }
     },
     "has_registration_open": true,
@@ -12563,8 +12714,8 @@
     "contact_email": "t.clark@mcssb.org",
     "address": "401 N. Fairview Ave, Ste. 1, Goleta",
     "website": "mcssb.org/summer-camp",
-    "2026_reg_date": "Spring",
-    "reg_status": "Opens Spring",
+    "2026_reg_date": "February 11, 2026 (MCS families); mid-March (public)",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "6+",
     "staff_ratio": "Unknown",
@@ -12621,11 +12772,12 @@
         "cost": null
       },
       "availability": {
-        "isOpen": true,
+        "isOpen": false,
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": "February 11 (MCS families), mid-March (public)"
+        "openingDate": "February 11, 2026 (MCS families); mid-March (public)",
+        "registrationNotes": "MCS families register starting February 11. Public registration opens mid-March 2026."
       },
       "testimonials": [],
       "_extraction_source": "claude-session",
@@ -12686,7 +12838,7 @@
     "address": "Dos Pueblos Ranch, Gaviota",
     "website": "thesealeague.org/summer-camps",
     "2026_reg_date": "Spring",
-    "reg_status": "Opens Spring",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "2-3",
     "staff_ratio": "Unknown",
@@ -12918,7 +13070,8 @@
         "hasWaitlist": true,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "TBD",
+        "registrationNotes": "2026 camp details not yet announced."
       },
       "testimonials": [
         "I've noticed a difference. The kids seem happier. Not just exercised but with a peace of mind - like they have a sense of freedom.\n\nParent of middle-school aged participant"
@@ -12998,7 +13151,7 @@
     "address": "Unity of SB, 227 E. Arrellaga St",
     "website": "interacttheatreschool.com/summer-camps",
     "2026_reg_date": "Rolling",
-    "reg_status": "Open",
+    "reg_status": "Not yet open",
     "summer_dates": "June-August",
     "weeks_available": "6+",
     "staff_ratio": "Unknown",
@@ -13137,7 +13290,7 @@
       ],
       "special_needs_friendly": true,
       "availability": {
-        "isOpen": true,
+        "isOpen": false,
         "hasWaitlist": false,
         "soldOutSessions": [
           "Session 2026",
@@ -13146,7 +13299,8 @@
         "availableSessions": [
           "Session 2026:\n\nWhen: Tuesday, from 3 pm to 5 pm\nDa"
         ],
-        "openingDate": null
+        "openingDate": "TBD",
+        "registrationNotes": "2026 summer camp info not yet posted."
       },
       "testimonials": [],
       "setting": "Outdoor",
@@ -13219,8 +13373,8 @@
     "contact_email": "N/A",
     "address": "598 North Fairview Avenue, Goleta, CA 93117",
     "website": "fairviewgardens.org",
-    "2026_reg_date": "N/A",
-    "reg_status": "CLOSED",
+    "2026_reg_date": "Unlikely for 2026",
+    "reg_status": "Not yet open",
     "summer_dates": "N/A",
     "weeks_available": "0",
     "staff_ratio": "N/A",
@@ -13281,7 +13435,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "Unlikely for 2026",
+        "registrationNotes": "Farm closed for renovation. Summer camp program unlikely for 2026."
       },
       "testimonials": [],
       "_extraction_source": "claude-session",
@@ -13356,8 +13511,8 @@
     "contact_email": "museum@goletadepot.org",
     "address": "300 N Los Carneros Rd, Goleta",
     "website": "goletadepot.org",
-    "2026_reg_date": "N/A",
-    "reg_status": "NO CAMP",
+    "2026_reg_date": "No camp program found",
+    "reg_status": "Not yet open",
     "summer_dates": "N/A",
     "weeks_available": "0",
     "staff_ratio": "N/A",
@@ -13535,7 +13690,8 @@
         "hasWaitlist": false,
         "soldOutSessions": [],
         "availableSessions": [],
-        "openingDate": null
+        "openingDate": "No camp program found",
+        "registrationNotes": "No summer camp program identified on website."
       },
       "testimonials": [],
       "has_extended_care": null,
@@ -13591,7 +13747,7 @@
     "address": "Kellogg/Mountain View/Montecito Union Schools",
     "website": "sbsafetytown.org",
     "2026_reg_date": "Early spring",
-    "reg_status": "Opens early spring",
+    "reg_status": "Not yet open",
     "summer_dates": "June-July",
     "weeks_available": "3",
     "staff_ratio": "1:2-3 CIT",
@@ -13645,7 +13801,8 @@
       "scholarships": true,
       "availability": {
         "isOpen": false,
-        "openingDate": "Early February (Feb 8 in 2025)"
+        "openingDate": "TBD - Expected early February 2026",
+        "registrationNotes": "Run by SB Parks & Rec. Registration expected early February."
       },
       "_extraction_source": "claude-session",
       "activities": [

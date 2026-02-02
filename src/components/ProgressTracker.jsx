@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { useAchievements } from '../contexts/AchievementsContext';
+import BrandIcon from './BrandIcon';
 import './ProgressTracker.css';
 
 // Milestone markers for the progress bar
@@ -73,7 +74,7 @@ export const ProgressTracker = memo(function ProgressTracker({
         </div>
         {streak.count > 1 && (
           <div className="progress-streak" title={`${streak.count}-day planning streak`}>
-            <span className="progress-streak-icon">🔥</span>
+            <span className="progress-streak-icon"><BrandIcon name="flame" size={16} /></span>
             <span className="progress-streak-count">{streak.count}</span>
           </div>
         )}
@@ -87,7 +88,7 @@ export const ProgressTracker = memo(function ProgressTracker({
             style={{ width: `${Math.min(coveragePercent, 100)}%` }}
           >
             {coveragePercent >= 100 && (
-              <span className="progress-complete-icon">✓</span>
+              <span className="progress-complete-icon"><BrandIcon name="check" size={14} /></span>
             )}
           </div>
         </div>
@@ -158,7 +159,7 @@ export const ProgressTracker = memo(function ProgressTracker({
       {/* Achievement count for non-detailed */}
       {!showStats && achievementProgress.earned > 0 && (
         <div className="progress-badges-hint">
-          <span className="progress-badges-icon">🏆</span>
+          <span className="progress-badges-icon"><BrandIcon name="trophy" size={16} /></span>
           <span>{achievementProgress.earned} badge{achievementProgress.earned !== 1 ? 's' : ''} earned</span>
         </div>
       )}
