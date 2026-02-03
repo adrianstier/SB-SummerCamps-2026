@@ -1,0 +1,72 @@
+[
+  {
+    "timestamp": "2026-01-26T13:54:07.672Z",
+    "duration": 59077,
+    "campsProcessed": 1,
+    "avgQuality": 23,
+    "changesDetected": 1
+  },
+  {
+    "timestamp": "2026-01-26T14:31:19.334Z",
+    "duration": 1940537,
+    "campsProcessed": 46,
+    "avgQuality": 27,
+    "changesDetected": 25
+  },
+  {
+    "timestamp": "2026-01-26T14:37:48.188Z",
+    "duration": 39058,
+    "campsProcessed": 1,
+    "avgQuality": 33,
+    "changesDetected": 1
+  },
+  {
+    "timestamp": "2026-01-26T14:39:01.403Z",
+    "duration": 24760,
+    "campsProcessed": 1,
+    "avgQuality": 73,
+    "changesDetected": 1
+  },
+  {
+    "timestamp": "2026-01-26T14:42:56.291Z",
+    "duration": 186312,
+    "campsProcessed": 5,
+    "avgQuality": 29,
+    "changesDetected": 4
+  },
+  {
+    "timestamp": "2026-01-26T16:44:56.170Z",
+    "duration": 121144,
+    "campsProcessed": 1,
+    "avgQuality": 36,
+    "changesDetected": 1
+  },
+  {
+    "timestamp": "2026-01-26T16:45:43.292Z",
+    "duration": 28968,
+    "campsProcessed": 1,
+    "avgQuality": 30,
+    "changesDetected": 0
+  },
+  {
+    "timestamp": "2026-01-26T17:21:33.883Z",
+    "duration": 2096704,
+    "campsProcessed": 46,
+    "avgQuality": 38,
+    "changesDetected": 37
+  },
+  {
+    "timestamp": "2026-01-26T17:21:37.543Z",
+    "duration": 2095930,
+    "campsProcessed": 46,
+    "avgQuality": 38,
+    "changesDetected": 37
+  },
+  {
+    "timestamp": "2026-01-28T18:29:59.616Z",
+    "duration": 385933,
+    "campsProcessed": 10,
+    "avgQuality": 46,
+    "changesDetected": 9
+  }
+]

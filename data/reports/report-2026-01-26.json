@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-01-26T17:21:37.543Z",
+  "summary": {
+    "totalCamps": 46,
+    "successfulExtractions": 7,
+    "needsReview": 34,
+    "failed": 5,
+    "avgQuality": 38
+  },
+  "changes": {
+    "total": 37,
+    "priceChanges": 25,
+    "registrationChanges": 0
+  },
+  "strategyEffectiveness": {
+    "webfetch": {
+      "attempts": 44,
+      "avgQuality": 20
+    },
+    "playwright": {
+      "attempts": 46,
+      "avgQuality": 36
+    },
+    "accessibility": {
+      "attempts": 44,
+      "avgQuality": 22
+    },
+    "screenshot": {
+      "attempts": 43,
+      "avgQuality": 0
+    }
+  },
+  "campsNeedingAttention": [
+    {
+      "id": "ymca-summer-camp",
+      "name": "YMCA Summer Camp",
+      "quality": 0
+    },
+    {
+      "id": "sb-rock-gym-camp",
+      "name": "SB Rock Gym Camp",
+      "quality": 0
+    },
+    {
+      "id": "montessori-center-school-camp",
+      "name": "Montessori Center School Camp",
+      "quality": 0
+    },
+    {
+      "id": "south-coast-railroad-museum",
+      "name": "South Coast Railroad Museum",
+      "quality": 0
+    },
+    {
+      "id": "safety-town",
+      "name": "Safety Town",
+      "quality": 0
+    },
+    {
+      "id": "fairview-gardens",
+      "name": "Fairview Gardens",
+      "quality": 5,
+      "bestStrategy": "playwright"
+    },
+    {
+      "id": "boxtales-theatre-camp",
+      "name": "Boxtales Theatre Camp",
+      "quality": 8,
+      "bestStrategy": "playwright"
+    },
+    {
+      "id": "santa-barbara-soccer-club-camp",
+      "name": "Santa Barbara Soccer Club Camp",
+      "quality": 15,
+      "bestStrategy": "webfetch"
+    },
+    {
+      "id": "nature-rangers",
+      "name": "Nature Rangers",
+      "quality": 16,
+      "bestStrategy": "webfetch"
+    },
+    {
+      "id": "sb-botanic-garden",
+      "name": "SB Botanic Garden",
+      "quality": 18,
+      "bestStrategy": "playwright"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "generated": "2026-01-26T05:45:00.000Z",
+  "summary": {
+    "good": 44,
+    "needsWork": 2,
+    "critical": 0
+  },
+  "needsWork": [
+    {
+      "id": "sb-rock-gym-camp",
+      "name": "SB Rock Gym Camp",
+      "url": "https://sbrockgym.com",
+      "quality": 0,
+      "status": "CLOSED",
+      "note": "Website expired (Squarespace). Business may be permanently closed. Consider removing from camp list."
+    },
+    {
+      "id": "fairview-gardens",
+      "name": "Fairview Gardens",
+      "url": "https://fairviewgardens.org",
+      "quality": 65,
+      "hasPricing": false,
+      "hasHours": false,
+      "hasExtendedCare": false,
+      "hasSessions": false,
+      "note": "Farm camp exists but 2026 sessions not yet published. Has age groups and activities."
+    }
+  ],
+  "recentlyImproved": [
+    {
+      "id": "ensemble-theatre-company",
+      "name": "Ensemble Theatre Company",
+      "quality": 75,
+      "hasSessions": true,
+      "hasHours": true,
+      "note": "3 theater programs with specific 2026 dates. No extended care offered (intentional)."
+    },
+    {
+      "id": "ymca-summer-camp",
+      "name": "YMCA Summer Camp",
+      "quality": 85,
+      "hasSessions": true,
+      "hasHours": true,
+      "hasPricing": true,
+      "note": "9 weeks June-August 2026. Full pricing tiers by age and member status."
+    },
+    {
+      "id": "refugio-jr-guards",
+      "name": "Refugio Jr. Guards",
+      "quality": 70,
+      "hasSessions": true,
+      "hasPricing": true,
+      "note": "3 sessions summer 2026. Registration opens March 30."
+    },
+    {
+      "id": "montessori-center-school-camp",
+      "name": "Montessori Center School Camp",
+      "quality": 80,
+      "hasSessions": true,
+      "hasHours": true,
+      "hasExtendedCare": true,
+      "note": "8 sessions June-August. Aftercare until 5:30 PM."
+    },
+    {
+      "id": "safety-town",
+      "name": "Safety Town",
+      "quality": 60,
+      "hasPricing": true,
+      "hasSessions": true,
+      "note": "$200/session, 5-day programs at 3 locations. 2026 dates not yet published."
+    }
+  ],
+  "critical": []
+}

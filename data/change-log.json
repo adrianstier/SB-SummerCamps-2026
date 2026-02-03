@@ -1,0 +1,1863 @@
+[
+  {
+    "campId": "santa-barbara-zoo-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 2,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T13:54:07.162Z"
+  },
+  {
+    "campId": "lobster-jo-s-beach-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:00:07.606Z"
+  },
+  {
+    "campId": "ucsb-day-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 244,
+        "new": 90,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 9,
+        "new": 25,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:00:44.473Z"
+  },
+  {
+    "campId": "peak2pacific",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": false,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:01:07.049Z"
+  },
+  {
+    "campId": "wilderness-youth-project",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:01:16.675Z"
+  },
+  {
+    "campId": "santa-barbara-zoo-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 8,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:02:39.616Z"
+  },
+  {
+    "campId": "girls-inc-of-greater-santa-barbara",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 280,
+        "new": 85,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:02:55.491Z"
+  },
+  {
+    "campId": "moxi-museum-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:03:48.578Z"
+  },
+  {
+    "campId": "nature-rangers",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:05:24.580Z"
+  },
+  {
+    "campId": "art-explorers",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 20,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:06:21.422Z"
+  },
+  {
+    "campId": "terrific-scientific",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:06:37.540Z"
+  },
+  {
+    "campId": "santa-barbara-museum-of-art-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 13,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:08:46.623Z"
+  },
+  {
+    "campId": "ensemble-theatre-company",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 3,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:11:32.169Z"
+  },
+  {
+    "campId": "momentum-dance-company",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "150",
+        "new": 220,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:12:37.002Z"
+  },
+  {
+    "campId": "next-level-sports-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 20,
+        "new": 10,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:12:52.647Z"
+  },
+  {
+    "campId": "surf-happens",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": false,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:14:14.449Z"
+  },
+  {
+    "campId": "camp-stow",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:17:46.613Z"
+  },
+  {
+    "campId": "ice-in-paradise",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 50,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 20,
+        "new": 15,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:18:31.343Z"
+  },
+  {
+    "campId": "page-youth-center",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 325,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:19:37.762Z"
+  },
+  {
+    "campId": "refugio-jr-guards",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "430",
+        "new": 150,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 3,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:19:54.115Z"
+  },
+  {
+    "campId": "gusd-summer-thrive",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "0",
+        "new": 1275,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 2,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:20:07.177Z"
+  },
+  {
+    "campId": "westmont-summer-sports-camps",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:23:26.265Z"
+  },
+  {
+    "campId": "nick-rail-summer-band-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:24:16.867Z"
+  },
+  {
+    "campId": "anacapa-school-arts-exploration",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 350,
+        "new": 125,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 3,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:25:18.372Z"
+  },
+  {
+    "campId": "best-u-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 2,
+        "new": 6,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:25:34.033Z"
+  },
+  {
+    "campId": "montessori-center-school-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 8,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:26:07.791Z"
+  },
+  {
+    "campId": "santa-barbara-zoo-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:37:47.679Z"
+  },
+  {
+    "campId": "ucsb-day-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 244,
+        "new": 305,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 25,
+        "new": 9,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:39:00.893Z"
+  },
+  {
+    "campId": "lobster-jo-s-beach-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:41:00.052Z"
+  },
+  {
+    "campId": "ucsb-day-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 244,
+        "new": 305,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:41:55.725Z"
+  },
+  {
+    "campId": "peak2pacific",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": false,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:42:39.562Z"
+  },
+  {
+    "campId": "wilderness-youth-project",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T14:42:55.786Z"
+  },
+  {
+    "campId": "moxi-museum-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:44:55.667Z"
+  },
+  {
+    "campId": "lobster-jo-s-beach-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "360",
+        "new": 30,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:47:26.277Z"
+  },
+  {
+    "campId": "ucsb-day-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 244,
+        "new": 315,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 9,
+        "new": 27,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:48:21.617Z"
+  },
+  {
+    "campId": "peak2pacific",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": false,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:48:53.894Z"
+  },
+  {
+    "campId": "wilderness-youth-project",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "425",
+        "new": 52,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 12,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:49:21.413Z"
+  },
+  {
+    "campId": "santa-barbara-zoo-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:50:04.323Z"
+  },
+  {
+    "campId": "girls-inc-of-greater-santa-barbara",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 280,
+        "new": 140,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:50:35.493Z"
+  },
+  {
+    "campId": "moxi-museum-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 2,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:51:11.408Z"
+  },
+  {
+    "campId": "nature-rangers",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:53:10.069Z"
+  },
+  {
+    "campId": "camp-haverim",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "400",
+        "new": 860,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 4,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:54:30.646Z"
+  },
+  {
+    "campId": "art-explorers",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "299",
+        "new": 1000,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 5,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:55:03.231Z"
+  },
+  {
+    "campId": "terrific-scientific",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "299",
+        "new": 1000,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 5,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:55:33.170Z"
+  },
+  {
+    "campId": "santa-barbara-museum-of-art-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "300",
+        "new": 300,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:57:05.686Z"
+  },
+  {
+    "campId": "ensemble-theatre-company",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:59:28.358Z"
+  },
+  {
+    "campId": "santa-barbara-dance-arts",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 3,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:00:01.336Z"
+  },
+  {
+    "campId": "momentum-dance-company",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "150",
+        "new": 345,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 6,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:01:03.785Z"
+  },
+  {
+    "campId": "next-level-sports-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "300",
+        "new": 349,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 10,
+        "new": 6,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:01:33.375Z"
+  },
+  {
+    "campId": "surf-happens",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 175,
+        "new": 200,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": false,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 6,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:02:34.344Z"
+  },
+  {
+    "campId": "a-frame-surf-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "400",
+        "new": 525,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:03:16.858Z"
+  },
+  {
+    "campId": "winshape-camps",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:04:17.251Z"
+  },
+  {
+    "campId": "laguna-blanca-summer-programs",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "405",
+        "new": 130,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:05:28.374Z"
+  },
+  {
+    "campId": "apples-to-zucchini-cooking-school",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "495",
+        "new": 90,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:05:52.509Z"
+  },
+  {
+    "campId": "camp-stow",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:06:23.940Z"
+  },
+  {
+    "campId": "ice-in-paradise",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 177,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:07:23.139Z"
+  },
+  {
+    "campId": "ymca-summer-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 9,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:08:00.258Z"
+  },
+  {
+    "campId": "page-youth-center",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 325,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 2,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:08:34.922Z"
+  },
+  {
+    "campId": "refugio-jr-guards",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "430",
+        "new": 400,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:09:06.914Z"
+  },
+  {
+    "campId": "gusd-summer-thrive",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "0",
+        "new": 1275,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:09:35.330Z"
+  },
+  {
+    "campId": "camp-elings",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "250",
+        "new": 150,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:10:37.057Z"
+  },
+  {
+    "campId": "westmont-summer-sports-camps",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 52,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:11:12.812Z"
+  },
+  {
+    "campId": "nick-rail-summer-band-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 50,
+        "new": 175,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:13:07.634Z"
+  },
+  {
+    "campId": "twin-lakes-junior-golf",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "150",
+        "new": 240,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:13:26.634Z"
+  },
+  {
+    "campId": "octobots-robotics-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:14:11.773Z"
+  },
+  {
+    "campId": "anacapa-school-arts-exploration",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:14:45.057Z"
+  },
+  {
+    "campId": "best-u-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 600,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 6,
+        "new": 9,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:15:09.656Z"
+  },
+  {
+    "campId": "sea-league-excursion-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "800",
+        "new": 51,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:16:14.599Z"
+  },
+  {
+    "campId": "interact-theatre-school",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "250",
+        "new": 375,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:16:50.068Z"
+  },
+  {
+    "campId": "safety-town",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:21:33.370Z"
+  },
+  {
+    "campId": "lobster-jo-s-beach-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "360",
+        "new": 30,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:47:28.744Z"
+  },
+  {
+    "campId": "ucsb-day-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 244,
+        "new": 315,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 9,
+        "new": 27,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:48:20.055Z"
+  },
+  {
+    "campId": "peak2pacific",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": false,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:48:52.688Z"
+  },
+  {
+    "campId": "wilderness-youth-project",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "425",
+        "new": 52,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 12,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:49:20.373Z"
+  },
+  {
+    "campId": "santa-barbara-zoo-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:50:06.679Z"
+  },
+  {
+    "campId": "girls-inc-of-greater-santa-barbara",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 280,
+        "new": 140,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:50:35.593Z"
+  },
+  {
+    "campId": "moxi-museum-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 2,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:51:37.207Z"
+  },
+  {
+    "campId": "nature-rangers",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:53:36.334Z"
+  },
+  {
+    "campId": "camp-haverim",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "400",
+        "new": 860,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 4,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:54:57.389Z"
+  },
+  {
+    "campId": "art-explorers",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "299",
+        "new": 1000,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 5,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:55:28.524Z"
+  },
+  {
+    "campId": "terrific-scientific",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "299",
+        "new": 1000,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 5,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:55:59.454Z"
+  },
+  {
+    "campId": "santa-barbara-museum-of-art-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "300",
+        "new": 300,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:57:26.439Z"
+  },
+  {
+    "campId": "ensemble-theatre-company",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T16:59:46.238Z"
+  },
+  {
+    "campId": "santa-barbara-dance-arts",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 3,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:00:19.140Z"
+  },
+  {
+    "campId": "momentum-dance-company",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "150",
+        "new": 345,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 6,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:01:17.924Z"
+  },
+  {
+    "campId": "next-level-sports-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "300",
+        "new": 349,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 10,
+        "new": 6,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:01:46.494Z"
+  },
+  {
+    "campId": "surf-happens",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 175,
+        "new": 200,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": false,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 6,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:02:41.897Z"
+  },
+  {
+    "campId": "a-frame-surf-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "400",
+        "new": 525,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:03:23.999Z"
+  },
+  {
+    "campId": "winshape-camps",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:04:23.846Z"
+  },
+  {
+    "campId": "laguna-blanca-summer-programs",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "405",
+        "new": 130,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:05:28.309Z"
+  },
+  {
+    "campId": "apples-to-zucchini-cooking-school",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "495",
+        "new": 90,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:05:52.506Z"
+  },
+  {
+    "campId": "camp-stow",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:06:22.356Z"
+  },
+  {
+    "campId": "ice-in-paradise",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 177,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:07:21.626Z"
+  },
+  {
+    "campId": "ymca-summer-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 9,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:08:00.178Z"
+  },
+  {
+    "campId": "page-youth-center",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 325,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 2,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:08:34.890Z"
+  },
+  {
+    "campId": "refugio-jr-guards",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "430",
+        "new": 400,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:09:06.474Z"
+  },
+  {
+    "campId": "gusd-summer-thrive",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "0",
+        "new": 1275,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:09:35.343Z"
+  },
+  {
+    "campId": "camp-elings",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "250",
+        "new": 150,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:11:05.275Z"
+  },
+  {
+    "campId": "westmont-summer-sports-camps",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 52,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:11:40.231Z"
+  },
+  {
+    "campId": "nick-rail-summer-band-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 50,
+        "new": 175,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:13:18.743Z"
+  },
+  {
+    "campId": "twin-lakes-junior-golf",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "150",
+        "new": 240,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:13:36.340Z"
+  },
+  {
+    "campId": "octobots-robotics-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 0,
+        "new": 1,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:14:19.591Z"
+  },
+  {
+    "campId": "anacapa-school-arts-exploration",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:14:52.168Z"
+  },
+  {
+    "campId": "best-u-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "200",
+        "new": 600,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 6,
+        "new": 9,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:15:15.406Z"
+  },
+  {
+    "campId": "sea-league-excursion-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "800",
+        "new": 51,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:16:16.997Z"
+  },
+  {
+    "campId": "interact-theatre-school",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "250",
+        "new": 375,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:16:52.389Z"
+  },
+  {
+    "campId": "safety-town",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "session_count",
+        "old": 1,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-26T17:21:37.040Z"
+  },
+  {
+    "campId": "lobster-jo-s-beach-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "360",
+        "new": 30,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:24:25.516Z"
+  },
+  {
+    "campId": "ucsb-day-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 244,
+        "new": 315,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 9,
+        "new": 27,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:25:22.119Z"
+  },
+  {
+    "campId": "peak2pacific",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": false,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:26:02.121Z"
+  },
+  {
+    "campId": "wilderness-youth-project",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "425",
+        "new": 52,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:26:31.012Z"
+  },
+  {
+    "campId": "santa-barbara-zoo-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 4,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:27:10.375Z"
+  },
+  {
+    "campId": "girls-inc-of-greater-santa-barbara",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": 280,
+        "new": 140,
+        "significance": "high"
+      },
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 2,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:27:43.129Z"
+  },
+  {
+    "campId": "moxi-museum-camp",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:28:20.302Z"
+  },
+  {
+    "campId": "sb-botanic-garden",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "price",
+        "old": "370",
+        "new": 100,
+        "significance": "high"
+      },
+      {
+        "field": "session_count",
+        "old": 13,
+        "new": 0,
+        "significance": "medium"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:29:26.814Z"
+  },
+  {
+    "campId": "nature-rangers",
+    "hasChanges": true,
+    "changes": [
+      {
+        "field": "extended_care",
+        "old": true,
+        "significance": "high"
+      }
+    ],
+    "detectedAt": "2026-01-28T18:29:59.104Z"
+  }
+]

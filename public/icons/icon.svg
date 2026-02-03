@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#1e7578"/>
+
+  <!-- Sun rays -->
+  <g fill="none" stroke="#f9cf45" stroke-width="12" stroke-linecap="round">
+    <path d="M256 100v40"/>
+    <path d="M256 312v40"/>
+    <path d="M156 200h40"/>
+    <path d="M316 200h40"/>
+    <path d="M175 119l28 28"/>
+    <path d="M309 253l28 28"/>
+    <path d="M337 119l-28 28"/>
+    <path d="M203 253l-28 28"/>
+  </g>
+
+  <!-- Sun circle -->
+  <circle cx="256" cy="200" r="60" fill="#f9cf45"/>
+
+  <!-- Waves -->
+  <g fill="none" stroke-linecap="round" stroke-width="20">
+    <path d="M60 380c50-40 100-20 150 0s100 40 150 0 100-40 150 0" stroke="#5ab8bc"/>
+    <path d="M60 430c50-40 100-20 150 0s100 40 150 0 100-40 150 0" stroke="#9fd3d6" opacity="0.7"/>
+  </g>
+
+  <!-- Palm tree silhouette -->
+  <g fill="#165a5c">
+    <path d="M120 480v-120c0-5 4-9 9-9s9 4 9 9v120h-18z"/>
+    <ellipse cx="129" cy="340" rx="50" ry="20" transform="rotate(-30 129 340)"/>
+    <ellipse cx="129" cy="340" rx="50" ry="20" transform="rotate(30 129 340)"/>
+    <ellipse cx="129" cy="340" rx="50" ry="20" transform="rotate(-60 129 340)"/>
+    <ellipse cx="129" cy="340" rx="50" ry="20" transform="rotate(60 129 340)"/>
+    <ellipse cx="129" cy="330" rx="45" ry="18"/>
+  </g>
+</svg>

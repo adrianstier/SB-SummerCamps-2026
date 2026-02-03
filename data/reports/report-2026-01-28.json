@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2026-01-28T18:29:59.614Z",
+  "summary": {
+    "totalCamps": 10,
+    "successfulExtractions": 2,
+    "needsReview": 8,
+    "failed": 0,
+    "avgQuality": 46
+  },
+  "changes": {
+    "total": 9,
+    "priceChanges": 5,
+    "registrationChanges": 0
+  },
+  "strategyEffectiveness": {
+    "webfetch": {
+      "attempts": 10,
+      "avgQuality": 27
+    },
+    "playwright": {
+      "attempts": 10,
+      "avgQuality": 43
+    },
+    "accessibility": {
+      "attempts": 10,
+      "avgQuality": 30
+    },
+    "screenshot": {
+      "attempts": 10,
+      "avgQuality": 0
+    }
+  },
+  "campsNeedingAttention": [
+    {
+      "id": "nature-rangers",
+      "name": "Nature Rangers",
+      "quality": 16,
+      "bestStrategy": "webfetch"
+    },
+    {
+      "id": "peak2pacific",
+      "name": "Peak2Pacific",
+      "quality": 26,
+      "bestStrategy": "playwright"
+    },
+    {
+      "id": "sb-parks-recreation",
+      "name": "SB Parks & Recreation",
+      "quality": 30,
+      "bestStrategy": "playwright"
+    },
+    {
+      "id": "lobster-jo-s-beach-camp",
+      "name": "Lobster Jo's Beach Camp",
+      "quality": 33,
+      "bestStrategy": "playwright"
+    },
+    {
+      "id": "moxi-museum-camp",
+      "name": "MOXI Museum Camp",
+      "quality": 33,
+      "bestStrategy": "playwright"
+    },
+    {
+      "id": "girls-inc-of-greater-santa-barbara",
+      "name": "Girls Inc. of Greater Santa Barbara",
+      "quality": 51,
+      "bestStrategy": "accessibility"
+    },
+    {
+      "id": "sb-botanic-garden",
+      "name": "SB Botanic Garden",
+      "quality": 54,
+      "bestStrategy": "playwright"
+    },
+    {
+      "id": "santa-barbara-zoo-camp",
+      "name": "Santa Barbara Zoo Camp",
+      "quality": 58,
+      "bestStrategy": "playwright"
+    }
+  ]
+}
