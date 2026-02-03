@@ -263,19 +263,19 @@ export function AchievementsProvider({ children }) {
   // Update streak on visit
   useEffect(() => {
     const today = new Date().toDateString();
-    const lastVisit = streak.lastVisit ? new Date(streak.lastVisit).toDateString() : null;
+    const lastVisitDate = streak.lastVisit ? new Date(streak.lastVisit).toDateString() : null;
 
-    if (lastVisit !== today) {
+    if (lastVisitDate !== today) {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      const isConsecutive = lastVisit === yesterday.toDateString();
+      const isConsecutive = lastVisitDate === yesterday.toDateString();
 
-      setStreak({
-        count: isConsecutive ? streak.count + 1 : 1,
+      setStreak(prev => ({
+        count: isConsecutive ? prev.count + 1 : 1,
         lastVisit: new Date().toISOString()
-      });
+      }));
     }
-  }, []);
+  }, [streak.lastVisit]);
 
   // Calculate planning stats
   const planningStats = useMemo(() => {

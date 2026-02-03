@@ -110,14 +110,18 @@ async function fetchCategories() {
   const { data, error } = await supabase
     .from('camps')
     .select('category')
-    .not('category', 'is', null);
+    .not('category', 'is', null)
+    .eq('is_closed', false); // Only get categories from active camps
 
   if (error) {
     console.error('Error fetching categories:', error);
     return [];
   }
 
-  const categories = [...new Set(data.map(c => c.category))];
+  // Filter out status indicators that aren't real categories
+  const invalidCategories = ['CLOSED', 'NO CAMP', 'TBD', 'Unknown', 'N/A'];
+  const categories = [...new Set(data.map(c => c.category))]
+    .filter(cat => cat && !invalidCategories.includes(cat.toUpperCase()));
   return categories.sort();
 }
 
@@ -417,6 +421,9 @@ export default function App() {
   // Ref for table view scroll-to
   const tableRef = useRef(null);
 
+  // Ref for modal trigger focus restoration (WCAG 2.1 focus management)
+  const modalTriggerRef = useRef(null);
+
   // Auth context
   const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user, friendInterestCounts, squads } = useAuth();
 
@@ -547,6 +554,11 @@ export default function App() {
       if (e.key === 'Escape') {
         setModalCamp(null);
         document.body.classList.remove('modal-open');
+        // Restore focus to trigger element (WCAG 2.1 AA focus management)
+        if (modalTriggerRef.current) {
+          modalTriggerRef.current.focus();
+          modalTriggerRef.current = null;
+        }
       }
     };
     document.addEventListener('keydown', handleEsc);
@@ -929,7 +941,7 @@ export default function App() {
       </header>
 
       {/* Filter Bar - Editorial Style */}
-      <section className="filter-bar-section sticky top-0 z-40">
+      <section className="filter-bar-section sticky top-0 z-40" role="search" aria-label="Camp filters">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* Main Filter Row */}
           <div className="filter-bar-inner">
@@ -1000,11 +1012,13 @@ export default function App() {
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`filter-control-btn ${showFilters ? 'active' : ''}`}
+                aria-label={activeFilterCount > 0 ? `Filters, ${activeFilterCount} active` : 'Filters'}
+                aria-expanded={showFilters}
               >
                 <FilterIcon />
                 <span>Filters</span>
                 {activeFilterCount > 0 && (
-                  <span className="filter-count">{activeFilterCount}</span>
+                  <span className="filter-count" aria-hidden="true">{activeFilterCount}</span>
                 )}
               </button>
 
@@ -1410,7 +1424,9 @@ export default function App() {
                     key={camp.id}
                     camp={camp}
                     badge={index === 0 ? 'Most Popular' : index === 1 ? 'Great Value' : 'New This Year'}
-                    onClick={() => {
+                    onClick={(e) => {
+                      // Store trigger for focus restoration (WCAG 2.1 AA)
+                      modalTriggerRef.current = e.currentTarget;
                       // Open the camp detail modal
                       setModalCamp(camp);
                       document.body.classList.add('modal-open');
@@ -1477,13 +1493,16 @@ export default function App() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Loading camps">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Loading camps" aria-busy="true">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="skeleton-card" aria-hidden="true">
-                <div className="skeleton-image" />
-                <div className="skeleton-text" />
-                <div className="skeleton-text short" />
-                <div className="skeleton-text" style={{width: '40%'}} />
+                <div className="skeleton-card-image" />
+                <div className="skeleton-card-content">
+                  <div className="skeleton-line title" />
+                  <div className="skeleton-badge" style={{ marginBottom: '12px' }} />
+                  <div className="skeleton-line text" />
+                  <div className="skeleton-line text short" />
+                </div>
               </div>
             ))}
           </div>
@@ -1511,11 +1530,13 @@ export default function App() {
                 key={camp.id}
                 camp={camp}
                 expanded={expandedCamp === camp.id}
-                onToggle={() => {
+                onToggle={(e) => {
                   if (isMobile) {
                     // Mobile: inline expand
                     setExpandedCamp(expandedCamp === camp.id ? null : camp.id);
                   } else {
+                    // Store trigger for focus restoration (WCAG 2.1 AA)
+                    modalTriggerRef.current = e?.currentTarget || document.activeElement;
                     // Desktop: open modal
                     setModalCamp(camp);
                     document.body.classList.add('modal-open');
@@ -1596,6 +1617,8 @@ export default function App() {
                 // Mobile: inline expand
                 setExpandedCamp(camp.id);
               } else {
+                // Store trigger for focus restoration (WCAG 2.1 AA)
+                modalTriggerRef.current = document.activeElement;
                 // Desktop: open modal
                 setModalCamp(camp);
                 document.body.classList.add('modal-open');
@@ -1623,6 +1646,8 @@ export default function App() {
               if (isMobile) {
                 setExpandedCamp(camp.id);
               } else {
+                // Store trigger for focus restoration (WCAG 2.1 AA)
+                modalTriggerRef.current = document.activeElement;
                 setModalCamp(camp);
                 document.body.classList.add('modal-open');
               }
@@ -1747,6 +1772,11 @@ export default function App() {
           onClose={() => {
             setModalCamp(null);
             document.body.classList.remove('modal-open');
+            // Restore focus to trigger element (WCAG 2.1 AA focus management)
+            if (modalTriggerRef.current) {
+              modalTriggerRef.current.focus();
+              modalTriggerRef.current = null;
+            }
           }}
           onAddToSchedule={() => {
             setModalCamp(null);
@@ -2012,7 +2042,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleCompare?.(); }}
-              className={`p-2 rounded-full transition-colors ${isComparing ? '' : 'hover:bg-sand-100'}`}
+              className={`min-w-[44px] min-h-[44px] p-2 rounded-full transition-colors flex items-center justify-center ${isComparing ? '' : 'hover:bg-sand-100'}`}
               style={{
                 color: isComparing ? 'var(--ocean-600)' : 'var(--sand-400)',
                 background: isComparing ? 'var(--ocean-100)' : 'transparent'
@@ -2059,8 +2089,8 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
           </div>
         </div>
 
-        {/* Registration Status Badge */}
-        {(() => {
+        {/* Registration Status Badge - hide for closed camps */}
+        {!camp.is_closed && (() => {
           const regStatus = getRegistrationStatus(camp);
           if (regStatus.status === 'unknown') return null;
           return (
@@ -2359,9 +2389,9 @@ const CampDetailModal = memo(function CampDetailModal({
 
   const regStatus = getRegistrationStatus(camp);
 
-  // Build feature pills array
+  // Build feature pills array - hide registration status for closed camps
   const featurePills = [];
-  if (regStatus.status !== 'unknown') {
+  if (!camp.is_closed && regStatus.status !== 'unknown') {
     featurePills.push({
       icon: regStatus.isOpen ? 'check' : regStatus.status === 'upcoming' ? 'calendar' : 'hourglass',
       label: regStatus.label,
@@ -2498,7 +2528,7 @@ const CampDetailModal = memo(function CampDetailModal({
             <section className="modal-section">
               <h2 className="modal-section-title">Contact & Cost</h2>
               <dl className="modal-dl">
-                {camp.contact_phone && (
+                {camp.contact_phone && !camp.contact_phone.toLowerCase().includes('see website') && camp.contact_phone.replace(/\D/g, '').length >= 7 && (
                   <>
                     <dt>Phone</dt>
                     <dd>
@@ -2508,7 +2538,7 @@ const CampDetailModal = memo(function CampDetailModal({
                     </dd>
                   </>
                 )}
-                {camp.contact_email && (
+                {camp.contact_email && !camp.contact_email.toLowerCase().includes('see website') && camp.contact_email.includes('@') && (
                   <>
                     <dt>Email</dt>
                     <dd>
@@ -2735,31 +2765,33 @@ const CampDetailModal = memo(function CampDetailModal({
           )}
         </div>
 
-        {/* Footer Actions */}
-        <footer className="modal-footer">
-          {camp.website_url && safeUrl(camp.website_url) && (
-            <a
-              href={safeUrl(camp.website_url)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="modal-btn modal-btn--primary"
-            >
-              Visit Website
+        {/* Footer Actions - hide for closed camps */}
+        {!camp.is_closed && (
+          <footer className="modal-footer">
+            {camp.website_url && safeUrl(camp.website_url) && (
+              <a
+                href={safeUrl(camp.website_url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="modal-btn modal-btn--primary"
+              >
+                Visit Website
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+                </svg>
+              </a>
+            )}
+            <button onClick={onAddToSchedule} className="modal-btn modal-btn--secondary">
+              Schedule This Camp
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
-            </a>
-          )}
-          <button onClick={onAddToSchedule} className="modal-btn modal-btn--secondary">
-            Schedule This Camp
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-          </button>
-        </footer>
+            </button>
+          </footer>
+        )}
 
         {/* Social Links */}
         {camp.social_media && Object.keys(camp.social_media).length > 0 && (

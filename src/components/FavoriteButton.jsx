@@ -2,11 +2,11 @@ import React, { useState, useCallback, memo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { addFavorite, removeFavorite } from '../lib/supabase';
 
-// Size configuration moved outside component to prevent recreation on each render
+// Size configuration - min 44px for touch targets (WCAG 2.5.5)
 const SIZE_CONFIG = {
-  sm: { button: 'w-8 h-8', icon: 'w-4 h-4' },
-  md: { button: 'w-10 h-10', icon: 'w-5 h-5' },
-  lg: { button: 'w-12 h-12', icon: 'w-6 h-6' }
+  sm: { button: 'w-10 h-10 min-w-[44px] min-h-[44px]', icon: 'w-4 h-4' },
+  md: { button: 'w-11 h-11 min-w-[44px] min-h-[44px]', icon: 'w-5 h-5' },
+  lg: { button: 'w-12 h-12 min-w-[44px] min-h-[44px]', icon: 'w-6 h-6' }
 };
 
 // Memoized HeartIcon to prevent unnecessary re-renders
