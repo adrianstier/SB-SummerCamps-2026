@@ -2836,7 +2836,7 @@ const CampTable = memo(function CampTable({ camps, sortBy, sortDir, onSort, expa
     { key: 'min_price', label: 'Price' },
     { key: 'hours', label: 'Hours' },
     { key: 'category', label: 'Category' },
-    { key: '2025_reg_date', label: 'Registration' }
+    { key: '2026_reg_date', label: 'Registration' }
   ];
 
   return (
@@ -2897,7 +2897,7 @@ const CampTable = memo(function CampTable({ camps, sortBy, sortDir, onSort, expa
                     </span>
                   </div>
                 </td>
-                <td>{camp['2025_reg_date'] || 'TBD'}</td>
+                <td>{camp['2026_reg_date'] || 'TBD'}</td>
               </tr>
               {expandedCamp === camp.id && (
                 <tr>
