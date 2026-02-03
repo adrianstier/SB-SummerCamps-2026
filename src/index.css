@@ -1114,11 +1114,12 @@ body::before {
     padding-bottom: 4px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* Add gradient fade to indicate scrollable content */
+    /* Add gradient fade to indicate scrollable content (only on right side) */
     position: relative;
-    mask-image: linear-gradient(to right, transparent 0, black 8px, black calc(100% - 24px), transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 8px, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
     padding-right: 24px; /* Space for the fade */
+    gap: 8px; /* Slightly more gap on mobile for readability */
   }
 
   .filter-presets::-webkit-scrollbar {

@@ -125,6 +125,13 @@ async function fetchCategories() {
   return categories.sort();
 }
 
+// Helper to check if a camp is effectively closed (either is_closed flag or CLOSED/NO CAMP category)
+function isCampEffectivelyClosed(camp) {
+  if (camp.is_closed) return true;
+  const cat = (camp.category || '').toUpperCase();
+  return cat === 'CLOSED' || cat === 'NO CAMP';
+}
+
 async function fetchKeywords() {
   return [];
 }
@@ -2090,7 +2097,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
         </div>
 
         {/* Registration Status Badge - hide for closed camps */}
-        {!camp.is_closed && (() => {
+        {!isCampEffectivelyClosed(camp) && (() => {
           const regStatus = getRegistrationStatus(camp);
           if (regStatus.status === 'unknown') return null;
           return (
@@ -2391,7 +2398,7 @@ const CampDetailModal = memo(function CampDetailModal({
 
   // Build feature pills array - hide registration status for closed camps
   const featurePills = [];
-  if (!camp.is_closed && regStatus.status !== 'unknown') {
+  if (!isCampEffectivelyClosed(camp) && regStatus.status !== 'unknown') {
     featurePills.push({
       icon: regStatus.isOpen ? 'check' : regStatus.status === 'upcoming' ? 'calendar' : 'hourglass',
       label: regStatus.label,
