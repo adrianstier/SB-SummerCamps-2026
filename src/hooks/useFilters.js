@@ -171,10 +171,8 @@ export function useFilters(priceRange = { min: 0, max: Infinity }) {
     const params = new URLSearchParams(window.location.search);
     const urlFilters = decodeFiltersFromURL(params);
 
-    // Apply price range defaults if not set in URL
-    if (!params.has('pmax')) {
-      urlFilters.priceMax = priceRange.max || Infinity;
-    }
+    // Don't apply default price filter - let users see all camps initially
+    // Price range filtering happens via the slider, not default URL params
 
     return urlFilters;
   });
@@ -205,9 +203,10 @@ export function useFilters(priceRange = { min: 0, max: Infinity }) {
     }
   }, [filters]);
 
-  // Update price range when it changes
+  // Update price range when it changes - but only if user has set a specific filter
+  // Don't auto-apply price filter on initial load (Infinity means no filter)
   useEffect(() => {
-    if (priceRange.max && filters.priceMax > priceRange.max) {
+    if (priceRange.max && Number.isFinite(filters.priceMax) && filters.priceMax > priceRange.max) {
       setFilters(prev => ({ ...prev, priceMax: priceRange.max }));
     }
   }, [priceRange.max]);
@@ -246,23 +245,19 @@ export function useFilters(priceRange = { min: 0, max: Infinity }) {
     setFilters(newFilters);
   }, []);
 
-  // Clear all filters
+  // Clear all filters - reset to defaults (no price filter)
   const clearFilters = useCallback(() => {
-    setFilters({
-      ...DEFAULT_FILTERS,
-      priceMax: priceRange.max || Infinity
-    });
-  }, [priceRange.max]);
+    setFilters({ ...DEFAULT_FILTERS });
+  }, []);
 
   // Apply a preset
   const applyPreset = useCallback((preset) => {
     const newFilters = {
       ...DEFAULT_FILTERS,
-      priceMax: priceRange.max || Infinity,
       ...preset.filters
     };
     setFilters(newFilters);
-  }, [priceRange.max]);
+  }, []);
 
   // Save a search
   const saveSearch = useCallback((search) => {

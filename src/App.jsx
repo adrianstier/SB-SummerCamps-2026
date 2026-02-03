@@ -644,9 +644,10 @@ export default function App() {
   }, [filters, updateFilters]);
   const setChildAge = useCallback((val) => updateFilters({ ...filters, childAge: val }), [filters, updateFilters]);
   const setMaxPrice = useCallback((val) => {
-    const numVal = val ? parseInt(val, 10) : (priceRange.max || 1000);
+    // When clearing (val is empty), set to Infinity to remove the filter
+    const numVal = val ? parseInt(val, 10) : Infinity;
     updateFilters({ ...filters, priceMax: numVal });
-  }, [filters, updateFilters, priceRange.max]);
+  }, [filters, updateFilters]);
   const setExtendedCare = useCallback((val) => updateFilters({ ...filters, extendedCare: val }), [filters, updateFilters]);
   const setFoodIncluded = useCallback((val) => updateFilters({ ...filters, foodIncluded: val }), [filters, updateFilters]);
   const setHasTransport = useCallback((val) => updateFilters({ ...filters, hasTransport: val }), [filters, updateFilters]);

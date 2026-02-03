@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import {
   supabase,
@@ -57,8 +57,8 @@ export function FamilyProvider({ children }) {
   const [familyNotifications, setFamilyNotifications] = useState([]);
   const [unreadFamilyCount, setUnreadFamilyCount] = useState(0);
 
-  // Subscriptions
-  const [subscriptions, setSubscriptions] = useState([]);
+  // Subscriptions - use ref to prevent memory leaks from stale state captures
+  const subscriptionsRef = useRef([]);
 
   // Load families when user logs in
   useEffect(() => {
@@ -75,9 +75,9 @@ export function FamilyProvider({ children }) {
 
   // Set up real-time subscriptions when current family changes
   useEffect(() => {
-    // Clean up old subscriptions
-    subscriptions.forEach(sub => sub.unsubscribe());
-    setSubscriptions([]);
+    // Clean up old subscriptions using ref (prevents stale state capture)
+    subscriptionsRef.current.forEach(sub => sub.unsubscribe());
+    subscriptionsRef.current = [];
 
     if (!currentFamily || !user) return;
 
@@ -90,13 +90,14 @@ export function FamilyProvider({ children }) {
       subscribeApprovalRequests(currentFamily.id, handleApprovalChange)
     ];
 
-    setSubscriptions(newSubscriptions);
+    subscriptionsRef.current = newSubscriptions;
 
     // Load family-specific data
     loadFamilySpecificData(currentFamily.id);
 
     return () => {
-      newSubscriptions.forEach(sub => sub.unsubscribe());
+      subscriptionsRef.current.forEach(sub => sub.unsubscribe());
+      subscriptionsRef.current = [];
     };
   }, [currentFamily?.id, user?.id]);
 
