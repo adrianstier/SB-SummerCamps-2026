@@ -132,10 +132,6 @@ function isCampEffectivelyClosed(camp) {
   return cat === 'CLOSED' || cat === 'NO CAMP';
 }
 
-async function fetchKeywords() {
-  return [];
-}
-
 async function fetchStats() {
   if (!supabase) {
     return { total: 0, active: 0, closed: 0, categories: {}, priceRange: {}, ageRange: {} };
@@ -365,7 +361,6 @@ const AppLogo = ({ className = "w-8 h-8" }) => (
 export default function App() {
   const [camps, setCamps] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [keywords, setKeywords] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -600,15 +595,13 @@ export default function App() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [campsData, categoriesData, keywordsData, statsData] = await Promise.all([
+        const [campsData, categoriesData, statsData] = await Promise.all([
           fetchCamps(),
           fetchCategories(),
-          fetchKeywords(),
           fetchStats()
         ]);
         setCamps(campsData.camps);
         setCategories(categoriesData);
-        setKeywords(keywordsData);
         setStats(statsData);
       } catch (err) {
         setError(err.message);
@@ -961,11 +954,10 @@ export default function App() {
                 onClick={() => {
                   clearFilters();
                   setExtendedCare(true);
-                  setFoodIncluded(true);
                 }}
-                className={`filter-preset-link ${extendedCare && foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`}
+                className={`filter-preset-link ${extendedCare && !foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`}
               >
-                Full-Day Care
+                Extended Care
               </button>
               <button
                 onClick={() => {
@@ -1355,24 +1347,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Keywords */}
-            {keywords.length > 0 && (
-              <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--sand-100)' }}>
-                <p className="text-sm font-medium mb-4" style={{ color: 'var(--earth-700)' }}>Activities</p>
-                <div className="flex flex-wrap gap-2">
-                  {keywords.slice(0, 20).map(keyword => (
-                    <button
-                      key={keyword}
-                      onClick={() => toggleKeyword(keyword)}
-                      className={`filter-pill text-sm ${selectedKeywords.includes(keyword) ? 'active' : ''}`}
-                      aria-pressed={selectedKeywords.includes(keyword)}
-                    >
-                      {keyword}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </section>
       )}
@@ -1723,6 +1697,8 @@ export default function App() {
             setShowFavorites(false);
             setShowPlanner(true);
           }}
+          isPlannerLoading={isPlannerLoading}
+          setIsPlannerLoading={setIsPlannerLoading}
         />
       )}
 
@@ -1807,7 +1783,7 @@ export default function App() {
 }
 
 // Favorites Modal Component
-function FavoritesModal({ camps, onClose, onOpenPlanner }) {
+function FavoritesModal({ camps, onClose, onOpenPlanner, isPlannerLoading, setIsPlannerLoading }) {
   const { favorites } = useAuth();
 
   const favoriteCamps = useMemo(() => {
@@ -2883,6 +2859,15 @@ const CampTable = memo(function CampTable({ camps, sortBy, sortDir, onSort, expa
               <tr
                 className={`cursor-pointer ${camp.is_closed ? 'opacity-50' : ''} ${expandedCamp === camp.id ? 'expanded' : ''}`}
                 onClick={() => onToggle(camp.id)}
+                tabIndex={0}
+                role="button"
+                aria-expanded={expandedCamp === camp.id}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onToggle(camp.id);
+                  }
+                }}
               >
                 <td className="font-medium">
                   <span className="flex items-center gap-3">
