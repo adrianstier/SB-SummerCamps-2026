@@ -3420,3 +3420,15 @@
     flex-wrap: wrap;
   }
 }
+
+/* Move menu keyboard accessibility */
+.camp-move-menu-item:hover,
+.camp-move-menu-item:focus {
+  background: var(--sand-100) !important;
+  outline: none;
+}
+.camp-move-menu-item:focus-visible {
+  background: var(--ocean-100) !important;
+  color: var(--ocean-700) !important;
+}
+

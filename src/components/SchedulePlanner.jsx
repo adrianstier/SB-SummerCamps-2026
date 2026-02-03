@@ -92,6 +92,7 @@ export function SchedulePlanner({ camps, onClose }) {
   const [campSessions, setCampSessions] = useState({}); // { campId: [sessions] }
   const [showSessionPicker, setShowSessionPicker] = useState(null); // { camp, weekNum }
   const [movingCamp, setMovingCamp] = useState(null); // For drag between weeks
+  const [moveMenuCamp, setMoveMenuCamp] = useState(null); // For keyboard-accessible move menu { id, currentWeek }
 
   // Touch drag state for mobile
   const [touchDragState, setTouchDragState] = useState(null);
@@ -1040,14 +1041,73 @@ export function SchedulePlanner({ camps, onClose }) {
                       <span className="camp-card-category">{campInfo?.category}</span>
                       <div className="camp-card-actions">
                         {!isPreviewCamp && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); }}
-                            className="camp-card-move"
-                            aria-label="Drag to move camp"
-                            title="Drag to move to another week"
-                          >
-                            <GripIcon />
-                          </button>
+                          <div className="camp-card-move-container" style={{ position: 'relative' }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMoveMenuCamp(moveMenuCamp?.id === sc.id ? null : { id: sc.id, currentWeek: week.weekNum });
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Escape') setMoveMenuCamp(null);
+                              }}
+                              className="camp-card-move"
+                              aria-label={`Move ${campInfo?.camp_name || 'camp'} to another week`}
+                              aria-haspopup="menu"
+                              aria-expanded={moveMenuCamp?.id === sc.id}
+                              title="Move to another week"
+                            >
+                              <GripIcon />
+                            </button>
+                            {moveMenuCamp?.id === sc.id && (
+                              <div
+                                className="camp-move-menu"
+                                role="menu"
+                                aria-label="Select week to move camp to"
+                                style={{
+                                  position: 'absolute',
+                                  top: '100%',
+                                  right: 0,
+                                  zIndex: 100,
+                                  background: 'white',
+                                  borderRadius: '8px',
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                  padding: '4px 0',
+                                  minWidth: '140px',
+                                  maxHeight: '200px',
+                                  overflowY: 'auto'
+                                }}
+                              >
+                                {summerWeeks.filter(w => w.weekNum !== week.weekNum).map(targetWeek => (
+                                  <button
+                                    key={targetWeek.weekNum}
+                                    role="menuitem"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMoveCamp(sc.id, targetWeek.weekNum);
+                                      setMoveMenuCamp(null);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Escape') setMoveMenuCamp(null);
+                                    }}
+                                    style={{
+                                      display: 'block',
+                                      width: '100%',
+                                      padding: '8px 12px',
+                                      textAlign: 'left',
+                                      border: 'none',
+                                      background: 'transparent',
+                                      cursor: 'pointer',
+                                      fontSize: '13px',
+                                      color: 'var(--earth-700)'
+                                    }}
+                                    className="camp-move-menu-item"
+                                  >
+                                    Week {targetWeek.weekNum}: {targetWeek.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         )}
                         <button
                           onClick={(e) => handleRemoveCamp(sc.id, e)}

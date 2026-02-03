@@ -195,6 +195,10 @@ const PriceRangeSlider = memo(function PriceRangeSlider({
           onTouchEnd={handleMinCommit}
           className="price-range-input price-range-input-min"
           aria-label="Minimum price"
+          aria-valuenow={localMin}
+          aria-valuemin={minPrice}
+          aria-valuemax={maxPrice}
+          aria-valuetext={`$${localMin}`}
         />
         <input
           type="range"
@@ -207,6 +211,10 @@ const PriceRangeSlider = memo(function PriceRangeSlider({
           onTouchEnd={handleMaxCommit}
           className="price-range-input price-range-input-max"
           aria-label="Maximum price"
+          aria-valuenow={localMax}
+          aria-valuemin={minPrice}
+          aria-valuemax={maxPrice}
+          aria-valuetext={`$${localMax}`}
         />
       </div>
     </div>

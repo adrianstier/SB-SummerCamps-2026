@@ -48,7 +48,7 @@
   --sand-100: #f5f0e8;
   --sand-200: #e9e0d2;
   --sand-300: #dbd0be;
-  --sand-400: #c4b49a;
+  --sand-400: #8f7f65; /* Darkened for WCAG AA 4.5:1 contrast */
   --sand-500: #a69578;
   --sand-600: #8a7c68;
 

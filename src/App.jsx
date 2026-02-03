@@ -67,7 +67,7 @@ async function fetchCamps(filters = {}) {
   if (filters.search) {
     const safeSearch = filters.search
       .replace(/[%_\\]/g, c => '\\' + c)  // Escape LIKE wildcards
-      .replace(/[,.()\[\]]/g, '')          // Remove PostgREST operators
+      .replace(/[,.()[\]]/g, '')          // Remove PostgREST operators
       .trim();
     if (safeSearch) {
       query = query.or(`camp_name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`);
@@ -2508,7 +2508,14 @@ const CampDetailModal = memo(function CampDetailModal({
               </dl>
             </section>
 
-            {/* Contact & Pricing */}
+            {/* Contact & Pricing - only show if there's content */}
+            {(
+              (camp.contact_phone && !camp.contact_phone.toLowerCase().includes('see website') && camp.contact_phone.replace(/\D/g, '').length >= 7) ||
+              (camp.contact_email && !camp.contact_email.toLowerCase().includes('see website') && camp.contact_email.includes('@')) ||
+              (camp.extended_care_cost && camp.extended_care_cost !== 'Unknown' && camp.extended_care_cost !== 'N/A') ||
+              (camp.sibling_discount && camp.sibling_discount !== 'Unknown') ||
+              (camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A')
+            ) && (
             <section className="modal-section">
               <h2 className="modal-section-title">Contact & Cost</h2>
               <dl className="modal-dl">
@@ -2552,6 +2559,7 @@ const CampDetailModal = memo(function CampDetailModal({
                 )}
               </dl>
             </section>
+            )}
           </div>
 
           {/* Pricing Tiers */}

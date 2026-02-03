@@ -12,7 +12,7 @@ import { z } from 'zod';
 const uuid = z.string().uuid();
 
 // Camp ID validator - accepts slug-format IDs (e.g. "ucsb-day-camp")
-const campId = z.string().min(1).max(200).regex(/^[a-z0-9][a-z0-9\-]*[a-z0-9]$/, 'Invalid camp ID format');
+const campId = z.string().min(1).max(200).regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, 'Invalid camp ID format');
 
 // Safe text - no script tags or SQL injection attempts
 const safeText = z.string()
@@ -347,7 +347,7 @@ export function sanitizeString(str) {
   // Remove null bytes
   str = str.replace(/\0/g, '');
   // Escape PostgREST special characters that could manipulate filter expressions
-  str = str.replace(/[,.()\[\]]/g, '');
+  str = str.replace(/[,.()[\]]/g, '');
   return str.trim();
 }
 
