@@ -445,6 +445,22 @@ body::before {
   animation: heroFadeIn 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
+.hero-year-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(212, 86, 50, 0.1);
+  color: var(--terra-500);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
 .hero-subtitle {
   animation: heroFadeIn 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.08s both;
 }
@@ -681,6 +697,10 @@ body::before {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-size: 1.1rem;
+  line-height: 1.35;
+  min-height: 2.7em; /* Reserve space for 2 lines */
+  margin-bottom: 0.5rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1024,9 +1044,9 @@ body::before {
 }
 
 .filter-control-btn.active {
-  background: var(--earth-800);
-  color: white;
-  border-color: var(--earth-800);
+  background: var(--ocean-50);
+  color: var(--ocean-700);
+  border-color: var(--ocean-200);
 }
 
 .filter-control-btn svg {
@@ -1313,7 +1333,10 @@ body::before {
     border-color var(--duration-slow) var(--ease-default),
     box-shadow var(--duration-slow) var(--ease-default),
     transform var(--duration-slow) var(--ease-default);
-  box-shadow: var(--shadow-sm);
+  /* Enhanced shadow for more prominence */
+  box-shadow:
+    0 4px 20px rgba(45, 38, 30, 0.08),
+    0 2px 8px rgba(45, 38, 30, 0.04);
 }
 
 .search-input:hover {
@@ -1323,11 +1346,11 @@ body::before {
 
 .search-input:focus {
   outline: none;
-  border-color: var(--input-border-focus);
+  border-color: var(--ocean-400);
   transform: scale(1.01);
   box-shadow:
-    var(--shadow-ocean),
-    0 0 0 4px var(--color-interactive-subtle);
+    0 4px 20px rgba(45, 38, 30, 0.08),
+    0 0 0 4px rgba(45, 149, 153, 0.15);
 }
 
 .search-input::placeholder {

@@ -849,9 +849,9 @@ export default function App() {
           {/* Hero Content */}
           <div className="text-center max-w-3xl mx-auto">
             <div className="hero-title">
-              <p className="font-sans text-xs sm:text-sm font-medium uppercase tracking-widest mb-4" style={{ color: 'var(--terra-500)', letterSpacing: '0.15em' }}>
+              <span className="hero-year-badge">
                 Summer 2026
-              </p>
+              </span>
               <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display leading-tight mb-6" style={{ color: 'var(--earth-800)' }}>
                 Your summer,{' '}
                 <span className="text-gradient">sorted.</span>
