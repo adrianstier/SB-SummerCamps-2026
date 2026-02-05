@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useFamily } from '../contexts/FamilyContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDistanceToNow } from '../lib/formatters';
+import { supabase } from '../lib/supabase';
 
 export default function FamilySuggestions() {
   const { user, children: familyChildren } = useAuth();
@@ -145,6 +146,7 @@ function FilterButton({ active, onClick, children, count }) {
 function SuggestionCard({ suggestion, isOwn, onAccept, onDecline, isResponding }) {
   const {
     camp_id,
+    camps,
     note,
     status,
     created_at,
@@ -193,7 +195,7 @@ function SuggestionCard({ suggestion, isOwn, onAccept, onDecline, isResponding }
 
         {/* Camp info */}
         <div className="bg-sand-50 rounded-lg p-3 mb-3">
-          <h4 className="font-medium text-earth-900 mb-1">{camp_id}</h4>
+          <h4 className="font-medium text-earth-900 mb-1">{camps?.camp_name || 'Camp not found'}</h4>
           <div className="flex flex-wrap gap-2 text-xs text-earth-600">
             {children && (
               <span style={{ color: children.color }}>For {children.name}</span>
@@ -236,14 +238,52 @@ function SuggestionCard({ suggestion, isOwn, onAccept, onDecline, isResponding }
 function SuggestCampModal({ onClose, familyMembers, children, onSuggest, currentUserId }) {
   const [campSearch, setCampSearch] = useState('');
   const [selectedCampId, setSelectedCampId] = useState('');
+  const [selectedCampName, setSelectedCampName] = useState('');
   const [suggestTo, setSuggestTo] = useState('');
   const [childId, setChildId] = useState('');
   const [weekDate, setWeekDate] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [camps, setCamps] = useState([]);
+  const [loadingCamps, setLoadingCamps] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const otherMembers = familyMembers.filter(m => m.user_id !== currentUserId);
+
+  // Fetch camps on mount
+  useEffect(() => {
+    async function fetchCamps() {
+      if (!supabase) return;
+      setLoadingCamps(true);
+      const { data, error } = await supabase
+        .from('camps')
+        .select('id, camp_name, category')
+        .order('camp_name');
+      if (!error && data) {
+        setCamps(data);
+      }
+      setLoadingCamps(false);
+    }
+    fetchCamps();
+  }, []);
+
+  // Filter camps based on search
+  const filteredCamps = useMemo(() => {
+    if (!campSearch.trim()) return camps.slice(0, 10);
+    const search = campSearch.toLowerCase();
+    return camps.filter(camp =>
+      camp.camp_name?.toLowerCase().includes(search) ||
+      camp.id?.toLowerCase().includes(search)
+    ).slice(0, 10);
+  }, [camps, campSearch]);
+
+  function handleSelectCamp(camp) {
+    setSelectedCampId(camp.id);
+    setSelectedCampName(camp.camp_name);
+    setCampSearch(camp.camp_name);
+    setShowDropdown(false);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -286,22 +326,51 @@ function SuggestCampModal({ onClose, familyMembers, children, onSuggest, current
             <div className="p-3 bg-red-50 text-red-800 text-sm rounded-lg">{error}</div>
           )}
 
-          {/* Camp search/select */}
-          <div>
+          {/* Camp search/select with autocomplete */}
+          <div className="relative">
             <label className="block text-sm font-medium text-earth-700 mb-1">
-              Camp Name or ID *
+              Select Camp *
             </label>
             <input
               type="text"
-              value={selectedCampId}
-              onChange={(e) => setSelectedCampId(e.target.value)}
-              placeholder="Enter camp name or ID"
+              value={campSearch}
+              onChange={(e) => {
+                setCampSearch(e.target.value);
+                setSelectedCampId('');
+                setSelectedCampName('');
+                setShowDropdown(true);
+              }}
+              onFocus={() => setShowDropdown(true)}
+              placeholder={loadingCamps ? 'Loading camps...' : 'Search for a camp...'}
               className="w-full px-3 py-2 border border-sand-300 rounded-lg focus:ring-2 focus:ring-ocean-500"
-              required
+              disabled={loadingCamps}
             />
-            <p className="mt-1 text-xs text-earth-500">
-              Enter the camp ID (e.g., "ucsb-day-camp") or name
-            </p>
+            {selectedCampName && (
+              <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
+                <CheckIcon className="w-3 h-3" /> Selected: {selectedCampName}
+              </p>
+            )}
+            {/* Dropdown */}
+            {showDropdown && !loadingCamps && filteredCamps.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-sand-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                {filteredCamps.map(camp => (
+                  <button
+                    key={camp.id}
+                    type="button"
+                    onClick={() => handleSelectCamp(camp)}
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-ocean-50 flex items-center justify-between"
+                  >
+                    <span className="font-medium text-earth-900">{camp.camp_name}</span>
+                    <span className="text-xs text-earth-500">{camp.category}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {showDropdown && !loadingCamps && campSearch && filteredCamps.length === 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-sand-200 rounded-lg shadow-lg p-3">
+                <p className="text-sm text-earth-500">No camps found matching "{campSearch}"</p>
+              </div>
+            )}
           </div>
 
           {/* Suggest to */}
@@ -429,6 +498,14 @@ function PlusIcon({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   );
 }

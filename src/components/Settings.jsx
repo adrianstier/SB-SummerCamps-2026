@@ -6,8 +6,25 @@ import {
   DEFAULT_SCHOOL_START,
   getNotificationPreferences,
   updateNotificationPreferences,
-  getDefaultNotificationPreferences
+  getDefaultNotificationPreferences,
+  clearSampleData
 } from '../lib/supabase';
+import BrandIcon from './BrandIcon';
+
+const CAMP_CATEGORIES = [
+  { id: 'Beach/Surf', label: 'Beach & Surf', icon: 'beach-surf' },
+  { id: 'Sports', label: 'Sports', icon: 'sports' },
+  { id: 'Art', label: 'Art & Creativity', icon: 'art' },
+  { id: 'Science/STEM', label: 'Science & STEM', icon: 'science-stem' },
+  { id: 'Nature/Outdoor', label: 'Nature & Outdoors', icon: 'nature-outdoor' },
+  { id: 'Music', label: 'Music', icon: 'music' },
+  { id: 'Theater', label: 'Theater & Drama', icon: 'theater' },
+  { id: 'Dance', label: 'Dance', icon: 'dance' },
+  { id: 'Animals/Zoo', label: 'Animals', icon: 'animals-zoo' },
+  { id: 'Cooking', label: 'Cooking', icon: 'cooking' },
+  { id: 'Multi-Activity', label: 'Multi-Activity', icon: 'multi-activity' },
+  { id: 'Faith-Based', label: 'Faith-Based', icon: 'faith-based' }
+];
 
 const SANTA_BARBARA_SCHOOLS = [
   { name: 'SB Unified (Default)', endDate: '2026-06-05', startDate: '2026-08-19' },
@@ -19,10 +36,13 @@ const SANTA_BARBARA_SCHOOLS = [
 ];
 
 export function Settings({ onClose }) {
-  const { profile, refreshProfile, children } = useAuth();
+  const { profile, refreshProfile, refreshChildren, refreshSchedule, children } = useAuth();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const [activeTab, setActiveTab] = useState('school');
+  const [clearingSample, setClearingSample] = useState(false);
+  const [sampleCleared, setSampleCleared] = useState(false);
 
   // School dates
   const [selectedSchool, setSelectedSchool] = useState('SB Unified (Default)');
@@ -39,6 +59,9 @@ export function Settings({ onClose }) {
   // Notification preferences - load from dedicated table
   const [notificationPrefs, setNotificationPrefs] = useState(null);
   const [notificationPrefsLoading, setNotificationPrefsLoading] = useState(true);
+
+  // Category preferences
+  const [selectedCategories, setSelectedCategories] = useState(profile?.preferred_categories || []);
 
   // Load notification preferences
   useEffect(() => {
@@ -69,6 +92,13 @@ export function Settings({ onClose }) {
     }
   }, [schoolEndDate, schoolStartDate]);
 
+  // Sync selectedCategories when profile loads
+  useEffect(() => {
+    if (profile?.preferred_categories) {
+      setSelectedCategories(profile.preferred_categories);
+    }
+  }, [profile]);
+
   function handleSchoolSelect(schoolName) {
     setSelectedSchool(schoolName);
     const school = SANTA_BARBARA_SCHOOLS.find(s => s.name === schoolName);
@@ -90,6 +120,7 @@ export function Settings({ onClose }) {
         work_hours_start: workStart,
         work_hours_end: workEnd,
         summer_budget: budget ? parseFloat(budget) : null,
+        preferred_categories: selectedCategories,
       });
 
       // Save notification preferences to dedicated table
@@ -99,10 +130,11 @@ export function Settings({ onClose }) {
 
       await refreshProfile();
       setSaved(true);
+      setSaveError(null);
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings. Please try again.');
+      setSaveError('Failed to save settings. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -128,7 +160,8 @@ export function Settings({ onClose }) {
     const start = new Date(schoolEndDate);
     const end = new Date(schoolStartDate);
     const weeks = Math.floor((end - start) / (1000 * 60 * 60 * 24 * 7));
-    return weeks;
+    // Return 0 for invalid configurations (end date before start date)
+    return weeks > 0 ? weeks : 0;
   }
 
   return (
@@ -156,7 +189,8 @@ export function Settings({ onClose }) {
             { id: 'school', label: 'School Dates' },
             { id: 'work', label: 'Work Hours' },
             { id: 'budget', label: 'Budget' },
-            { id: 'notifications', label: 'Notifications' }
+            { id: 'notifications', label: 'Notifications' },
+            { id: 'preferences', label: 'Preferences' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -803,7 +837,12 @@ export function Settings({ onClose }) {
 
                       <div className="border-t" style={{ borderColor: 'var(--earth-200)' }} />
 
-                      {/* Friend/Squad Notifications */}
+                      {/* Friend/Squad Notifications
+                          BUG-F-022: Squad notification category preferences are implemented here.
+                          - friend_match: Covered by friend_match_enabled (same camp notifications)
+                          - looking_for_friends: Covered by friend_activity_enabled (friend coordination)
+                          - new_member/schedule_change: Covered by squad_updates_enabled
+                      */}
                       <div>
                         <h3 className="font-medium mb-1 flex items-center gap-2" style={{ color: 'var(--earth-800)' }}>
                           <svg className="w-5 h-5" style={{ color: 'var(--ocean-500)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -912,7 +951,13 @@ export function Settings({ onClose }) {
                                 <input
                                   type="time"
                                   value={notificationPrefs.weekly_digest_time || '09:00'}
-                                  onChange={(e) => updateNotifPref('weekly_digest_time', e.target.value)}
+                                  onChange={(e) => {
+                                    // Validate time format (HH:MM)
+                                    const timeValue = e.target.value;
+                                    if (/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timeValue) || timeValue === '') {
+                                      updateNotifPref('weekly_digest_time', timeValue || '09:00');
+                                    }
+                                  }}
                                   className="px-2 py-1 text-sm border rounded-lg"
                                   style={{ borderColor: 'var(--earth-300)' }}
                                 />
@@ -1031,17 +1076,167 @@ export function Settings({ onClose }) {
               )}
             </div>
           )}
+
+          {/* Preferences Tab */}
+          {activeTab === 'preferences' && (
+            <div role="tabpanel" id="panel-preferences" aria-labelledby="tab-preferences" className="space-y-6">
+              <div>
+                <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>Camp Categories</h3>
+                <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
+                  Select the types of camps that interest your family.
+                </p>
+
+                {/* Category grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {CAMP_CATEGORIES.map((category) => {
+                    const isSelected = selectedCategories.includes(category.id);
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => {
+                          setSelectedCategories(prev =>
+                            isSelected
+                              ? prev.filter(c => c !== category.id)
+                              : [...prev, category.id]
+                          );
+                        }}
+                        className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                          isSelected
+                            ? 'border-transparent'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                        style={isSelected ? {
+                          backgroundColor: 'var(--accent-50)',
+                          borderColor: 'var(--accent-500)'
+                        } : {}}
+                      >
+                        <div
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            isSelected ? '' : 'bg-gray-100'
+                          }`}
+                          style={isSelected ? { backgroundColor: 'var(--accent-100)' } : {}}
+                        >
+                          <BrandIcon
+                            name={category.icon}
+                            className="w-5 h-5"
+                            style={{ color: isSelected ? 'var(--accent-600)' : 'var(--earth-500)' }}
+                          />
+                        </div>
+                        <span
+                          className="text-sm font-medium"
+                          style={{ color: isSelected ? 'var(--accent-700)' : 'var(--earth-700)' }}
+                        >
+                          {category.label}
+                        </span>
+                        {isSelected && (
+                          <svg
+                            className="w-5 h-5 ml-auto flex-shrink-0"
+                            style={{ color: 'var(--accent-500)' }}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Selected count */}
+                <div className="mt-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--sage-50)' }}>
+                  <p className="text-sm" style={{ color: 'var(--sage-700)' }}>
+                    {selectedCategories.length === 0 ? (
+                      'No categories selected. All camp types will be shown.'
+                    ) : (
+                      <>
+                        <strong>{selectedCategories.length}</strong> {selectedCategories.length === 1 ? 'category' : 'categories'} selected.
+                        Camps matching these will be highlighted.
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Clear Sample Data Section */}
+              <div className="mt-6 pt-6 border-t" style={{ borderColor: 'var(--earth-200)' }}>
+                <h3 className="font-medium mb-1" style={{ color: 'var(--earth-800)' }}>Sample Data</h3>
+                <p className="text-sm mb-4" style={{ color: 'var(--earth-600)' }}>
+                  Remove sample children and scheduled camps added during the guided tour.
+                </p>
+                <button
+                  onClick={async () => {
+                    setClearingSample(true);
+                    setSampleCleared(false);
+                    try {
+                      await clearSampleData();
+                      await refreshChildren();
+                      await refreshSchedule();
+                      setSampleCleared(true);
+                      setTimeout(() => setSampleCleared(false), 3000);
+                    } catch (error) {
+                      console.error('Failed to clear sample data:', error);
+                      setSaveError('Failed to clear sample data. Please try again.');
+                    } finally {
+                      setClearingSample(false);
+                    }
+                  }}
+                  disabled={clearingSample}
+                  className="px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                  style={{
+                    backgroundColor: sampleCleared ? 'var(--sage-100)' : 'var(--terra-50)',
+                    color: sampleCleared ? 'var(--sage-700)' : 'var(--terra-700)',
+                    border: `1px solid ${sampleCleared ? 'var(--sage-300)' : 'var(--terra-200)'}`
+                  }}
+                >
+                  {clearingSample ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Clearing...
+                    </>
+                  ) : sampleCleared ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Cleared
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Clear Sample Data
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--earth-200)' }}>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
-            style={{ color: 'var(--earth-600)' }}
-          >
-            Cancel
-          </button>
+        <div className="px-6 py-4 border-t" style={{ borderColor: 'var(--earth-200)' }}>
+          {saveError && (
+            <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: 'var(--terra-50)', color: 'var(--terra-700)' }}>
+              {saveError}
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
+              style={{ color: 'var(--earth-600)' }}
+            >
+              Cancel
+            </button>
           <button
             onClick={handleSave}
             disabled={saving}
@@ -1067,6 +1262,7 @@ export function Settings({ onClose }) {
               'Save Settings'
             )}
           </button>
+          </div>
         </div>
       </div>
     </div>

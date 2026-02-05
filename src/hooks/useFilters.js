@@ -302,21 +302,33 @@ export function useFilters(priceRange = { min: 0, max: Infinity }) {
       );
     }
 
-    // Age filter
+    // Age filter - skip camps with no age data rather than using extreme defaults
     if (filters.childAge) {
       const age = parseInt(filters.childAge, 10);
       result = result.filter(camp => {
-        const minAge = camp.min_age ? parseInt(camp.min_age, 10) : 0;
-        const maxAge = camp.max_age ? parseInt(camp.max_age, 10) : 100;
+        // If camp has no age data, skip it (don't include in results)
+        if (camp.min_age == null && camp.max_age == null) {
+          return false;
+        }
+        const minAge = camp.min_age != null ? parseInt(camp.min_age, 10) : 0;
+        const maxAge = camp.max_age != null ? parseInt(camp.max_age, 10) : 18;
         return age >= minAge && age <= maxAge;
       });
     }
 
-    // Price filter (range)
-    result = result.filter(camp => {
-      const minPrice = camp.min_price || 0;
-      return minPrice >= filters.priceMin && minPrice <= filters.priceMax;
-    });
+    // Price filter (range) - only apply when meaningful values are set
+    // Skip filtering if priceMax is Infinity (no filter set)
+    if (filters.priceMin > 0 || Number.isFinite(filters.priceMax)) {
+      // Compute effective max price from data range if priceMax is Infinity
+      const effectiveMaxPrice = Number.isFinite(filters.priceMax)
+        ? filters.priceMax
+        : Math.max(...result.map(c => c.min_price || 0), 0);
+
+      result = result.filter(camp => {
+        const minPrice = camp.min_price || 0;
+        return minPrice >= filters.priceMin && minPrice <= effectiveMaxPrice;
+      });
+    }
 
     // Week availability filter
     if (filters.selectedWeeks && filters.selectedWeeks.length > 0) {

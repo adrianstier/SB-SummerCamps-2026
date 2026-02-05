@@ -1,27 +1,35 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useFamily } from '../contexts/FamilyContext';
 import { formatDistanceToNow } from '../lib/formatters';
 
 export default function FamilyActivityFeed() {
   const {
     activityFeed,
-    refreshActivityFeed,
     familyNotifications,
-    markNotificationRead,
     markAllNotificationsRead
   } = useFamily();
 
-  // Mark notifications as read when viewing
+  const hasMarkedRead = useRef(false);
+
+  // Mark notifications as read when user has been viewing for a longer time
   useEffect(() => {
     const unreadNotifications = familyNotifications.filter(n => !n.read);
-    if (unreadNotifications.length > 0) {
-      // Mark all as read after a short delay (so user sees them first)
+    if (unreadNotifications.length > 0 && !hasMarkedRead.current) {
+      // Mark all as read after 10 seconds (giving user time to scroll through)
       const timer = setTimeout(() => {
         markAllNotificationsRead();
-      }, 2000);
+        hasMarkedRead.current = true;
+      }, 10000);
       return () => clearTimeout(timer);
     }
   }, [familyNotifications, markAllNotificationsRead]);
+
+  // Reset the ref when component unmounts and remounts
+  useEffect(() => {
+    return () => {
+      hasMarkedRead.current = false;
+    };
+  }, []);
 
   if (activityFeed.length === 0) {
     return (

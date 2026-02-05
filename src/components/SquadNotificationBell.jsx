@@ -30,8 +30,34 @@ export default function SquadNotificationBell() {
       await refreshSquadNotifications();
     }
     setIsOpen(false);
+
+    // Navigate based on notification type
+    if (notification.type === 'friend_match' || notification.type === 'looking_for_friends') {
+      // Navigate to schedule view to see the camp match
+      window.dispatchEvent(new CustomEvent('navigate', {
+        detail: {
+          view: 'planner',
+          tab: 'schedule',
+          squadId: notification.squad_id
+        }
+      }));
+    } else if (notification.squad_id) {
+      // Default: navigate to squads tab for squad-related notifications
+      window.dispatchEvent(new CustomEvent('navigate', {
+        detail: {
+          view: 'planner',
+          tab: 'squads',
+          squadId: notification.squad_id
+        }
+      }));
+    }
   }
 
+  // BUG-F-016: Notification types handled here in the UI.
+  // NOTE: 'friend_match' and 'looking_for_friends' notifications require server-side
+  // database triggers or edge functions to detect when squad members schedule the same
+  // camp and create notifications accordingly. This is not yet implemented on the backend.
+  // See: Supabase trigger on scheduled_camps table to compare with squad members' schedules.
   function getNotificationIcon(type) {
     switch (type) {
       case 'friend_match':

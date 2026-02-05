@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getReviews, getCampRatings, addReview, voteReviewHelpful, removeReviewVote } from '../lib/supabase';
 import BrandIcon from './BrandIcon';
@@ -385,16 +385,17 @@ export function ReviewsList({ campId, campName }) {
   const [loading, setLoading] = useState(true);
   const [showWriteForm, setShowWriteForm] = useState(false);
 
-  useEffect(() => {
-    loadReviews();
-  }, [campId]);
-
-  async function loadReviews() {
+  // BUG-B-011: Wrap loadReviews in useCallback to prevent unnecessary re-renders
+  const loadReviews = useCallback(async () => {
     setLoading(true);
     const data = await getReviews(campId);
     setReviews(data);
     setLoading(false);
-  }
+  }, [campId]);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
 
   const userHasReviewed = reviews.some(r => r.user_id === user?.id);
 

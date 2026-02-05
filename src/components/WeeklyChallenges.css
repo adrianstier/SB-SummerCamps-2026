@@ -1,0 +1,274 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   WEEKLY CHALLENGES - Gamification challenges with countdown timer
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.weekly-challenge {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+}
+
+/* Header */
+.weekly-challenge-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.weekly-challenge-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.weekly-challenge-title {
+  font-family: var(--font-family-serif, Georgia, serif);
+  font-size: 1.125rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* Timer */
+.weekly-challenge-timer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.weekly-challenge-timer.ended {
+  color: var(--red-500);
+}
+
+/* Points badge */
+.weekly-challenge-points {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: linear-gradient(135deg, var(--sun-100) 0%, var(--sun-200) 100%);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: var(--font-semibold);
+  color: var(--sun-700);
+}
+
+/* Challenge Card */
+.weekly-challenge-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--sand-50);
+  border: 1px solid var(--sand-200);
+  border-radius: var(--radius-lg);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.weekly-challenge-card.complete {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border-color: var(--green-300);
+}
+
+.weekly-challenge-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  color: var(--ocean-600);
+}
+
+.weekly-challenge-card.complete .weekly-challenge-icon {
+  background: var(--green-500);
+  color: white;
+}
+
+.weekly-challenge-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.weekly-challenge-name {
+  font-size: 0.9375rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.weekly-challenge-desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-3) 0;
+  line-height: 1.4;
+}
+
+/* Progress */
+.weekly-challenge-progress-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.weekly-challenge-progress {
+  flex: 1;
+  height: 8px;
+  background: var(--sand-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.weekly-challenge-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
+  border-radius: var(--radius-full);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weekly-challenge-progress-fill.complete {
+  background: linear-gradient(90deg, var(--green-400) 0%, var(--green-500) 100%);
+}
+
+.weekly-challenge-progress-text {
+  font-size: 0.75rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Complete badge */
+.weekly-challenge-complete-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-500);
+  color: white;
+  border-radius: 50%;
+  box-shadow: var(--shadow-md);
+  animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pop {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* Expired message */
+.weekly-challenge-expired {
+  margin: var(--space-3) 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPACT VARIANT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.weekly-challenge-compact {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.weekly-challenge-compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.weekly-challenge-compact-title {
+  font-size: 0.875rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+}
+
+.weekly-challenge-compact-timer {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+
+.weekly-challenge-compact-timer.ended {
+  color: var(--red-500);
+}
+
+.weekly-challenge-compact-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.weekly-challenge-compact-icon {
+  color: var(--ocean-500);
+}
+
+.weekly-challenge-compact-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.weekly-challenge-compact-name {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.weekly-challenge-compact-progress {
+  height: 4px;
+  background: var(--sand-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.weekly-challenge-compact-progress-fill {
+  height: 100%;
+  background: var(--ocean-500);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.weekly-challenge-compact-progress-fill.complete {
+  background: var(--green-500);
+}
+
+.weekly-challenge-compact-score {
+  font-size: 0.75rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .weekly-challenge {
+    padding: var(--space-4);
+  }
+
+  .weekly-challenge-card {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .weekly-challenge-icon {
+    width: 40px;
+    height: 40px;
+  }
+}

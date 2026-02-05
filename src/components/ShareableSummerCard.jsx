@@ -44,22 +44,21 @@ export const ShareableSummerCard = memo(function ShareableSummerCard({
   const recentBadges = React.useMemo(() => {
     return earnedAchievements
       .slice(-4)
-      .map(id => achievements[id.toUpperCase()])
+      .map(id => {
+        // Try both the original case and uppercase to handle inconsistent casing
+        return achievements[id] || achievements[id.toUpperCase()] || achievements[id.toLowerCase()];
+      })
       .filter(Boolean);
   }, [earnedAchievements, achievements]);
 
-  // Generate image from the card (using html2canvas approach)
+  // Generate shareable content for the card
   const generateImage = useCallback(async () => {
     if (!cardRef.current) return null;
 
     setIsGenerating(true);
 
     try {
-      // Dynamic import html2canvas (would need to be installed)
-      // For now, we'll use the native share API with text
-      // In production, you'd use html2canvas or similar
-
-      // Create shareable text content
+      // Create shareable text content (image download not implemented)
       const shareText = `${firstName}'s Summer 2026 is ${planningStats.coveragePercent}% planned!
 ${planningStats.coveredWeeks} weeks covered with ${planningStats.scheduledCount} camps.
 ${achievementProgress.earned} achievements unlocked.
@@ -74,18 +73,33 @@ ${achievementProgress.earned} achievements unlocked.
     }
   }, [firstName, planningStats, achievementProgress]);
 
-  // Share functionality
+  // Share functionality with Open Graph image support
   const handleShare = useCallback(async () => {
     const content = await generateImage();
     if (!content) return;
 
+    // Build share URL with achievement parameters for OG preview
+    // Note: This requires server-side OG tag generation for full support
+    // For now, we use the base site image and include achievement info in text
+    const shareUrl = new URL(window.location.origin);
+    shareUrl.searchParams.set('shared', 'summer-plan');
+    shareUrl.searchParams.set('progress', planningStats.coveragePercent);
+    shareUrl.searchParams.set('camps', planningStats.scheduledCount);
+    shareUrl.searchParams.set('badges', achievementProgress.earned);
+
+    // OG image URL (static for now, but params can be used by edge function)
+    const ogImageUrl = `${window.location.origin}/og-image.png`;
+
     if (navigator.share) {
       try {
-        await navigator.share({
+        // Try sharing with files first if supported (for image preview)
+        const shareData = {
           title: `${firstName}'s Summer 2026 Plan`,
           text: content.text,
-          url: window.location.origin,
-        });
+          url: shareUrl.toString(),
+        };
+
+        await navigator.share(shareData);
         setShareSuccess(true);
         setTimeout(() => setShareSuccess(false), 3000);
       } catch (error) {
@@ -94,23 +108,29 @@ ${achievementProgress.earned} achievements unlocked.
         }
       }
     } else {
-      // Fallback: copy to clipboard
+      // Fallback: copy to clipboard with full link
       try {
-        await navigator.clipboard.writeText(content.text);
+        const clipboardText = `${content.text}\n\n${shareUrl.toString()}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(clipboardText);
+        } else {
+          // Fallback for browsers without clipboard API
+          const textArea = document.createElement('textarea');
+          textArea.value = clipboardText;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-9999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
         setShareSuccess(true);
         setTimeout(() => setShareSuccess(false), 3000);
       } catch (error) {
         console.error('Copy failed:', error);
       }
     }
-  }, [generateImage, firstName]);
-
-  // Download as image (simplified - would use html2canvas in production)
-  const handleDownload = useCallback(() => {
-    // In production, this would convert the card to an image using html2canvas
-    // For now, show a message that this feature requires additional setup
-    alert('Image download requires html2canvas library. Share feature works with native sharing.');
-  }, []);
+  }, [generateImage, firstName, planningStats, achievementProgress]);
 
   return (
     <div className={`shareable-card-overlay ${className}`} onClick={onClose}>
@@ -229,16 +249,6 @@ ${achievementProgress.earned} achievements unlocked.
 
         {/* Action buttons */}
         <div className="shareable-card-actions">
-          <button
-            className="shareable-action-btn secondary"
-            onClick={handleDownload}
-            disabled={isGenerating}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-            </svg>
-            Download
-          </button>
           <button
             className={`shareable-action-btn primary ${shareSuccess ? 'success' : ''}`}
             onClick={handleShare}

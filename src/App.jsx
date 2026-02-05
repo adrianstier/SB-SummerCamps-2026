@@ -54,75 +54,102 @@ function safeUrl(url) {
   }
 }
 
+// BUG-B-015: Helper function for retry logic on API fetch errors
+async function withRetry(fn, maxRetries = 2, delay = 500) {
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      console.warn(`API call failed (attempt ${attempt + 1}/${maxRetries + 1}):`, error.message);
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 // Fetch camps from Supabase
 async function fetchCamps(filters = {}) {
   if (!supabase) {
     return { camps: [], total: 0 };
   }
 
-  let query = supabase.from('camps').select('*');
+  // BUG-B-015: Wrap in retry logic for intermittent failures
+  return withRetry(async () => {
+    let query = supabase.from('camps').select('*');
 
-  // Apply filters
-  // SECURITY: Escape characters with special meaning in PostgREST filter expressions
-  if (filters.search) {
-    const safeSearch = filters.search
-      .replace(/[%_\\]/g, c => '\\' + c)  // Escape LIKE wildcards
-      .replace(/[,.()[\]]/g, '')          // Remove PostgREST operators
-      .trim();
-    if (safeSearch) {
-      query = query.or(`camp_name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`);
+    // Apply filters
+    // SECURITY: Escape characters with special meaning in PostgREST filter expressions
+    if (filters.search) {
+      const safeSearch = filters.search
+        .replace(/[%_\\]/g, c => '\\' + c)  // Escape LIKE wildcards
+        .replace(/[,.()[\]]/g, '')          // Remove PostgREST operators
+        .trim();
+      if (safeSearch) {
+        query = query.or(`camp_name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`);
+      }
     }
-  }
 
-  if (filters.category && filters.category !== 'All') {
-    query = query.eq('category', filters.category);
-  }
+    if (filters.category && filters.category !== 'All') {
+      query = query.eq('category', filters.category);
+    }
 
-  if (filters.minAge) {
-    query = query.gte('max_age', parseInt(filters.minAge));
-  }
+    if (filters.minAge) {
+      query = query.gte('max_age', parseInt(filters.minAge));
+    }
 
-  if (filters.maxAge) {
-    query = query.lte('min_age', parseInt(filters.maxAge));
-  }
+    if (filters.maxAge) {
+      query = query.lte('min_age', parseInt(filters.maxAge));
+    }
 
-  if (filters.maxPrice) {
-    query = query.lte('min_price', parseInt(filters.maxPrice));
-  }
+    if (filters.maxPrice) {
+      query = query.lte('min_price', parseInt(filters.maxPrice));
+    }
 
-  if (!filters.includeClosed) {
-    query = query.eq('is_closed', false);
-  }
+    if (!filters.includeClosed) {
+      query = query.eq('is_closed', false);
+    }
 
-  const { data, error } = await query.order('camp_name');
+    const { data, error } = await query.order('camp_name');
 
-  if (error) {
-    console.error('Error fetching camps:', error);
+    if (error) {
+      throw new Error(`Supabase error: ${error.message}`);
+    }
+
+    return { camps: data || [], total: data?.length || 0 };
+  }).catch(error => {
+    console.error('Error fetching camps after retries:', error);
     return { camps: [], total: 0 };
-  }
-
-  return { camps: data || [], total: data?.length || 0 };
+  });
 }
 
 async function fetchCategories() {
   if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from('camps')
-    .select('category')
-    .not('category', 'is', null)
-    .eq('is_closed', false); // Only get categories from active camps
+  // BUG-B-015: Wrap in retry logic
+  return withRetry(async () => {
+    const { data, error } = await supabase
+      .from('camps')
+      .select('category')
+      .not('category', 'is', null)
+      .eq('is_closed', false); // Only get categories from active camps
 
-  if (error) {
-    console.error('Error fetching categories:', error);
+    if (error) {
+      throw new Error(`Supabase error: ${error.message}`);
+    }
+
+    // Filter out status indicators that aren't real categories
+    const invalidCategories = ['CLOSED', 'NO CAMP', 'TBD', 'Unknown', 'N/A'];
+    const categories = [...new Set(data.map(c => c.category))]
+      .filter(cat => cat && !invalidCategories.includes(cat.toUpperCase()));
+    return categories.sort();
+  }).catch(error => {
+    console.error('Error fetching categories after retries:', error);
     return [];
-  }
-
-  // Filter out status indicators that aren't real categories
-  const invalidCategories = ['CLOSED', 'NO CAMP', 'TBD', 'Unknown', 'N/A'];
-  const categories = [...new Set(data.map(c => c.category))]
-    .filter(cat => cat && !invalidCategories.includes(cat.toUpperCase()));
-  return categories.sort();
+  });
 }
 
 // Helper to check if a camp is effectively closed (either is_closed flag or CLOSED/NO CAMP category)
@@ -137,40 +164,46 @@ async function fetchStats() {
     return { total: 0, active: 0, closed: 0, categories: {}, priceRange: {}, ageRange: {} };
   }
 
-  const { data: camps, error } = await supabase.from('camps').select('category, min_price, max_price, min_age, max_age, is_closed');
+  // BUG-B-015: Wrap in retry logic
+  return withRetry(async () => {
+    const { data: camps, error } = await supabase.from('camps').select('category, min_price, max_price, min_age, max_age, is_closed');
 
-  if (error || !camps) {
+    if (error || !camps) {
+      throw new Error(`Supabase error: ${error?.message || 'No data returned'}`);
+    }
+
+    const active = camps.filter(c => !c.is_closed);
+
+    const categories = {};
+    active.forEach(c => {
+      if (c.category) {
+        categories[c.category] = (categories[c.category] || 0) + 1;
+      }
+    });
+
+    const prices = active.filter(c => c.min_price).map(c => c.min_price);
+    const ages = active.filter(c => c.min_age);
+    const maxPrices = active.filter(c => c.max_price).map(c => c.max_price);
+    const maxAges = ages.filter(c => c.max_age).map(c => c.max_age);
+
+    return {
+      total: camps.length,
+      active: active.length,
+      closed: camps.length - active.length,
+      categories,
+      priceRange: {
+        min: prices.length ? prices.reduce((a, b) => Math.min(a, b), Infinity) : null,
+        max: maxPrices.length ? maxPrices.reduce((a, b) => Math.max(a, b), -Infinity) : null
+      },
+      ageRange: {
+        min: ages.length ? ages.map(c => c.min_age).reduce((a, b) => Math.min(a, b), Infinity) : null,
+        max: maxAges.length ? maxAges.reduce((a, b) => Math.max(a, b), -Infinity) : null
+      }
+    };
+  }).catch(error => {
+    console.error('Error fetching stats after retries:', error);
     return { total: 0, active: 0, closed: 0, categories: {}, priceRange: {}, ageRange: {} };
-  }
-
-  const active = camps.filter(c => !c.is_closed);
-
-  const categories = {};
-  active.forEach(c => {
-    if (c.category) {
-      categories[c.category] = (categories[c.category] || 0) + 1;
-    }
   });
-
-  const prices = active.filter(c => c.min_price).map(c => c.min_price);
-  const ages = active.filter(c => c.min_age);
-  const maxPrices = active.filter(c => c.max_price).map(c => c.max_price);
-  const maxAges = ages.filter(c => c.max_age).map(c => c.max_age);
-
-  return {
-    total: camps.length,
-    active: active.length,
-    closed: camps.length - active.length,
-    categories,
-    priceRange: {
-      min: prices.length ? prices.reduce((a, b) => Math.min(a, b), Infinity) : null,
-      max: maxPrices.length ? maxPrices.reduce((a, b) => Math.max(a, b), -Infinity) : null
-    },
-    ageRange: {
-      min: ages.length ? ages.map(c => c.min_age).reduce((a, b) => Math.min(a, b), Infinity) : null,
-      max: maxAges.length ? maxAges.reduce((a, b) => Math.max(a, b), -Infinity) : null
-    }
-  };
 }
 
 // Get registration urgency status
@@ -416,6 +449,8 @@ export default function App() {
   const [modalCamp, setModalCamp] = useState(null); // Camp detail modal
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
+  const [searchInput, setSearchInput] = useState(''); // Local state for debounced search input
+  const searchDebounceRef = useRef(null);
 
   // Track initial load to prevent double-fetch
   const initialLoadDone = useRef(false);
@@ -427,7 +462,7 @@ export default function App() {
   const modalTriggerRef = useRef(null);
 
   // Auth context
-  const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user, friendInterestCounts, squads } = useAuth();
+  const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user, friendInterestCounts, squads, authError, clearAuthError } = useAuth();
 
   // PWA hooks
   const { canInstall, isStandalone, promptInstall } = usePWAInstall();
@@ -504,6 +539,24 @@ export default function App() {
     return match ? match[1] : null;
   });
 
+  // BUG-E-005: Handle shared schedule links
+  const [sharedSchedule, setSharedSchedule] = useState(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sharedParam = urlParams.get('shared');
+      if (sharedParam) {
+        // Decode URL-safe base64: replace - with +, _ with /, add padding back
+        const base64 = sharedParam.replace(/-/g, '+').replace(/_/g, '/');
+        const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
+        const jsonStr = atob(base64 + padding);
+        return JSON.parse(jsonStr);
+      }
+    } catch (error) {
+      console.error('Failed to parse shared schedule:', error);
+    }
+    return null;
+  });
+
   // Detect mobile viewport
   useEffect(() => {
     const handleResize = () => {
@@ -513,17 +566,36 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Listen for navigation events from auth menu
+  // Listen for navigation events from auth menu and squad notifications
   useEffect(() => {
     function handleNavigate(e) {
-      const target = e.detail;
-      if (target === 'planner') setShowPlanner(true);
-      if (target === 'children') setShowChildren(true);
-      if (target === 'favorites') setShowWishlist(true); // Now opens wishlist
-      if (target === 'dashboard') setShowDashboard(true);
-      if (target === 'admin') setShowAdmin(true);
-      if (target === 'settings') setShowSettings(true);
-      if (target === 'budget') setShowCostDashboard(true);
+      const detail = e.detail;
+
+      // BUG-F-015: Handle both string targets and object details (from squad notifications)
+      if (typeof detail === 'string') {
+        const target = detail;
+        if (target === 'planner') setShowPlanner(true);
+        if (target === 'children') setShowChildren(true);
+        if (target === 'favorites') setShowWishlist(true); // Now opens wishlist
+        if (target === 'dashboard') setShowDashboard(true);
+        if (target === 'admin') setShowAdmin(true);
+        if (target === 'settings') setShowSettings(true);
+        if (target === 'budget') setShowCostDashboard(true);
+      } else if (typeof detail === 'object' && detail !== null) {
+        // Handle object-based navigation (from SquadNotificationBell)
+        const { view, tab, squadId, campId } = detail;
+        if (view === 'planner') {
+          setShowPlanner(true);
+          // The SchedulePlanner component will need to handle the tab and squadId
+          // Store them for the planner to pick up
+          if (tab || squadId) {
+            window.__plannerNavTarget = { tab, squadId, campId };
+          }
+        }
+        if (view === 'camp' && campId) {
+          setModalCamp(campId);
+        }
+      }
     }
     window.addEventListener('navigate', handleNavigate);
     return () => window.removeEventListener('navigate', handleNavigate);
@@ -552,6 +624,10 @@ export default function App() {
     firstEl?.focus();
     modal.addEventListener('keydown', handleTab);
 
+    // BUG-B-010: Escape handler is bound to document (not modal element) intentionally.
+    // This ensures the modal can be closed even when focus escapes the modal (edge case),
+    // and provides consistent keyboard navigation regardless of focus position within the modal.
+    // The cleanup in the return function ensures no memory leaks.
     const handleEsc = (e) => {
       if (e.key === 'Escape') {
         setModalCamp(null);
@@ -576,13 +652,13 @@ export default function App() {
     setCompareList(prev =>
       prev.includes(campId)
         ? prev.filter(id => id !== campId)
-        : prev.length < 4 ? [...prev, campId] : prev
+        : prev.length < 6 ? [...prev, campId] : prev
     );
   }, []);
 
   const addToCompare = useCallback((campId) => {
     setCompareList(prev => {
-      if (prev.includes(campId) || prev.length >= 4) return prev;
+      if (prev.includes(campId) || prev.length >= 6) return prev;
       return [...prev, campId];
     });
   }, []);
@@ -627,7 +703,18 @@ export default function App() {
   const sortDir = filters.sortDir || 'asc';
 
   // Setters that update the filters hook
-  const setSearch = useCallback((val) => updateFilters({ ...filters, search: val }), [filters, updateFilters]);
+  // Debounced search - updates local input immediately, debounces filter update (300ms)
+  const setSearch = useCallback((val) => {
+    setSearchInput(val);
+    // Clear any existing debounce timer
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    // Debounce the actual filter update
+    searchDebounceRef.current = setTimeout(() => {
+      updateFilters({ ...filters, search: val });
+    }, 300);
+  }, [filters, updateFilters]);
   const setSelectedCategory = useCallback((val) => {
     if (val === 'All') {
       updateFilters({ ...filters, categories: [] });
@@ -660,7 +747,19 @@ export default function App() {
   // Copy share URL to clipboard
   const copyShareUrl = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(shareableURL);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareableURL);
+      } else {
+        // Fallback for browsers without clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = shareableURL;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopiedShareUrl(true);
       setTimeout(() => setCopiedShareUrl(false), 2000);
     } catch (err) {
@@ -670,6 +769,13 @@ export default function App() {
 
   // Derived state for backwards compatibility
   const searchResultCount = filteredCamps.length;
+
+  // Sync local searchInput when filters.search changes externally (URL params, clear, etc.)
+  useEffect(() => {
+    if (filters.search !== searchInput && !searchDebounceRef.current) {
+      setSearchInput(filters.search || '');
+    }
+  }, [filters.search]);
 
   // Track if search is active (for UI feedback)
   useEffect(() => {
@@ -692,6 +798,19 @@ export default function App() {
         }}
         onCancel={() => {
           setJoinInviteCode(null);
+          window.history.replaceState({}, '', '/');
+        }}
+      />
+    );
+  }
+
+  // BUG-E-005: Handle shared schedule view
+  if (sharedSchedule) {
+    return (
+      <SharedScheduleView
+        schedule={sharedSchedule}
+        onClose={() => {
+          setSharedSchedule(null);
           window.history.replaceState({}, '', '/');
         }}
       />
@@ -740,6 +859,27 @@ export default function App() {
       {/* Update Toast */}
       {updateAvailable && (
         <UpdateToast onUpdate={applyUpdate} />
+      )}
+
+      {/* Auth Error Banner */}
+      {authError && (
+        <div className="auth-error-banner" role="alert">
+          <div className="auth-error-content">
+            <svg className="auth-error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p className="auth-error-text">Sign in failed: {authError}</p>
+          </div>
+          <button
+            onClick={clearAuthError}
+            className="auth-error-dismiss"
+            aria-label="Dismiss error"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       )}
 
       {/* Hero Section */}
@@ -873,14 +1013,14 @@ export default function App() {
               <input
                 type="text"
                 placeholder="Search camps by name or activity"
-                value={search}
+                value={searchInput}
                 onChange={(e) => setSearch(e.target.value)}
                 className="search-input"
                 aria-label="Search camps by name or activity"
               />
 
               {/* Clear button */}
-              {search && (
+              {searchInput && (
                 <button
                   className="absolute right-5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-sand-200 transition-colors"
                   onClick={() => setSearch('')}
@@ -894,8 +1034,8 @@ export default function App() {
                 </button>
               )}
 
-              {/* Search status indicator */}
-              {isSearching && search && (
+              {/* Search status indicator - shows while debounce is pending */}
+              {searchInput && searchInput !== search && (
                 <div className="absolute right-14 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--sand-500)' }}>
                   Searching...
                 </div>
@@ -1714,6 +1854,7 @@ export default function App() {
                   <div key={campId} className="compare-bar-chip">
                     <span className="compare-bar-chip-name">{camp.camp_name}</span>
                     <button
+                      type="button"
                       onClick={() => removeFromCompare(campId)}
                       className="compare-bar-chip-remove"
                       aria-label="Remove from compare"
@@ -1725,18 +1866,20 @@ export default function App() {
                   </div>
                 );
               })}
-              {compareList.length < 4 && (
-                <span className="compare-bar-hint">Add {4 - compareList.length} more</span>
+              {compareList.length < 6 && (
+                <span className="compare-bar-hint">Add {6 - compareList.length} more</span>
               )}
             </div>
             <div className="compare-bar-actions">
               <button
+                type="button"
                 onClick={() => setCompareList([])}
                 className="compare-bar-clear"
               >
                 Clear
               </button>
               <button
+                type="button"
                 onClick={() => setShowComparison(true)}
                 className="btn-primary compare-bar-button"
               >
@@ -1878,6 +2021,142 @@ function FavoritesModal({ camps, onClose, onOpenPlanner, isPlannerLoading, setIs
   );
 }
 
+// BUG-E-005: Shared Schedule View Component - displays read-only shared schedules
+const SharedScheduleView = memo(function SharedScheduleView({ schedule, onClose }) {
+  if (!schedule) return null;
+
+  return (
+    <div className="min-h-screen" style={{ background: 'var(--sand-50)' }}>
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-white shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AppLogo className="w-8 h-8" />
+            <div>
+              <p className="text-xs uppercase tracking-wide" style={{ color: 'var(--sand-400)' }}>
+                Shared Schedule
+              </p>
+              <h1 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
+                {schedule.childName}'s Summer 2026
+              </h1>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="btn-secondary"
+          >
+            Browse Camps
+          </button>
+        </div>
+      </header>
+
+      {/* Schedule Content */}
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Summary Stats */}
+        <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm" style={{ border: '1px solid var(--sand-200)' }}>
+          <div className="flex flex-wrap gap-6 justify-center">
+            <div className="text-center">
+              <p className="text-2xl font-bold" style={{ color: 'var(--earth-800)' }}>
+                {schedule.weeks?.length || 0}
+              </p>
+              <p className="text-sm" style={{ color: 'var(--sand-400)' }}>Weeks Planned</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold" style={{ color: 'var(--terra-500)' }}>
+                ${schedule.totalCost?.toLocaleString() || 0}
+              </p>
+              <p className="text-sm" style={{ color: 'var(--sand-400)' }}>Total Cost</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold" style={{ color: 'var(--ocean-500)' }}>
+                {schedule.weeks?.reduce((sum, w) => sum + (w.camps?.length || 0), 0) || 0}
+              </p>
+              <p className="text-sm" style={{ color: 'var(--sand-400)' }}>Camps</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Week-by-Week Schedule */}
+        <div className="space-y-4">
+          {schedule.weeks?.map((week, index) => (
+            <div
+              key={week.weekNum || index}
+              className="bg-white rounded-xl p-5 shadow-sm"
+              style={{ border: '1px solid var(--sand-200)' }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold" style={{ color: 'var(--earth-800)' }}>
+                  Week {week.weekNum}
+                </h3>
+                <span className="text-sm" style={{ color: 'var(--sand-400)' }}>
+                  {week.display}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {week.camps?.map((camp, campIndex) => (
+                  <div
+                    key={campIndex}
+                    className="flex items-center justify-between p-3 rounded-lg"
+                    style={{ background: 'var(--sand-50)' }}
+                  >
+                    <div>
+                      <p className="font-medium" style={{ color: 'var(--earth-800)' }}>
+                        {camp.name}
+                      </p>
+                      {camp.status && camp.status !== 'planned' && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full"
+                          style={{
+                            background: camp.status === 'confirmed' ? 'var(--ocean-100)' : 'var(--sun-100)',
+                            color: camp.status === 'confirmed' ? 'var(--ocean-600)' : 'var(--sun-600)'
+                          }}
+                        >
+                          {camp.status}
+                        </span>
+                      )}
+                    </div>
+                    {camp.price && (
+                      <span className="font-medium" style={{ color: 'var(--terra-500)' }}>
+                        ${camp.price}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {(!schedule.weeks || schedule.weeks.length === 0) && (
+            <div className="text-center py-12">
+              <p style={{ color: 'var(--sand-400)' }}>
+                No camps scheduled yet.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Call to Action */}
+        <div className="mt-8 text-center">
+          <p className="mb-4" style={{ color: 'var(--earth-700)' }}>
+            Ready to plan your own summer?
+          </p>
+          <button onClick={onClose} className="btn-primary">
+            <CalendarPlanIcon />
+            <span>Start Planning</span>
+          </button>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="py-6 text-center">
+        <p className="text-sm" style={{ color: 'var(--sand-400)' }}>
+          Santa Barbara Summer Camps 2026
+        </p>
+      </footer>
+    </div>
+  );
+});
+
 // Memoized icon components for header/actions
 const CalendarPlanIcon = memo(function CalendarPlanIcon() {
   return (
@@ -2014,7 +2293,11 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
           <div className="camp-card-image-overlay" style={{ background: categoryGradient }}></div>
         </div>
       ) : (
-        <div className="camp-card-header" style={{ background: categoryGradient }}></div>
+        <div className="camp-card-image" style={{ background: categoryGradient }}>
+          <div className="w-full h-full flex items-center justify-center opacity-40">
+            <BrandIcon name={categoryIcons.find(c => c.name === camp.category)?.icon || 'overnight'} size={48} />
+          </div>
+        </div>
       )}
 
       <div className="p-6">
@@ -2300,7 +2583,8 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
             </div>
           )}
 
-          {camp.website_url && camp.website_url !== 'N/A' && safeUrl(camp.website_url) && (
+          {/* Hide registration button for closed camps */}
+          {!isCampEffectivelyClosed(camp) && camp.website_url && camp.website_url !== 'N/A' && safeUrl(camp.website_url) && (
             <a
               href={safeUrl(camp.website_url)}
               target="_blank"
@@ -2374,10 +2658,17 @@ const CampDetailModal = memo(function CampDetailModal({
   const regStatus = getRegistrationStatus(camp);
 
   // Build feature pills array - hide registration status for closed camps
+  // BUG-B-012: Added proper icon mapping with fallback for unknown/edge case statuses
   const featurePills = [];
   if (!isCampEffectivelyClosed(camp) && regStatus.status !== 'unknown') {
+    const statusIconMap = {
+      open: 'check',
+      upcoming: 'calendar',
+      waitlist: 'hourglass',
+      closed: 'x-circle',
+    };
     featurePills.push({
-      icon: regStatus.isOpen ? 'check' : regStatus.status === 'upcoming' ? 'calendar' : 'hourglass',
+      icon: regStatus.isOpen ? 'check' : (statusIconMap[regStatus.status] || 'info'),
       label: regStatus.label,
       type: regStatus.isOpen ? 'open' : regStatus.status === 'upcoming' ? (regStatus.daysUntil <= 7 ? 'soon' : 'upcoming') : 'full',
       key: 'registration',
@@ -2418,8 +2709,10 @@ const CampDetailModal = memo(function CampDetailModal({
           {/* Action Buttons - Favorite and Compare */}
           <div style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', gap: '0.5rem', zIndex: 10 }}>
             {/* Compare Button */}
+            {/* BUG-B-014: type="button" ensures no form submission/page reload */}
             {onToggleCompare && (
               <button
+                type="button"
                 className={`modal-favorite ${isInCompare ? 'is-active' : ''}`}
                 onClick={onToggleCompare}
                 aria-label={isInCompare ? 'Remove from comparison' : 'Add to comparison'}
@@ -2757,8 +3050,9 @@ const CampDetailModal = memo(function CampDetailModal({
           )}
         </div>
 
-        {/* Footer Actions - hide for closed camps */}
-        {!camp.is_closed && (
+        {/* Footer Actions - hide for closed camps, camps with N/A price, or closed registration status */}
+        {/* BUG-B-013: Also hide for camps with registration status 'closed' or price 'N/A' */}
+        {!isCampEffectivelyClosed(camp) && regStatus.status !== 'closed' && (
           <footer className="modal-footer">
             {camp.website_url && safeUrl(camp.website_url) && (
               <a

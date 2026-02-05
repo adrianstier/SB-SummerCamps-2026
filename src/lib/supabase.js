@@ -111,7 +111,8 @@ export async function updateProfile(updates) {
     'school_year_start',
     'work_hours_start',
     'work_hours_end',
-    'summer_budget'
+    'summer_budget',
+    'blocked_weeks'  // BUG-D-001: Persist blocked weeks to profile for cross-device sync
   ];
 
   const safeUpdates = {};
@@ -294,6 +295,32 @@ export async function isFavorite(campId) {
 
   if (error) return false;
   return data && data.length > 0;
+}
+
+/**
+ * Get popularity data for camps based on favorites count
+ * Returns { camp_id: count } for camps with at least 1 favorite
+ */
+export async function getCampPopularityData() {
+  if (!supabase) return {};
+
+  // Query favorites grouped by camp_id
+  const { data, error } = await supabase
+    .from('favorites')
+    .select('camp_id');
+
+  if (error) {
+    console.error('Error fetching camp popularity:', error);
+    return {};
+  }
+
+  // Count occurrences of each camp_id
+  const counts = {};
+  data.forEach(({ camp_id }) => {
+    counts[camp_id] = (counts[camp_id] || 0) + 1;
+  });
+
+  return counts;
 }
 
 // ============================================================================
@@ -1003,16 +1030,21 @@ export async function getSquads() {
   return data;
 }
 
-export async function createSquad(name, revealIdentity = false) {
+export async function createSquad(name, revealIdentity = false, shareSchedule = true, description = null) {
   if (!supabase) return { error: { message: 'Not authenticated' } };
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: { message: 'Not authenticated' } };
 
-  // Create the squad
+  // Create the squad (description is optional)
+  const squadData = { name, created_by: user.id };
+  if (description && description.trim()) {
+    squadData.description = description.trim();
+  }
+
   const { data: squad, error: squadError } = await supabase
     .from('squads')
-    .insert({ name, created_by: user.id })
+    .insert(squadData)
     .select()
     .single();
 
@@ -1026,7 +1058,7 @@ export async function createSquad(name, revealIdentity = false) {
       user_id: user.id,
       role: 'owner',
       reveal_identity: revealIdentity,
-      share_schedule: true
+      share_schedule: shareSchedule
     });
 
   if (memberError) return { error: memberError };
@@ -1191,12 +1223,13 @@ export async function getSquadCampInterests(squadId) {
 
   const memberIds = members.map(m => m.user_id);
 
-  // Get all camp interests for those members
+  // Get all camp interests for those members, including camp names
   const { data: interests, error: interestsError } = await supabase
     .from('camp_interests')
     .select(`
       *,
-      children(name, color)
+      children(name, color),
+      camps(camp_name, category)
     `)
     .in('user_id', memberIds)
     .order('week_number');
@@ -1216,6 +1249,8 @@ export async function getSquadCampInterests(squadId) {
       // Only include non-identifying fields from interest
       id: interest.id,
       camp_id: interest.camp_id,
+      camp_name: interest.camps?.camp_name || interest.camp_id,
+      camp_category: interest.camps?.category || null,
       week_number: interest.week_number,
       looking_for_friends: interest.looking_for_friends,
       created_at: interest.created_at,
@@ -1318,6 +1353,111 @@ export async function getFriendInterestCounts() {
   });
 
   return counts;
+}
+
+// ============================================================================
+// SQUAD CHAT HELPERS
+// ============================================================================
+
+export async function getSquadMessages(squadId, limit = 50) {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('squad_messages')
+    .select(`
+      id,
+      squad_id,
+      user_id,
+      content,
+      created_at,
+      profiles(full_name, avatar_url)
+    `)
+    .eq('squad_id', squadId)
+    .order('created_at', { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    // Table might not exist yet - return empty array
+    if (error.code === '42P01') {
+      console.warn('squad_messages table does not exist yet');
+      return [];
+    }
+    console.error('Error fetching squad messages:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function sendSquadMessage(squadId, content) {
+  if (!supabase) return { error: { message: 'Not authenticated' } };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: { message: 'Not authenticated' } };
+
+  // Sanitize message content
+  const sanitizedContent = sanitizeString(content, 1000);
+  if (!sanitizedContent || sanitizedContent.trim().length === 0) {
+    return { error: { message: 'Message cannot be empty' } };
+  }
+
+  return supabase
+    .from('squad_messages')
+    .insert({
+      squad_id: squadId,
+      user_id: user.id,
+      content: sanitizedContent.trim()
+    })
+    .select(`
+      id,
+      squad_id,
+      user_id,
+      content,
+      created_at,
+      profiles(full_name, avatar_url)
+    `)
+    .single();
+}
+
+export function subscribeToSquadMessages(squadId, callback) {
+  if (!supabase) return { unsubscribe: () => {} };
+
+  const channel = supabase
+    .channel(`squad-messages-${squadId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'squad_messages',
+        filter: `squad_id=eq.${squadId}`
+      },
+      async (payload) => {
+        // Fetch the full message with profile info
+        const { data } = await supabase
+          .from('squad_messages')
+          .select(`
+            id,
+            squad_id,
+            user_id,
+            content,
+            created_at,
+            profiles(full_name, avatar_url)
+          `)
+          .eq('id', payload.new.id)
+          .single();
+
+        if (data) {
+          callback(data);
+        }
+      }
+    )
+    .subscribe();
+
+  return {
+    unsubscribe: () => {
+      supabase.removeChannel(channel);
+    }
+  };
 }
 
 // ============================================================================
@@ -2119,7 +2259,8 @@ export async function getCampSuggestions(familyId, status = null) {
       *,
       suggested_by_profile:profiles!camp_suggestions_suggested_by_fkey(full_name, avatar_url),
       suggested_to_profile:profiles!camp_suggestions_suggested_to_fkey(full_name, avatar_url),
-      children(name, color)
+      children(name, color),
+      camps(id, camp_name)
     `)
     .eq('family_id', familyId)
     .order('created_at', { ascending: false });

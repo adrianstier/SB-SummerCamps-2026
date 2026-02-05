@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAchievements } from '../contexts/AchievementsContext';
 import { FavoriteButton } from './FavoriteButton';
 import BrandIcon from './BrandIcon';
 import { createComparisonList, shareComparisonList } from '../lib/supabase';
@@ -74,20 +75,29 @@ const COMPARISON_FIELDS = [
 
 export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, onAddCamp }) {
   const { user, children } = useAuth();
+  const { trackComparison } = useAchievements();
   const [showSearch, setShowSearch] = useState(false);
+
+  // Track comparison for COMPARE_MASTER achievement
+  useEffect(() => {
+    if (selectedCampIds.length >= 2) {
+      trackComparison();
+    }
+  }, [selectedCampIds.length, trackComparison]);
   const [searchQuery, setSearchQuery] = useState('');
   const [saveName, setSaveName] = useState('');
   const [saving, setSaving] = useState(false);
   const [shareUrl, setShareUrl] = useState(null);
   const [selectedChildId, setSelectedChildId] = useState(null);
+  const [statusMessage, setStatusMessage] = useState(null);
   const [viewMode, setViewMode] = useState('visual'); // 'visual' or 'table'
 
-  // Get selected camps
+  // Get selected camps (max 6 for optimal UI display in comparison view)
   const selectedCamps = useMemo(() => {
     return selectedCampIds
       .map(id => camps.find(c => c.id === id))
       .filter(Boolean)
-      .slice(0, 4); // Max 4 camps
+      .slice(0, 6); // Max 6 camps for comparison
   }, [camps, selectedCampIds]);
 
   // Filter available camps for adding
@@ -151,7 +161,8 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
         selectedChildId
       );
       if (!error) {
-        alert('Comparison saved!');
+        setStatusMessage('Comparison saved!');
+        setTimeout(() => setStatusMessage(null), 3000);
         setSaveName('');
       }
     } catch (err) {
@@ -164,10 +175,27 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
   const handleShare = async () => {
     // For now, just copy camp names to clipboard
     const text = selectedCamps.map(c => c.camp_name).join('\n');
-    await navigator.clipboard.writeText(
-      `Comparing camps:\n${text}\n\nView at: ${window.location.origin}`
-    );
-    alert('Comparison copied to clipboard!');
+    const shareText = `Comparing camps:\n${text}\n\nView at: ${window.location.origin}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        // Fallback for browsers without clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setStatusMessage('Comparison copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      setStatusMessage('Failed to copy comparison');
+    }
+    setTimeout(() => setStatusMessage(null), 3000);
   };
 
   if (selectedCamps.length === 0) {
@@ -179,7 +207,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
             Compare Camps
           </h2>
           <p className="mb-6" style={{ color: 'var(--earth-600)' }}>
-            Select 2-4 camps to compare. Click the compare icon on camp cards.
+            Select 2-6 camps to compare. Click the compare icon on camp cards.
           </p>
           <button onClick={onClose} className="btn-secondary">
             Got it
@@ -192,6 +220,13 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
       <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
+        {/* Status Toast */}
+        {statusMessage && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
+               style={{ background: 'var(--ocean-600)', color: 'white' }}>
+            {statusMessage}
+          </div>
+        )}
         {/* Header */}
         <div className="comparison-header">
           <div className="comparison-header-left">
@@ -225,7 +260,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                 </svg>
               </button>
             </div>
-            {selectedCamps.length < 4 && (
+            {selectedCamps.length < 6 && (
               <button
                 onClick={() => setShowSearch(!showSearch)}
                 className="btn-secondary"
@@ -631,7 +666,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
               className="flex-1 max-w-xs px-4 py-2 rounded-xl border-2 focus:outline-none focus:ring-2"
               style={{ borderColor: 'var(--sand-200)' }}
             />
-            {children.length > 0 && (
+            {children?.length > 0 && (
               <select
                 value={selectedChildId || ''}
                 onChange={(e) => setSelectedChildId(e.target.value || null)}

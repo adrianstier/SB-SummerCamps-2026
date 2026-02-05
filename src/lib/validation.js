@@ -11,8 +11,9 @@ import { z } from 'zod';
 // UUID validator
 const uuid = z.string().uuid();
 
-// Camp ID validator - accepts slug-format IDs (e.g. "ucsb-day-camp")
-const campId = z.string().min(1).max(200).regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, 'Invalid camp ID format');
+// Camp ID validator - accepts slug-format IDs (e.g. "ucsb-day-camp", "a", "zoo")
+// Allows single-char IDs and IDs that don't end with alphanumeric (e.g. "test-")
+const campId = z.string().min(1).max(200).regex(/^[a-z0-9][a-z0-9-]*$/, 'Invalid camp ID format');
 
 // Safe text - no script tags or SQL injection attempts
 const safeText = z.string()
@@ -61,6 +62,7 @@ export const ChildSchema = z.object({
   interests: z.array(z.string().max(50)).max(20).optional(),
   notes: safeText.max(2000).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  avatar_emoji: z.string().max(10).optional(),
   is_sample: z.boolean().optional(),
 });
 

@@ -451,6 +451,35 @@
   padding: 2px 8px;
 }
 
+/* BUG-D-002: Work Schedule Overlay Indicator */
+.summer-strip-work-hours {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--earth-500);
+  background: var(--earth-50);
+  border: 1px solid var(--earth-200);
+  border-radius: 10px;
+  padding: 2px 10px;
+}
+
+.summer-strip-work-hours .work-hours-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--earth-400);
+}
+
+.summer-strip-work-hours .work-hours-label {
+  color: var(--earth-500);
+  margin-right: 2px;
+}
+
+.summer-strip-work-hours strong {
+  color: var(--earth-700);
+  font-weight: 600;
+}
+
 .summer-strip-bar {
   display: flex;
   gap: 3px;
@@ -721,7 +750,7 @@
 .sidebar-camp-grip {
   width: 20px;
   height: 20px;
-  color: var(--sand-300);
+  color: var(--earth-500); /* Improved contrast for WCAG AA */
   margin: auto 8px;
   flex-shrink: 0;
 }
@@ -796,24 +825,40 @@
   }
 }
 
-/* Sample Banner */
+/* Sample Banner - BUG-A-006: Made more prominent */
 .planner-sample-banner {
   max-width: 1200px;
   margin: 0 auto 20px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, var(--sun-100) 0%, var(--sun-50) 100%);
-  border: 1px solid var(--sun-200);
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--sun-200) 0%, var(--sun-100) 100%);
+  border: 2px solid var(--sun-400);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.15);
 }
 
 .planner-sample-content {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+}
+
+.planner-sample-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  background: var(--sun-500);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: 6px;
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .planner-sample-icon {
@@ -822,28 +867,39 @@
 
 .planner-sample-title {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--earth-800);
+  margin-bottom: 2px;
 }
 
 .planner-sample-text {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   color: var(--earth-700);
 }
 
+/* BUG-A-007: Clear Sample Data button styling */
 .planner-sample-clear {
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding: 10px 18px;
+  font-size: 0.875rem;
+  font-weight: 600;
   background: white;
-  border: 1px solid var(--sun-300);
+  border: 2px solid var(--sun-500);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--sun-700);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .planner-sample-clear:hover {
-  background: var(--sun-50);
+  background: var(--sun-500);
+  color: white;
+}
+
+.planner-sample-clear:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Empty State */
@@ -1000,6 +1056,17 @@
 
 .week-card.is-gap:hover {
   border-color: var(--terra-400);
+}
+
+/* BUG-D-008: Current week highlighting */
+.week-card.is-current-week {
+  border: 2px solid var(--ocean-500);
+  box-shadow: 0 0 0 3px var(--ocean-100), 0 4px 16px -6px rgba(31, 26, 22, 0.12);
+}
+
+.week-card.is-current-week .week-card-number {
+  background: var(--ocean-500);
+  color: white;
 }
 
 .week-card.drag-over {
@@ -1452,6 +1519,19 @@
   color: var(--terra-700);
 }
 
+/* BUG-A-006: Made sample badge more prominent */
+.camp-card-sample-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--sun-500);
+  color: white;
+  border: none;
+}
+
 .camp-card-friends {
   display: flex;
   align-items: center;
@@ -1479,6 +1559,20 @@
   background: var(--ocean-100);
   border-color: var(--ocean-300);
   color: var(--ocean-700);
+}
+
+.camp-card-friends.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--sand-100);
+  border-color: var(--sand-200);
+  color: var(--earth-400);
+}
+
+.camp-card-friends.disabled:hover {
+  background: var(--sand-100);
+  border-color: var(--sand-200);
+  color: var(--earth-400);
 }
 
 /* Camp Card in Week */
@@ -1786,6 +1880,42 @@
 
 .planner-bottom-stat-value.no-gaps {
   color: var(--forest-600);
+}
+
+/* BUG-D-007: Budget warning styles */
+.planner-bottom-stat.over-budget {
+  background: var(--terra-50);
+  border-color: var(--terra-300);
+}
+
+.planner-bottom-stat-value.budget-warning {
+  color: var(--terra-600);
+}
+
+/* BUG-D-007: Budget approaching indicator (80%+ of budget) */
+.planner-bottom-stat.approaching-budget {
+  background: var(--sun-50);
+  border-color: var(--sun-300);
+}
+
+.planner-bottom-stat-value.budget-approaching {
+  color: var(--sun-600);
+}
+
+.planner-bottom-stat.approaching-budget .planner-bottom-stat-label {
+  color: var(--sun-600);
+  font-weight: 600;
+}
+
+.budget-indicator {
+  font-size: 0.75em;
+  opacity: 0.8;
+  margin-left: 2px;
+}
+
+.planner-bottom-stat.over-budget .planner-bottom-stat-label {
+  color: var(--terra-600);
+  font-weight: 700;
 }
 
 .planner-bottom-stat-label {
@@ -2121,7 +2251,7 @@
 }
 
 .planner-drawer-camp-drag {
-  color: var(--sand-300);
+  color: var(--earth-500); /* Improved contrast for WCAG AA */
 }
 
 .planner-drawer-camp-drag svg {
@@ -2159,6 +2289,11 @@
     grid-template-columns: repeat(2, minmax(200px, 1fr));
     padding: 1rem;
     gap: 0.75rem;
+  }
+
+  /* Minimum font size for readability (WCAG) */
+  .camp-card-category {
+    font-size: max(0.6875rem, 11px);
   }
 }
 
@@ -2608,6 +2743,36 @@
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
+}
+
+/* BUG-D-002: Work hours warning */
+.week-card.work-hours-warning {
+  border-color: var(--sunset-400);
+  box-shadow: 0 0 0 2px var(--sunset-100);
+}
+
+.week-work-hours-badge {
+  position: absolute;
+  top: -6px;
+  right: 80px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--sunset-500);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  z-index: 10;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.week-work-hours-badge svg {
+  width: 10px;
+  height: 10px;
 }
 
 .camp-card-enhanced.has-conflict {
@@ -3254,6 +3419,13 @@
 }
 
 @media print {
+  /* BUG-D-004: Force print colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   .planner-container > *:not(.print-view) {
     display: none !important;
   }
@@ -3432,3 +3604,41 @@
   color: var(--ocean-700) !important;
 }
 
+
+/* ─────────────────────────────────────────────────────────────────────
+   GAMIFICATION STRIP (Progress & Tips)
+   ───────────────────────────────────────────────────────────────────── */
+
+.planner-gamification-strip {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--sand-50);
+  border-bottom: 1px solid var(--sand-200);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.planner-gamification-strip .planner-progress {
+  flex: 0 0 auto;
+  min-width: 200px;
+}
+
+.planner-gamification-strip .planner-tips {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 639px) {
+  .planner-gamification-strip {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .planner-gamification-strip .planner-progress,
+  .planner-gamification-strip .planner-tips {
+    width: 100%;
+    min-width: 0;
+  }
+}

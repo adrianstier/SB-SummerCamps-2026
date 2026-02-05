@@ -16,7 +16,8 @@ import {
   getUnreadSquadNotificationCount,
   getCampInterests,
   getFriendInterestCounts,
-  getSummerWeeks2026
+  getSummerWeeks2026,
+  getCampPopularityData
 } from '../lib/supabase';
 import {
   getRecommendations,
@@ -38,6 +39,7 @@ export function AuthProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [authError, setAuthError] = useState(null);
 
   // Squads state
   const [squads, setSquads] = useState([]);
@@ -45,6 +47,9 @@ export function AuthProvider({ children }) {
   const [squadUnreadCount, setSquadUnreadCount] = useState(0);
   const [campInterests, setCampInterests] = useState([]);
   const [friendInterestCounts, setFriendInterestCounts] = useState({});
+
+  // Camp popularity data (count of favorites per camp)
+  const [campPopularity, setCampPopularity] = useState({});
 
   // Check if Supabase is configured
   const isConfigured = !!supabase;
@@ -61,7 +66,9 @@ export function AuthProvider({ children }) {
     const error = hashParams.get('error');
     if (error || errorDescription) {
       console.error('OAuth error:', error, errorDescription);
-      alert(`Sign in failed: ${errorDescription || error}`);
+      setAuthError(errorDescription || error);
+      // Clear error from URL to prevent re-triggering
+      window.history.replaceState(null, '', window.location.pathname);
     }
 
     // Get initial session
@@ -115,7 +122,8 @@ export function AuthProvider({ children }) {
         squadNotificationsData,
         squadUnreadCountData,
         campInterestsData,
-        friendInterestCountsData
+        friendInterestCountsData,
+        campPopularityData
       ] = await Promise.all([
         getProfile(userId),
         getChildren(),
@@ -127,7 +135,8 @@ export function AuthProvider({ children }) {
         getSquadNotifications(),
         getUnreadSquadNotificationCount(),
         getCampInterests(),
-        getFriendInterestCounts()
+        getFriendInterestCounts(),
+        getCampPopularityData()
       ]);
 
       setProfile(profileData);
@@ -141,15 +150,15 @@ export function AuthProvider({ children }) {
       setSquadUnreadCount(squadUnreadCountData);
       setCampInterests(campInterestsData);
       setFriendInterestCounts(friendInterestCountsData);
+      setCampPopularity(campPopularityData);
 
       // Check if user needs onboarding
-      // Only show for truly new users (created within last 10 minutes) to avoid re-triggering
-      const isNewUser = profileData &&
+      // Show for users who haven't completed onboarding and have no children
+      const needsOnboarding = profileData &&
         !profileData.onboarding_completed &&
-        childrenData.length === 0 &&
-        new Date(profileData.created_at) > new Date(Date.now() - 10 * 60 * 1000);
+        childrenData.length === 0;
 
-      if (isNewUser) {
+      if (needsOnboarding) {
         setShowOnboarding(true);
       }
 
@@ -284,6 +293,10 @@ export function AuthProvider({ children }) {
     refreshChildren();
   }, [refreshProfile, refreshChildren]);
 
+  const clearAuthError = useCallback(function clearAuthError() {
+    setAuthError(null);
+  }, []);
+
   // Check if a camp is favorited
   const isFavorited = useCallback(function isFavorited(campId) {
     return favorites.some(f => f.camp_id === campId);
@@ -360,14 +373,16 @@ export function AuthProvider({ children }) {
     return getGapSuggestions(camps, context);
   }, [buildRecommendationContext]);
 
-  // Get popular camps in the area
+  // Get popular camps in the area (using actual favorites data)
   const getPopularInArea = useCallback(function getPopularInArea(camps, limit = 6) {
     if (!camps || camps.length === 0) return [];
-    // TODO: Fetch actual popularity data from database
-    return getPopularCamps(camps, {}, limit);
-  }, []);
+    return getPopularCamps(camps, campPopularity, limit);
+  }, [campPopularity]);
 
   // Get personalized homepage content
+  // BUG-E-008: This function is exported and available for future use in a personalized homepage.
+  // To use: destructure getHomepageContent from useAuth() and call getHomepageContent(camps).
+  // Returns { greeting: string, sections: array } with personalized camp recommendations.
   const getHomepageContent = useCallback(function getHomepageContent(camps) {
     if (!camps || camps.length === 0) return { greeting: 'Find the right camp', sections: [] };
     const context = buildRecommendationContext(camps);
@@ -399,6 +414,9 @@ export function AuthProvider({ children }) {
     isConfigured,
     signIn,
     signOut,
+    // Auth errors
+    authError,
+    clearAuthError,
     // Onboarding
     showOnboarding,
     completeOnboarding,
@@ -445,6 +463,8 @@ export function AuthProvider({ children }) {
     isConfigured,
     signIn,
     signOut,
+    authError,
+    clearAuthError,
     showOnboarding,
     completeOnboarding,
     refreshProfile,

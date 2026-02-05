@@ -41,12 +41,21 @@ export function CostDashboard({ camps, onClose }) {
       byWeek[weekKey].total += parseFloat(sc.price) || 0;
     });
 
-    // FSA eligible (check camp data)
+    // FSA eligible (check camp data) - BUG-D-009: Include breakdown by camp
     let fsaEligible = 0;
+    const fsaCamps = [];
     activeSchedules.forEach(sc => {
       const camp = camps.find(c => c.id === sc.camp_id);
       if (camp?.fsa_eligible) {
-        fsaEligible += parseFloat(sc.price) || 0;
+        const price = parseFloat(sc.price) || 0;
+        fsaEligible += price;
+        fsaCamps.push({
+          camp_name: camp.camp_name,
+          price,
+          child_id: sc.child_id,
+          child_name: children.find(c => c.id === sc.child_id)?.name || 'Unknown',
+          week: sc.start_date
+        });
       }
     });
 
@@ -67,6 +76,7 @@ export function CostDashboard({ camps, onClose }) {
       byChild,
       byWeek: Object.values(byWeek).sort((a, b) => a.date.localeCompare(b.date)),
       fsaEligible,
+      fsaCamps, // BUG-D-009: Include FSA camps breakdown
       byStatus,
       plannedCost,
       confirmedCost,
@@ -163,6 +173,22 @@ export function CostDashboard({ camps, onClose }) {
                 <p className="text-2xl font-bold" style={{ color: '#1d4ed8' }}>
                   {formatCurrency(costBreakdown.fsaEligible)}
                 </p>
+                {/* BUG-D-009: FSA Breakdown by camp */}
+                {costBreakdown.fsaCamps.length > 0 && (
+                  <details className="mt-3">
+                    <summary className="text-xs cursor-pointer" style={{ color: '#3b82f6' }}>
+                      View {costBreakdown.fsaCamps.length} eligible camp{costBreakdown.fsaCamps.length > 1 ? 's' : ''}
+                    </summary>
+                    <ul className="mt-2 space-y-1 text-xs" style={{ color: '#1e40af' }}>
+                      {costBreakdown.fsaCamps.map((camp, idx) => (
+                        <li key={idx} className="flex justify-between">
+                          <span>{camp.camp_name} ({camp.child_name})</span>
+                          <span className="font-medium">{formatCurrency(camp.price)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
               </div>
             )}
           </div>

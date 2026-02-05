@@ -1,4 +1,4 @@
-import React, { memo, useState, useRef, useCallback } from 'react';
+import React, { memo, useState, useRef, useCallback, useEffect } from 'react';
 import { useHaptic } from '../hooks/usePWA';
 
 /**
@@ -20,6 +20,8 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
 }) {
   const haptic = useHaptic();
   const cardRef = useRef(null);
+  // BUG-B-006: Track if we're actively preventing scroll to cleanup properly
+  const isPreventingScrollRef = useRef(false);
 
   const [state, setState] = useState({
     isDragging: false,
@@ -29,6 +31,21 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
     direction: null,
     isAnimating: false
   });
+
+  // BUG-B-006: Cleanup effect - restore scroll behavior when component unmounts or swipe ends
+  useEffect(() => {
+    return () => {
+      // Reset the scroll prevention flag on cleanup
+      isPreventingScrollRef.current = false;
+    };
+  }, []);
+
+  // BUG-B-006: Reset scroll prevention when dragging ends
+  useEffect(() => {
+    if (!state.isDragging && isPreventingScrollRef.current) {
+      isPreventingScrollRef.current = false;
+    }
+  }, [state.isDragging]);
 
   const handleTouchStart = useCallback((e) => {
     if (disabled || state.isAnimating) return;
@@ -51,11 +68,15 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
 
     // Only allow horizontal swipe if horizontal movement > vertical
     if (Math.abs(deltaX) < Math.abs(deltaY) && Math.abs(deltaX) < 10) {
+      // BUG-B-006: Reset scroll prevention if we switch to vertical scrolling
+      isPreventingScrollRef.current = false;
       return;
     }
 
     // Prevent vertical scroll during horizontal swipe
+    // BUG-B-006: Track when we're preventing scroll for proper cleanup
     if (Math.abs(deltaX) > 10) {
+      isPreventingScrollRef.current = true;
       e.preventDefault();
     }
 
@@ -143,7 +164,8 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
 
   const { currentX, direction, isDragging } = state;
   const progress = Math.min(Math.abs(currentX) / swipeThreshold, 1);
-  const rotation = (currentX / window.innerWidth) * 15;
+  // BUG-B-007: Guard against division by zero if window width is 0
+  const rotation = (currentX / (window.innerWidth || 1)) * 15;
 
   // Background reveal colors based on swipe direction
   const showRightAction = direction === 'right' && Math.abs(currentX) > 20;

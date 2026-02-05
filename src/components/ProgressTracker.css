@@ -60,6 +60,14 @@
   color: var(--terra-600);
 }
 
+/* BUG-F-020: Best streak display */
+.progress-best-streak {
+  font-size: 0.625rem;
+  font-weight: var(--font-medium);
+  color: var(--terra-400);
+  margin-left: -2px;
+}
+
 /* Progress Bar */
 .progress-bar-container {
   position: relative;

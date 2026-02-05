@@ -68,7 +68,8 @@ export default function FamilyWorkspace({ onClose }) {
       }
     }
     lookupCode();
-  }, [inviteCode, getFamilyByInviteCode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inviteCode]);
 
   async function handleCreateFamily(e) {
     e.preventDefault();
@@ -132,8 +133,25 @@ export default function FamilyWorkspace({ onClose }) {
 
   async function handleCopyInviteCode() {
     if (currentFamily?.invite_code) {
-      await navigator.clipboard.writeText(currentFamily.invite_code);
-      setSuccess('Invite code copied');
+      try {
+        await navigator.clipboard.writeText(currentFamily.invite_code);
+        setSuccess('Invite code copied');
+      } catch (err) {
+        // Fallback for browsers without clipboard API support
+        const textArea = document.createElement('textarea');
+        textArea.value = currentFamily.invite_code;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setSuccess('Invite code copied');
+        } catch (fallbackErr) {
+          setError('Could not copy to clipboard');
+        }
+        document.body.removeChild(textArea);
+      }
     }
   }
 

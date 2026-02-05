@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { addChild, updateChild, deleteChild } from '../lib/supabase';
+import { PLANNING_YEAR_LABEL } from '../lib/config';
 
 const childColors = [
   '#3b82f6', // blue
@@ -150,7 +151,7 @@ export function ChildrenManager({ onClose }) {
                     <p className="heading-sm">{child.name}</p>
                     {child.age_as_of_summer && (
                       <p className="body-sm text-muted">
-                        Age {child.age_as_of_summer} in Summer 2026
+                        Age {child.age_as_of_summer} in {PLANNING_YEAR_LABEL}
                       </p>
                     )}
                   </div>
@@ -217,7 +218,7 @@ export function ChildrenManager({ onClose }) {
               </div>
 
               <div>
-                <label className="label">Age in Summer 2026</label>
+                <label className="label">Age in {PLANNING_YEAR_LABEL}</label>
                 <select
                   value={formData.age_as_of_summer}
                   onChange={(e) => setFormData({ ...formData, age_as_of_summer: e.target.value })}

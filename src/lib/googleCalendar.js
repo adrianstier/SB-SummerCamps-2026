@@ -174,11 +174,54 @@ export function formatCampForCalendar(camp, schedule) {
       let startHour = parseInt(startH);
       let endHour = parseInt(endH);
 
+      // Infer AM/PM if not specified (common camp hours pattern)
+      // If no periods given and end hour < start hour, assume start is AM and end is PM
+      // e.g., "9-3" means 9am-3pm, "8-4" means 8am-4pm
+      let inferredStartPeriod = startPeriod?.toLowerCase();
+      let inferredEndPeriod = endPeriod?.toLowerCase();
+
+      if (!inferredStartPeriod && !inferredEndPeriod) {
+        // No AM/PM specified - infer based on typical camp hours
+        if (startHour >= 7 && startHour <= 10 && endHour >= 1 && endHour <= 6) {
+          // Pattern like "9-3" or "8-4" - start is AM, end is PM
+          inferredStartPeriod = 'am';
+          inferredEndPeriod = 'pm';
+        } else if (startHour <= 12 && endHour <= 12 && endHour < startHour) {
+          // End hour is smaller, assume crossing noon
+          inferredStartPeriod = 'am';
+          inferredEndPeriod = 'pm';
+        }
+      } else if (inferredStartPeriod && !inferredEndPeriod) {
+        // Start period specified but end is not (e.g., "9am-3")
+        // If start is AM and end hour is 1-6, infer end is PM
+        if (inferredStartPeriod === 'am' && endHour >= 1 && endHour <= 6) {
+          inferredEndPeriod = 'pm';
+        } else if (inferredStartPeriod === 'am' && endHour >= 7 && endHour <= 12) {
+          // End is still in morning/noon (e.g., "9am-12")
+          inferredEndPeriod = endHour === 12 ? 'pm' : 'am';
+        } else {
+          // Default: same period as start
+          inferredEndPeriod = inferredStartPeriod;
+        }
+      } else if (!inferredStartPeriod && inferredEndPeriod) {
+        // End period specified but start is not (e.g., "9-3pm")
+        // If end is PM and start hour is 7-10, infer start is AM
+        if (inferredEndPeriod === 'pm' && startHour >= 7 && startHour <= 10) {
+          inferredStartPeriod = 'am';
+        } else if (inferredEndPeriod === 'pm' && startHour >= 11 && startHour <= 12) {
+          // Late morning start (e.g., "11-3pm" or "12-3pm")
+          inferredStartPeriod = startHour === 12 ? 'pm' : 'am';
+        } else {
+          // Default: same period as end
+          inferredStartPeriod = inferredEndPeriod;
+        }
+      }
+
       // Convert to 24-hour format
-      if (startPeriod?.toLowerCase() === 'pm' && startHour < 12) startHour += 12;
-      if (startPeriod?.toLowerCase() === 'am' && startHour === 12) startHour = 0;
-      if (endPeriod?.toLowerCase() === 'pm' && endHour < 12) endHour += 12;
-      if (endPeriod?.toLowerCase() === 'am' && endHour === 12) endHour = 0;
+      if (inferredStartPeriod === 'pm' && startHour < 12) startHour += 12;
+      if (inferredStartPeriod === 'am' && startHour === 12) startHour = 0;
+      if (inferredEndPeriod === 'pm' && endHour < 12) endHour += 12;
+      if (inferredEndPeriod === 'am' && endHour === 12) endHour = 0;
 
       startTime = `${String(startHour).padStart(2, '0')}:${startM}`;
       endTime = `${String(endHour).padStart(2, '0')}:${endM}`;
@@ -225,9 +268,14 @@ export function exportAllToGoogleCalendar(camps, schedules) {
     }, index * 500); // Stagger to avoid popup blocking
   });
 
-  if (events.length > maxTabs) {
-    alert(`Opened first ${maxTabs} events. Download the .ics file to import all ${events.length} events at once.`);
-  }
+  // Return result for caller to handle UI feedback
+  return {
+    openedCount: Math.min(events.length, maxTabs),
+    totalCount: events.length,
+    message: events.length > maxTabs
+      ? `Opened first ${maxTabs} events. Download the .ics file to import all ${events.length} events at once.`
+      : null
+  };
 }
 
 /**

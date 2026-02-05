@@ -11,6 +11,10 @@ const MILESTONES = [
   { percent: 100, label: '100%', message: 'Summer sorted!' }
 ];
 
+// BUG-F-006: Design Decision - ProgressTracker shows global (family-wide) stats intentionally.
+// This gives parents an overall view of summer planning progress across all children.
+// For per-child progress, use the SchedulePlanner which has child-specific views and tabs.
+// If per-child tracking is needed here, add a `childId` prop to filter planningStats.
 export const ProgressTracker = memo(function ProgressTracker({
   variant = 'default', // 'default', 'compact', 'detailed'
   showMilestones = true,
@@ -72,10 +76,19 @@ export const ProgressTracker = memo(function ProgressTracker({
           <span className="progress-label">Summer Planning Progress</span>
           <span className="progress-percent">{coveragePercent}%</span>
         </div>
+        {/* BUG-F-020: Display both current streak and best streak */}
         {streak.count > 1 && (
-          <div className="progress-streak" title={`${streak.count}-day planning streak`}>
+          <div
+            className="progress-streak"
+            title={`${streak.count}-day planning streak${streak.bestStreak > streak.count ? ` (best: ${streak.bestStreak} days)` : streak.bestStreak === streak.count ? ' (your best!)' : ''}`}
+          >
             <span className="progress-streak-icon"><BrandIcon name="flame" size={16} /></span>
             <span className="progress-streak-count">{streak.count}</span>
+            {streak.bestStreak > streak.count && (
+              <span className="progress-best-streak" title={`Best: ${streak.bestStreak} days`}>
+                /{streak.bestStreak}
+              </span>
+            )}
           </div>
         )}
       </div>

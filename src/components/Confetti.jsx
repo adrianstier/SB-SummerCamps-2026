@@ -46,10 +46,10 @@ export const Confetti = memo(function Confetti() {
       setParticles(generateParticles(isLegendary ? PARTICLE_COUNT * 1.5 : PARTICLE_COUNT, isLegendary));
       setVisible(true);
 
-      // Hide after animation completes
+      // Hide after animation completes (6 seconds to allow reading notification)
       const timer = setTimeout(() => {
         setVisible(false);
-      }, 5000);
+      }, 6000);
 
       return () => clearTimeout(timer);
     } else {

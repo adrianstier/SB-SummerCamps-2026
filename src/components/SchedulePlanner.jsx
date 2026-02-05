@@ -1,11 +1,15 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getSummerWeeks2026, addScheduledCamp, deleteScheduledCamp, updateScheduledCamp, clearSampleData, toggleLookingForFriends, getCampSessions, checkConflicts } from '../lib/supabase';
+import { useAchievements } from '../contexts/AchievementsContext';
+import { getSummerWeeks2026, addScheduledCamp, deleteScheduledCamp, updateScheduledCamp, clearSampleData, toggleLookingForFriends, getCampSessions, checkConflicts, checkWorkScheduleCoverage, updateProfile, getNotificationPreferences } from '../lib/supabase';
 import { createGoogleCalendarUrl, exportAllToICal, formatCampForCalendar, generateICalFile } from '../lib/googleCalendar';
 import { GuidedTour } from './GuidedTour';
 import SquadsPanel from './SquadsPanel';
 import SquadNotificationBell from './SquadNotificationBell';
 import { ShareableSummerCard, ShareButton } from './ShareableSummerCard';
+import { ProgressTracker } from './ProgressTracker';
+import { PlanningTipsContainer } from './PlanningTips';
+import { AchievementBadges } from './AchievementBadges';
 import BrandIcon from './BrandIcon';
 import './SchedulePlanner.css';
 
@@ -40,6 +44,15 @@ const CONFLICT_TYPES = {
   TIME_CONFLICT: 'time_conflict'
 };
 
+// BUG-D-002: Helper to format 24h time (e.g., "08:00") to 12h display (e.g., "8am")
+function formatWorkTime(time24) {
+  if (!time24) return '';
+  const [hours, minutes] = time24.split(':').map(Number);
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  const hour12 = hours % 12 || 12;
+  return minutes === 0 ? `${hour12}${ampm}` : `${hour12}:${minutes.toString().padStart(2, '0')}${ampm}`;
+}
+
 export function SchedulePlanner({ camps, onClose }) {
   const {
     isConfigured,
@@ -50,11 +63,16 @@ export function SchedulePlanner({ camps, onClose }) {
     getTotalCost,
     getCoverageGaps,
     profile,
+    refreshProfile,
     campInterests,
     refreshCampInterests,
     squads,
-    favorites
+    favorites,
+    user
   } = useAuth();
+
+  // Get achievements context for gamification features
+  const { celebrationAchievement, dismissCelebration } = useAchievements();
 
   const [selectedChild, setSelectedChild] = useState(children[0]?.id || null);
   const [showAddCamp, setShowAddCamp] = useState(null);
@@ -65,7 +83,8 @@ export function SchedulePlanner({ camps, onClose }) {
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
   const [dragOverWeek, setDragOverWeek] = useState(null);
   const [showBlockMenu, setShowBlockMenu] = useState(null); // { weekNum }
-  const [blockedWeeks, setBlockedWeeks] = useState({}); // { [childId]: { [weekNum]: { type, label, note } } }
+  // BUG-D-001: Initialize blockedWeeks from profile for cross-device persistence
+  const [blockedWeeks, setBlockedWeeks] = useState(() => profile?.blocked_weeks || {}); // { [childId]: { [weekNum]: { type, label, note } } }
   const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' or 'squads'
   const [draggedCamp, setDraggedCamp] = useState(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
@@ -99,6 +118,9 @@ export function SchedulePlanner({ camps, onClose }) {
   const touchStartRef = useRef(null);
   const touchMoveRef = useRef(null);
 
+  // BUG-D-007: Budget warning threshold from user settings (default 80%)
+  const [budgetWarningThreshold, setBudgetWarningThreshold] = useState(0.8);
+
   // Update selectedChild when children array changes
   useEffect(() => {
     if (children.length > 0 && (!selectedChild || !children.some(c => c.id === selectedChild))) {
@@ -106,12 +128,68 @@ export function SchedulePlanner({ camps, onClose }) {
     }
   }, [children, selectedChild]);
 
+  // BUG-F-015: Check for navigation target from squad notifications
+  useEffect(() => {
+    if (window.__plannerNavTarget) {
+      const { tab, squadId } = window.__plannerNavTarget;
+      if (tab === 'squads' || tab === 'schedule') {
+        setActiveTab(tab);
+      }
+      // Clean up the navigation target
+      delete window.__plannerNavTarget;
+    }
+  }, []);
+
   // Auto-dismiss status message after 4 seconds
   useEffect(() => {
     if (!statusMessage) return;
     const timer = setTimeout(() => setStatusMessage(null), 4000);
     return () => clearTimeout(timer);
   }, [statusMessage]);
+
+  // BUG-D-001: Load blocked weeks from profile when it changes
+  useEffect(() => {
+    if (profile?.blocked_weeks) {
+      setBlockedWeeks(profile.blocked_weeks);
+    }
+  }, [profile?.blocked_weeks]);
+
+  // BUG-D-007: Load budget warning threshold from notification preferences
+  useEffect(() => {
+    const loadBudgetThreshold = async () => {
+      try {
+        const prefs = await getNotificationPreferences();
+        if (prefs?.budget_warning_threshold) {
+          // Convert from percentage (80) to decimal (0.8)
+          setBudgetWarningThreshold(prefs.budget_warning_threshold / 100);
+        }
+      } catch (error) {
+        console.error('Failed to load notification preferences:', error);
+        // Keep default threshold of 0.8
+      }
+    };
+    loadBudgetThreshold();
+  }, []);
+
+  // BUG-D-001: Persist blocked weeks to profile when they change
+  const blockedWeeksRef = useRef(blockedWeeks);
+  useEffect(() => {
+    // Skip if no meaningful change
+    const current = JSON.stringify(blockedWeeks);
+    const previous = JSON.stringify(blockedWeeksRef.current);
+    if (current === previous) return;
+    blockedWeeksRef.current = blockedWeeks;
+
+    // Debounce save to avoid too many API calls
+    const timer = setTimeout(async () => {
+      try {
+        await updateProfile({ blocked_weeks: blockedWeeks });
+      } catch (error) {
+        console.error('Failed to save blocked weeks:', error);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [blockedWeeks]);
 
   // Helper to show inline status messages
   function showStatus(message) {
@@ -628,17 +706,46 @@ export function SchedulePlanner({ camps, onClose }) {
   }, [scheduledCamps, selectedChild, campLookup]);
 
   // Fetch camp sessions when session picker is opened
+  // BUG-D-003: Fall back to extracted.sessions from camp data when database is empty
   useEffect(() => {
     if (!showSessionPicker) return;
     const fetchSessions = async () => {
       const campId = showSessionPicker.camp.id;
-      if (campSessions[campId]) return; // Already cached
+      const camp = showSessionPicker.camp;
+      if (campSessions[campId] !== undefined) return; // Already cached (including empty array)
 
       try {
         const sessions = await getCampSessions(campId);
-        setCampSessions(prev => ({ ...prev, [campId]: sessions }));
+
+        // If database has sessions, use them
+        if (sessions && sessions.length > 0) {
+          setCampSessions(prev => ({ ...prev, [campId]: sessions }));
+          return;
+        }
+
+        // BUG-D-003: Fall back to extracted.sessions from camp object
+        if (camp.extracted?.sessions && camp.extracted.sessions.length > 0) {
+          const extractedSessions = camp.extracted.sessions
+            .filter(s => s.parsed?.startDate || s.raw) // Only sessions with some data
+            .map((s, index) => ({
+              id: `extracted-${campId}-${index}`,
+              name: s.parsed?.name || s.raw?.split(/[-–]/)?.[0]?.trim() || `Session ${index + 1}`,
+              start_date: s.parsed?.startDate || null,
+              end_date: s.parsed?.endDate || null,
+              price: s.parsed?.price || null,
+              is_available: true, // Assume available from scraped data
+              raw: s.raw // Keep raw for display fallback
+            }));
+          setCampSessions(prev => ({ ...prev, [campId]: extractedSessions }));
+          return;
+        }
+
+        // No sessions found anywhere
+        setCampSessions(prev => ({ ...prev, [campId]: [] }));
       } catch (error) {
         console.error('Failed to fetch camp sessions:', error);
+        // Set to empty array on error to prevent infinite loading state
+        setCampSessions(prev => ({ ...prev, [campId]: [] }));
       }
     };
     fetchSessions();
@@ -692,9 +799,12 @@ export function SchedulePlanner({ camps, onClose }) {
       totalCost: getTotalCost()
     };
 
-    // Encode as base64 for URL
-    const encoded = btoa(JSON.stringify(scheduleData));
-    const url = `${window.location.origin}/schedule/shared/${encoded}`;
+    // Encode as URL-safe base64 for query parameter
+    // Use URL-safe base64: replace + with -, / with _, and remove padding =
+    const jsonStr = JSON.stringify(scheduleData);
+    const base64 = btoa(jsonStr);
+    const urlSafeBase64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const url = `${window.location.origin}?shared=${encodeURIComponent(urlSafeBase64)}`;
     setShareLink(url);
     setShowShareModal(true);
   }
@@ -702,7 +812,19 @@ export function SchedulePlanner({ camps, onClose }) {
   // Copy share link to clipboard
   async function copyShareLink() {
     try {
-      await navigator.clipboard.writeText(shareLink);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareLink);
+      } else {
+        // Fallback for browsers without clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = shareLink;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       showStatus('Link copied to clipboard');
     } catch (error) {
       console.error('Failed to copy:', error);
@@ -911,6 +1033,42 @@ export function SchedulePlanner({ camps, onClose }) {
     const isBlockMenuOpen = showBlockMenu?.weekNum === week.weekNum;
     const weekCost = weekCostBreakdown.find(w => w.weekNum === week.weekNum)?.cost || 0;
 
+    // BUG-D-008: Check if this is the current week
+    const today = new Date();
+    const weekStartDate = new Date(week.startDate);
+    const weekEndDate = new Date(week.endDate);
+    weekEndDate.setHours(23, 59, 59); // Include the full end day
+    const isCurrentWeek = today >= weekStartDate && today <= weekEndDate;
+
+    // BUG-D-002: Check work schedule coverage for camps in this week
+    const workStart = profile?.work_hours_start;
+    const workEnd = profile?.work_hours_end;
+    const hasWorkHoursCoverage = !workStart || !workEnd || weekCamps.length === 0 || weekCamps.some(sc => {
+      const campInfo = campLookup.get(sc.camp_id);
+      if (!campInfo) return false;
+      // Simple check: compare camp hours with work hours
+      const campHoursStart = campInfo.drop_off || campInfo.hours?.split('-')[0]?.trim();
+      const campHoursEnd = campInfo.pick_up || campInfo.hours?.split('-')[1]?.trim();
+      if (!campHoursStart || !campHoursEnd) return true; // No camp hours, can't determine - assume OK
+      // Normalize times to 24h for comparison
+      const normalizeTime = (t) => {
+        if (!t) return null;
+        const match = t.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
+        if (!match) return t;
+        let h = parseInt(match[1]);
+        const m = match[2] || '00';
+        const ampm = match[3]?.toLowerCase();
+        if (ampm === 'pm' && h < 12) h += 12;
+        if (ampm === 'am' && h === 12) h = 0;
+        return `${h.toString().padStart(2, '0')}:${m}`;
+      };
+      const normCampStart = normalizeTime(campHoursStart);
+      const normCampEnd = normalizeTime(campHoursEnd);
+      // Camp should start at or before work starts and end at or after work ends
+      return normCampStart && normCampEnd && normCampStart <= workStart && normCampEnd >= workEnd;
+    });
+    const showWorkHoursWarning = workStart && workEnd && weekCamps.length > 0 && !hasWorkHoursCoverage;
+
     // Check for conflicts on this week
     const weekConflicts = conflicts.filter(c =>
       c.camps.some(camp => {
@@ -936,7 +1094,7 @@ export function SchedulePlanner({ camps, onClose }) {
       <div
         key={week.weekNum}
         data-week-num={week.weekNum}
-        className={`week-card ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''} ${hasConflict ? 'has-conflict' : ''} ${movingCamp ? 'move-target' : ''}`}
+        className={`week-card ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''} ${hasConflict ? 'has-conflict' : ''} ${movingCamp ? 'move-target' : ''} ${isCurrentWeek ? 'is-current-week' : ''} ${showWorkHoursWarning ? 'work-hours-warning' : ''}`}
         style={blocked ? { '--block-color': blocked.color } : { '--child-color': selectedChildData?.color || 'var(--ocean-500)' }}
         role="button"
         tabIndex={0}
@@ -957,6 +1115,23 @@ export function SchedulePlanner({ camps, onClose }) {
             e.preventDefault();
             if (weekCamps.length === 0 && !blocked && !isBlockMenuOpen) {
               setShowBlockMenu({ weekNum: week.weekNum });
+            }
+          }
+          // BUG-D-005: Arrow key navigation between weeks
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prevWeekNum = week.weekNum - 1;
+            if (prevWeekNum >= 1) {
+              const prevWeekCard = document.querySelector(`[data-week-num="${prevWeekNum}"]`);
+              prevWeekCard?.focus();
+            }
+          }
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            const nextWeekNum = week.weekNum + 1;
+            if (nextWeekNum <= summerWeeks.length) {
+              const nextWeekCard = document.querySelector(`[data-week-num="${nextWeekNum}"]`);
+              nextWeekCard?.focus();
             }
           }
         }}
@@ -983,6 +1158,14 @@ export function SchedulePlanner({ camps, onClose }) {
           <div className="week-conflict-badge">
             <WarningIcon />
             <span>Conflict</span>
+          </div>
+        )}
+
+        {/* BUG-D-002: Work Hours Warning */}
+        {showWorkHoursWarning && (
+          <div className="week-work-hours-badge">
+            <ClockIcon />
+            <span>Hours</span>
           </div>
         )}
 
@@ -1063,6 +1246,43 @@ export function SchedulePlanner({ camps, onClose }) {
                                 className="camp-move-menu"
                                 role="menu"
                                 aria-label="Select week to move camp to"
+                                ref={(el) => {
+                                  // BUG-D-005: Auto-focus first menu item when menu opens
+                                  if (el) {
+                                    const firstItem = el.querySelector('[role="menuitem"]');
+                                    if (firstItem) firstItem.focus();
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  // BUG-D-005: Keyboard navigation for move menu
+                                  const items = e.currentTarget.querySelectorAll('[role="menuitem"]');
+                                  const currentIndex = Array.from(items).indexOf(document.activeElement);
+
+                                  switch (e.key) {
+                                    case 'ArrowDown':
+                                      e.preventDefault();
+                                      const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+                                      items[nextIndex]?.focus();
+                                      break;
+                                    case 'ArrowUp':
+                                      e.preventDefault();
+                                      const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+                                      items[prevIndex]?.focus();
+                                      break;
+                                    case 'Home':
+                                      e.preventDefault();
+                                      items[0]?.focus();
+                                      break;
+                                    case 'End':
+                                      e.preventDefault();
+                                      items[items.length - 1]?.focus();
+                                      break;
+                                    case 'Escape':
+                                      e.preventDefault();
+                                      setMoveMenuCamp(null);
+                                      break;
+                                  }
+                                }}
                                 style={{
                                   position: 'absolute',
                                   top: '100%',
@@ -1085,9 +1305,6 @@ export function SchedulePlanner({ camps, onClose }) {
                                       e.stopPropagation();
                                       handleMoveCamp(sc.id, targetWeek.weekNum);
                                       setMoveMenuCamp(null);
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Escape') setMoveMenuCamp(null);
                                     }}
                                     style={{
                                       display: 'block',
@@ -1129,6 +1346,11 @@ export function SchedulePlanner({ camps, onClose }) {
                       <span className={`camp-card-status status-${sc.status}`}>
                         {sc.status}
                       </span>
+                      {sc.is_sample && (
+                        <span className="camp-card-sample-badge" title="Sample data from guided tour">
+                          sample
+                        </span>
+                      )}
                     </div>
                     {campHasConflict && (
                       <div className="camp-card-conflict-badge" title={weekConflicts.find(c => c.camps.some(cc => cc.id === sc.id))?.message}>
@@ -1136,18 +1358,20 @@ export function SchedulePlanner({ camps, onClose }) {
                         <span>Conflict</span>
                       </div>
                     )}
-                    {hasSquads && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
-                        }}
-                        className={`camp-card-friends ${lookingForFriends ? 'active' : ''}`}
-                      >
-                        <BrandIcon name="people" size={16} />
-                        <span>{lookingForFriends ? 'Looking for friends' : 'Find friends'}</span>
-                      </button>
-                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // BUG-F-013: Allow toggle even without squads - settings persist for when user joins a squad
+                        handleToggleLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
+                      }}
+                      className={`camp-card-friends ${lookingForFriends ? 'active' : ''}`}
+                      title={lookingForFriends
+                        ? 'Looking for friends at this camp' + (!hasSquads ? ' (join a squad to connect)' : '')
+                        : (hasSquads ? 'Let squad members know you want friends here' : 'Mark as looking for friends (join a squad to connect)')}
+                    >
+                      <BrandIcon name="people" size={16} />
+                      <span>{lookingForFriends ? 'Looking for friends' : 'Find friends'}</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -1349,6 +1573,15 @@ export function SchedulePlanner({ camps, onClose }) {
           </svg>
           Squads
         </button>
+        <button
+          onClick={() => setActiveTab('achievements')}
+          className={`planner-tab ${activeTab === 'achievements' ? 'active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+          Badges
+        </button>
       </div>
 
       {/* Preview Mode Banner */}
@@ -1393,6 +1626,10 @@ export function SchedulePlanner({ camps, onClose }) {
       {activeTab === 'squads' ? (
         <div key="squads" className="planner-main tab-content-enter" style={{ padding: 0 }}>
           <SquadsPanel onClose={onClose} />
+        </div>
+      ) : activeTab === 'achievements' ? (
+        <div key="achievements" className="planner-main tab-content-enter" style={{ padding: '1rem' }}>
+          <AchievementBadges variant="grid" showFilters={true} />
         </div>
       ) : activeTab === 'status' ? (
         <main key="status" className="planner-main tab-content-enter">
@@ -1486,14 +1723,14 @@ export function SchedulePlanner({ camps, onClose }) {
         </main>
       ) : (
       <main key="schedule" className="planner-main tab-content-enter">
-        {/* Sample Data Banner */}
+        {/* Sample Data Banner - BUG-A-006: Made more prominent with DEMO badge */}
         {hasSampleData && !previewMode && (
-          <div className="planner-sample-banner">
+          <div className="planner-sample-banner" role="status" aria-live="polite">
             <div className="planner-sample-content">
-              <span className="planner-sample-icon"><BrandIcon name="faith-based" size={20} /></span>
+              <span className="planner-sample-badge">DEMO</span>
               <div>
-                <p className="planner-sample-title">Sample data</p>
-                <p className="planner-sample-text">Clear to start planning</p>
+                <p className="planner-sample-title">You're viewing sample data</p>
+                <p className="planner-sample-text">This is a demo. Clear sample data to start planning your own summer.</p>
               </div>
             </div>
             <button
@@ -1501,7 +1738,7 @@ export function SchedulePlanner({ camps, onClose }) {
               disabled={clearingSampleData}
               className="planner-sample-clear"
             >
-              {clearingSampleData ? 'Clearing...' : 'Clear'}
+              {clearingSampleData ? 'Clearing...' : 'Clear Sample Data'}
             </button>
           </div>
         )}
@@ -1534,6 +1771,17 @@ export function SchedulePlanner({ camps, onClose }) {
                 {gaps.length > 0 && (
                   <span className="summer-strip-gaps">{gaps.length} gap{gaps.length > 1 ? 's' : ''}</span>
                 )}
+                {/* BUG-D-002: Work Schedule Overlay Indicator */}
+                {profile?.work_hours_start && profile?.work_hours_end && (
+                  <>
+                    <span className="summer-strip-divider" />
+                    <span className="summer-strip-work-hours" title="Configured work hours - camps should cover this time">
+                      <ClockIcon className="work-hours-icon" />
+                      <span className="work-hours-label">Work:</span>
+                      <strong>{formatWorkTime(profile.work_hours_start)}-{formatWorkTime(profile.work_hours_end)}</strong>
+                    </span>
+                  </>
+                )}
               </div>
               <div className="summer-strip-bar">
                 {summerWeeks.map((week) => {
@@ -1551,6 +1799,12 @@ export function SchedulePlanner({ camps, onClose }) {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Planning Progress & Tips */}
+            <div className="planner-gamification-strip">
+              <ProgressTracker variant="compact" className="planner-progress" />
+              <PlanningTipsContainer variant="inline" className="planner-tips" />
             </div>
 
             {/* Camp Sidebar */}
@@ -1831,14 +2085,22 @@ export function SchedulePlanner({ camps, onClose }) {
           </div>
 
           {/* Stats */}
+          {/* BUG-D-007: Budget warning threshold is now configurable via user settings */}
           <div className="planner-bottom-stats">
             <button
-              className="planner-bottom-stat clickable"
+              className={`planner-bottom-stat clickable ${profile?.summer_budget && totalCost > profile.summer_budget ? 'over-budget' : ''} ${profile?.summer_budget && totalCost >= profile.summer_budget * budgetWarningThreshold && totalCost <= profile.summer_budget ? 'approaching-budget' : ''}`}
               onClick={() => setShowCostBreakdown(!showCostBreakdown)}
-              title="View cost breakdown"
+              title={profile?.summer_budget ? `Budget: $${profile.summer_budget.toLocaleString()} (${Math.round((totalCost / profile.summer_budget) * 100)}% used)` : 'View cost breakdown'}
             >
-              <span className="planner-bottom-stat-value">${totalCost.toLocaleString()}</span>
-              <span className="planner-bottom-stat-label">Total</span>
+              <span className={`planner-bottom-stat-value ${profile?.summer_budget && totalCost > profile.summer_budget ? 'budget-warning' : ''} ${profile?.summer_budget && totalCost >= profile.summer_budget * budgetWarningThreshold && totalCost <= profile.summer_budget ? 'budget-approaching' : ''}`}>
+                ${totalCost.toLocaleString()}
+                {profile?.summer_budget && (
+                  <span className="budget-indicator">
+                    {totalCost > profile.summer_budget ? ' ⚠' : totalCost >= profile.summer_budget * budgetWarningThreshold ? ' ⚡' : ` / $${profile.summer_budget.toLocaleString()}`}
+                  </span>
+                )}
+              </span>
+              <span className="planner-bottom-stat-label">{profile?.summer_budget && totalCost > profile.summer_budget ? 'Over Budget!' : profile?.summer_budget && totalCost >= profile.summer_budget * budgetWarningThreshold ? 'Approaching Budget' : 'Total'}</span>
             </button>
             <div className="planner-bottom-stat-divider" />
             <button
@@ -1883,16 +2145,29 @@ export function SchedulePlanner({ camps, onClose }) {
                   onClick={() => {
                     const childSchedules = scheduledCamps.filter(sc => sc.child_id === selectedChild);
                     if (childSchedules.length > 0) {
-                      const firstSchedule = childSchedules[0];
-                      const camp = campLookup.get(firstSchedule.camp_id);
-                      if (camp) {
-                        const event = formatCampForCalendar(camp, firstSchedule);
-                        window.open(createGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                      // Export all scheduled camps to Google Calendar
+                      const child = children.find(c => c.id === selectedChild);
+                      const events = childSchedules.map(schedule => {
+                        const camp = campLookup.get(schedule.camp_id);
+                        if (!camp) return null;
+                        return formatCampForCalendar(camp, schedule);
+                      }).filter(Boolean);
+
+                      // Open each event with staggered timing (max 5 to avoid popup blocking)
+                      const maxTabs = 5;
+                      events.slice(0, maxTabs).forEach((event, index) => {
+                        setTimeout(() => {
+                          window.open(createGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
+                        }, index * 500);
+                      });
+
+                      if (events.length > maxTabs) {
+                        showStatus(`Opened first ${maxTabs} events. Use Export to download all ${events.length} as .ics file.`);
                       }
                     }
                   }}
                   className="planner-bottom-action-btn"
-                  title="Add to Google Calendar"
+                  title="Add all camps to Google Calendar"
                 >
                   <CalendarExportIcon />
                   <span>Calendar</span>
@@ -2102,28 +2377,43 @@ export function SchedulePlanner({ camps, onClose }) {
             <div className="planner-modal-content">
               <p className="session-picker-camp-name">{showSessionPicker.camp.camp_name}</p>
               {campSessions[showSessionPicker.camp.id] ? (
-                <div className="session-picker-list">
-                  {campSessions[showSessionPicker.camp.id].map(session => (
-                    <button
-                      key={session.id}
-                      onClick={() => handleSelectSession(session)}
-                      className="session-picker-item"
-                    >
-                      <span className="session-name">{session.name || 'Session'}</span>
-                      <span className="session-dates">
-                        {new Date(session.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        {' - '}
-                        {new Date(session.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                      {session.price && (
-                        <span className="session-price">${session.price}</span>
-                      )}
-                      {!session.is_available && (
-                        <span className="session-unavailable">Full</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                campSessions[showSessionPicker.camp.id].length > 0 ? (
+                  <div className="session-picker-list">
+                    {campSessions[showSessionPicker.camp.id].map(session => (
+                      <button
+                        key={session.id}
+                        onClick={() => handleSelectSession(session)}
+                        className="session-picker-item"
+                      >
+                        <span className="session-name">{session.name || 'Session'}</span>
+                        {/* BUG-D-003: Handle sessions without proper dates (from extracted data) */}
+                        <span className="session-dates">
+                          {session.start_date && session.end_date ? (
+                            <>
+                              {new Date(session.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              {' - '}
+                              {new Date(session.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </>
+                          ) : session.raw ? (
+                            <span className="session-raw-text">{session.raw}</span>
+                          ) : (
+                            <span className="session-dates-tbd">Dates TBD</span>
+                          )}
+                        </span>
+                        {session.price && (
+                          <span className="session-price">${session.price}</span>
+                        )}
+                        {!session.is_available && (
+                          <span className="session-unavailable">Full</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="session-picker-empty">
+                    <span>No specific sessions available for this camp.</span>
+                  </div>
+                )
               ) : (
                 <div className="session-picker-loading">
                   <span>Loading sessions...</span>
@@ -2308,6 +2598,14 @@ function WarningIcon() {
   return (
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }

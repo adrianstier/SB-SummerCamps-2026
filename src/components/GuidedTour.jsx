@@ -55,21 +55,66 @@ const TOUR_STEPS = [
 export function GuidedTour({ onComplete, onSkip }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightedElement, setHighlightedElement] = useState(null);
+  const [elementMissing, setElementMissing] = useState(false);
 
   const currentTourStep = TOUR_STEPS[currentStep];
   const isLastStep = currentStep === TOUR_STEPS.length - 1;
 
   useEffect(() => {
     // Find and highlight the current element
-    const selector = currentTourStep.highlightSelector;
+    const selector = currentTourStep?.highlightSelector;
+
+    // Skip if no selector defined for this step
+    if (!selector) {
+      // Try to find next step with a valid element
+      const nextValidStep = findNextValidStep(currentStep);
+      if (nextValidStep !== null && nextValidStep !== currentStep) {
+        setTimeout(() => setCurrentStep(nextValidStep), 100);
+        return;
+      }
+      setHighlightedElement(null);
+      setElementMissing(true);
+      return;
+    }
+
     const element = document.querySelector(selector);
 
     if (element) {
       setHighlightedElement(element);
+      setElementMissing(false);
       // Scroll element into view
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      // Element not found - try to skip to next step with a valid element
+      const nextValidStep = findNextValidStep(currentStep);
+      if (nextValidStep !== null && nextValidStep !== currentStep) {
+        // Auto-skip to next valid step
+        setTimeout(() => setCurrentStep(nextValidStep), 100);
+      } else {
+        // No more valid steps - show centered tooltip with helpful message
+        setHighlightedElement(null);
+        setElementMissing(true);
+      }
     }
-  }, [currentStep, currentTourStep.highlightSelector]);
+  }, [currentStep, currentTourStep?.highlightSelector]);
+
+  // Helper function to find the next step with a valid DOM element
+  function findNextValidStep(fromStep) {
+    for (let i = fromStep + 1; i < TOUR_STEPS.length; i++) {
+      const selector = TOUR_STEPS[i].highlightSelector;
+      if (selector && document.querySelector(selector)) {
+        return i;
+      }
+    }
+    // If no forward steps are valid, check if any steps are valid (for fallback)
+    for (let i = 0; i < TOUR_STEPS.length; i++) {
+      const selector = TOUR_STEPS[i].highlightSelector;
+      if (selector && document.querySelector(selector)) {
+        return i;
+      }
+    }
+    return null;
+  }
 
   async function handleNext() {
     if (isLastStep) {
@@ -204,9 +249,18 @@ export function GuidedTour({ onComplete, onSkip }) {
         </h3>
 
         {/* Description */}
-        <p className="mb-6" style={{ color: 'var(--earth-700)' }}>
+        <p className="mb-2" style={{ color: 'var(--earth-700)' }}>
           {currentTourStep.description}
         </p>
+
+        {/* Element missing notice */}
+        {elementMissing && (
+          <p className="text-sm mb-4 px-3 py-2 rounded-lg" style={{ background: 'var(--sand-100)', color: 'var(--sand-600)' }}>
+            Navigate to the Schedule Planner to see this feature highlighted.
+          </p>
+        )}
+
+        {!elementMissing && <div className="mb-4" />}
 
         {/* Navigation buttons */}
         <div className="flex items-center justify-between">

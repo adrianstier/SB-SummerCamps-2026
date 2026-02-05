@@ -258,8 +258,12 @@ function ApprovalCard({ approval, currentUserId, canApprove, onApprove, onReject
                 <span className="font-medium">{responded_by_profile.full_name}</span>
                 {' '}
                 {status === 'approved' ? 'approved' : 'rejected'}
-                {' '}
-                {formatDistanceToNow(new Date(responded_at))}
+                {responded_at && (
+                  <>
+                    {' '}
+                    {formatDistanceToNow(new Date(responded_at))}
+                  </>
+                )}
               </p>
               {response_note && (
                 <p className="text-sm text-earth-600 italic mt-1">"{response_note}"</p>

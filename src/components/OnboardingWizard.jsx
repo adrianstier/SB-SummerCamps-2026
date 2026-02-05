@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { addChild, updateProfile, completeOnboarding, addScheduledCamp, supabase } from '../lib/supabase';
 import { generateSampleChildren, generateSampleSchedule } from '../lib/sampleData';
+import { PLANNING_YEAR_LABEL } from '../lib/config';
 import BrandIcon from './BrandIcon';
 
 const STEPS = [
   { id: 'welcome', title: 'Welcome' },
   { id: 'children', title: 'Your Children' },
   { id: 'preferences', title: 'Preferences' },
+  { id: 'notifications', title: 'Notifications' },
   { id: 'complete', title: 'All Set!' }
 ];
 
@@ -64,8 +66,19 @@ export function OnboardingWizard({ onComplete }) {
     email_notifications: true
   });
 
+  // Notification preferences state
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    registration_alerts: true,
+    price_notifications: true,
+    schedule_reminders: true,
+    social_notifications: false
+  });
+
   // Tour choice state
   const [tourChoice, setTourChoice] = useState(null); // 'tour' | 'skip'
+
+  // Skip warning state
+  const [showSkipWarning, setShowSkipWarning] = useState(false);
 
   const goNext = () => {
     if (currentStep < STEPS.length - 1) {
@@ -129,9 +142,10 @@ export function OnboardingWizard({ onComplete }) {
         for (const child of sampleChildren) {
           const { data, error } = await addChild(child);
           if (error) throw new Error(error.message || 'Failed to add child');
-          if (data && data.length > 0) {
-            createdChildren.push(data[0]);
+          if (!data || data.length === 0) {
+            throw new Error('Failed to create sample child. Please try again.');
           }
+          createdChildren.push(data[0]);
         }
 
         // Fetch camps for schedule generation
@@ -143,11 +157,15 @@ export function OnboardingWizard({ onComplete }) {
           await addScheduledCamp(schedule);
         }
 
-        // Mark tour as shown
+        // Mark tour as shown and save notification preferences
         await updateProfile({
           preferred_categories: preferences.preferred_categories,
           zip_code: preferences.zip_code || null,
           email_notifications: preferences.email_notifications,
+          registration_alerts: notificationPrefs.registration_alerts,
+          price_notifications: notificationPrefs.price_notifications,
+          schedule_reminders: notificationPrefs.schedule_reminders,
+          social_notifications: notificationPrefs.social_notifications,
           tour_shown: true
         });
       } else {
@@ -157,11 +175,15 @@ export function OnboardingWizard({ onComplete }) {
           await addChild(childData);
         }
 
-        // Update profile with preferences
+        // Update profile with preferences and notification settings
         await updateProfile({
           preferred_categories: preferences.preferred_categories,
           zip_code: preferences.zip_code || null,
-          email_notifications: preferences.email_notifications
+          email_notifications: preferences.email_notifications,
+          registration_alerts: notificationPrefs.registration_alerts,
+          price_notifications: notificationPrefs.price_notifications,
+          schedule_reminders: notificationPrefs.schedule_reminders,
+          social_notifications: notificationPrefs.social_notifications
         });
       }
 
@@ -211,6 +233,13 @@ export function OnboardingWizard({ onComplete }) {
             toggleCategory={toggleCategory}
           />
         );
+      case 'notifications':
+        return (
+          <NotificationsStep
+            notificationPrefs={notificationPrefs}
+            setNotificationPrefs={setNotificationPrefs}
+          />
+        );
       case 'complete':
         return <CompleteStep children={children} preferences={preferences} tourChoice={tourChoice} setTourChoice={setTourChoice} />;
       default:
@@ -221,7 +250,7 @@ export function OnboardingWizard({ onComplete }) {
   const canProceed = () => {
     switch (STEPS[currentStep].id) {
       case 'children':
-        return children.length > 0;
+        return true; // Allow proceeding with or without children
       case 'complete':
         return tourChoice !== null; // Must choose tour option
       default:
@@ -229,8 +258,72 @@ export function OnboardingWizard({ onComplete }) {
     }
   };
 
+  const handleSkipChildren = () => {
+    setShowSkipWarning(true);
+  };
+
+  const confirmSkipChildren = () => {
+    setChildren([]);
+    setShowSkipWarning(false);
+    goNext();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+      {/* Skip Warning Modal */}
+      {showSkipWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: 'var(--sun-100)' }}>
+                <svg className="w-8 h-8" style={{ color: 'var(--sun-600)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="font-serif text-xl font-semibold mb-2" style={{ color: 'var(--earth-800)' }}>
+                Limited experience without children
+              </h3>
+              <p className="text-sm" style={{ color: 'var(--earth-600)' }}>
+                Without children added, you will not be able to:
+              </p>
+              <ul className="text-sm text-left mt-3 space-y-2 mx-auto max-w-xs" style={{ color: 'var(--earth-700)' }}>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: 'var(--terra-500)' }}>•</span>
+                  Get age-appropriate camp recommendations
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: 'var(--terra-500)' }}>•</span>
+                  Create schedules in the planner
+                </li>
+                <li className="flex items-start gap-2">
+                  <span style={{ color: 'var(--terra-500)' }}>•</span>
+                  Track coverage for your family
+                </li>
+              </ul>
+              <p className="text-xs mt-4" style={{ color: 'var(--sand-500)' }}>
+                You can add children later in Settings.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSkipWarning(false)}
+                className="flex-1 px-4 py-3 rounded-xl font-medium transition-colors"
+                style={{ background: 'var(--ocean-500)', color: 'white' }}
+              >
+                Add a Child
+              </button>
+              <button
+                onClick={confirmSkipChildren}
+                className="flex-1 px-4 py-3 rounded-xl font-medium transition-colors"
+                style={{ background: 'var(--sand-100)', color: 'var(--earth-700)' }}
+              >
+                Skip Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Progress bar */}
         <div className="h-2" style={{ background: 'var(--sand-100)' }}>
@@ -306,13 +399,24 @@ export function OnboardingWizard({ onComplete }) {
               )}
             </button>
           ) : (
-            <button
-              onClick={goNext}
-              disabled={!canProceed()}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Continue
-            </button>
+            <div className="flex items-center gap-3">
+              {STEPS[currentStep].id === 'children' && children.length === 0 && (
+                <button
+                  onClick={handleSkipChildren}
+                  className="px-6 py-2.5 rounded-xl font-medium transition-colors"
+                  style={{ color: 'var(--earth-600)' }}
+                >
+                  Skip
+                </button>
+              )}
+              <button
+                onClick={goNext}
+                disabled={STEPS[currentStep].id === 'children' && children.length === 0}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Continue
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -442,7 +546,7 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
           {/* Age */}
           <div>
             <label htmlFor="child-age" className="block text-sm font-medium mb-1" style={{ color: 'var(--earth-700)' }}>
-              Age (as of Summer 2026)
+              Age (as of {PLANNING_YEAR_LABEL})
             </label>
             <select
               id="child-age"
@@ -521,7 +625,7 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
 
       {children.length === 0 && (
         <p className="text-center text-sm mt-4" style={{ color: 'var(--sand-400)' }}>
-          Add at least one child to continue
+          Add a child for personalized recommendations, or skip for now
         </p>
       )}
     </div>
@@ -611,6 +715,122 @@ function PreferencesStep({ preferences, setPreferences, toggleCategory }) {
           </label>
         </div>
       </div>
+    </div>
+  );
+}
+
+function NotificationsStep({ notificationPrefs, setNotificationPrefs }) {
+  const toggleNotification = (key) => {
+    setNotificationPrefs(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const notifications = [
+    {
+      key: 'registration_alerts',
+      title: 'Registration alerts',
+      description: 'Get notified when camps open for registration',
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+      )
+    },
+    {
+      key: 'price_notifications',
+      title: 'Price notifications',
+      description: 'Price drops, early bird deadlines, and discounts',
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    {
+      key: 'schedule_reminders',
+      title: 'Schedule reminders',
+      description: 'Upcoming camps and schedule changes',
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      )
+    },
+    {
+      key: 'social_notifications',
+      title: 'Social notifications',
+      description: 'Squad activity and friend matches',
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      )
+    }
+  ];
+
+  return (
+    <div>
+      <div className="text-center mb-8">
+        <h2 className="font-serif text-2xl font-semibold mb-2" style={{ color: 'var(--earth-800)' }}>
+          Stay in the loop
+        </h2>
+        <p style={{ color: 'var(--earth-600)' }}>
+          Choose what updates you want to receive.
+        </p>
+      </div>
+
+      <div className="max-w-md mx-auto space-y-3">
+        {notifications.map(({ key, title, description, icon }) => (
+          <button
+            key={key}
+            onClick={() => toggleNotification(key)}
+            className="w-full p-4 rounded-xl text-left transition-all flex items-start gap-4"
+            style={{
+              background: notificationPrefs[key] ? 'var(--ocean-50)' : 'var(--sand-50)',
+              border: notificationPrefs[key] ? '2px solid var(--ocean-400)' : '2px solid var(--sand-200)'
+            }}
+          >
+            <div
+              className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+              style={{
+                background: notificationPrefs[key] ? 'var(--ocean-100)' : 'var(--sand-100)',
+                color: notificationPrefs[key] ? 'var(--ocean-600)' : 'var(--earth-500)'
+              }}
+            >
+              {icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium" style={{ color: 'var(--earth-800)' }}>
+                {title}
+              </p>
+              <p className="text-sm" style={{ color: 'var(--earth-600)' }}>
+                {description}
+              </p>
+            </div>
+            <div className="flex-shrink-0 self-center">
+              <div
+                className="w-12 h-7 rounded-full relative transition-colors"
+                style={{
+                  background: notificationPrefs[key] ? 'var(--ocean-500)' : 'var(--sand-300)'
+                }}
+              >
+                <div
+                  className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-all"
+                  style={{
+                    left: notificationPrefs[key] ? '22px' : '2px'
+                  }}
+                />
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <p className="text-center text-sm mt-6" style={{ color: 'var(--sand-400)' }}>
+        You can change these anytime in settings.
+      </p>
     </div>
   );
 }

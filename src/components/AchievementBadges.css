@@ -446,13 +446,18 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   RESPONSIVE
+   RESPONSIVE - BUG-F-019: Fixed badge grid overflow on mobile
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
+  .achievement-badges {
+    padding: var(--space-4);
+  }
+
   .achievement-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--space-3);
   }
 
   .achievement-filters {
@@ -462,13 +467,117 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    padding-bottom: var(--space-2);
   }
 
   .achievement-filters::-webkit-scrollbar {
     display: none;
   }
 
+  .achievement-filter {
+    flex-shrink: 0;
+  }
+
   .achievement-grid {
     grid-template-columns: 1fr;
+  }
+
+  .achievement-card {
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .achievement-card-icon {
+    font-size: 1.25rem;
+  }
+
+  .achievement-card-title {
+    font-size: 0.8125rem;
+  }
+
+  .achievement-card-desc {
+    font-size: 0.6875rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .achievement-badges {
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+  }
+
+  .achievement-title {
+    font-size: 1.125rem;
+  }
+
+  .achievement-progress {
+    gap: var(--space-2);
+  }
+
+  .achievement-group-title {
+    font-size: 0.6875rem;
+  }
+
+  /* Compact list for very small screens */
+  .achievement-compact-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+    gap: var(--space-1);
+  }
+
+  .achievement-compact-badge {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Modal adjustments */
+  .achievement-modal {
+    max-width: calc(100vw - 32px);
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .achievement-modal-icon {
+    font-size: 2.5rem;
+  }
+
+  .achievement-modal-title {
+    font-size: 1.125rem;
+  }
+
+  .achievement-modal-desc {
+    font-size: 0.875rem;
+  }
+}
+
+/* Horizontal scroll variant for badge grid on mobile */
+@media (max-width: 640px) {
+  .achievement-badges.scrollable-mobile .achievement-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-3);
+    padding-bottom: var(--space-2);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .achievement-badges.scrollable-mobile .achievement-grid::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .achievement-badges.scrollable-mobile .achievement-grid::-webkit-scrollbar-track {
+    background: var(--sand-100);
+    border-radius: var(--radius-full);
+  }
+
+  .achievement-badges.scrollable-mobile .achievement-grid::-webkit-scrollbar-thumb {
+    background: var(--sand-300);
+    border-radius: var(--radius-full);
+  }
+
+  .achievement-badges.scrollable-mobile .achievement-card {
+    flex-shrink: 0;
+    width: 160px;
+    scroll-snap-align: start;
   }
 }

@@ -77,9 +77,16 @@ describe('Wishlist', () => {
       expect(screen.getByText(/Beach.*8-14.*\$400-500/)).toBeInTheDocument();
     });
 
-    it('shows child badge for favorites with child', () => {
+    it('shows child assignment dropdown for favorites with child', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('For Emma')).toBeInTheDocument();
+      // The UI now shows a dropdown to assign/change children
+      // Check that child options appear in the dropdown
+      const childDropdowns = screen.getAllByRole('combobox');
+      // Should have filter dropdown + one per favorite with children array
+      expect(childDropdowns.length).toBeGreaterThan(0);
+      // The favorite assigned to Emma should have Emma selected
+      const emmaOption = screen.getAllByRole('option', { name: 'Emma' });
+      expect(emmaOption.length).toBeGreaterThan(0);
     });
 
     it('shows existing notes', () => {
@@ -124,8 +131,8 @@ describe('Wishlist', () => {
     it('filters favorites by selected child', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
       fireEvent.change(screen.getByDisplayValue('All children'), { target: { value: 'child-1' } });
-      // Should show camp-2 (child-1) and camp-1 (no child = shows for all)
-      expect(screen.getByText('Surf Camp')).toBeInTheDocument();
+      // Should only show camp-2 (assigned to child-1)
+      expect(screen.queryByText('Surf Camp')).not.toBeInTheDocument();
       expect(screen.getByText('Art Camp')).toBeInTheDocument();
     });
 

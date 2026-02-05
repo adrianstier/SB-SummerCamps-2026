@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useCallback } from 'react';
+import React, { memo, useState, useEffect, useCallback, useMemo } from 'react';
 import { useAchievements } from '../contexts/AchievementsContext';
 import BrandIcon from './BrandIcon';
 import './PlanningTips.css';
@@ -81,15 +81,24 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
   dismissible = true,
   className = ''
 }) {
-  const { currentTip, relevantTips, nextTip } = useAchievements();
+  const { relevantTips, nextTip } = useAchievements();
   const [dismissedTips, setDismissedTips] = useState(() => {
     const saved = localStorage.getItem('sb-camps-dismissed-tips');
     return saved ? JSON.parse(saved) : [];
   });
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Filter out dismissed tips
-  const visibleTips = relevantTips.filter(tip => !dismissedTips.includes(tip.id));
+  // Filter out dismissed tips - BUG-F-007: Ensure dismissed tips don't reappear
+  const visibleTips = useMemo(() => {
+    return relevantTips.filter(tip => !dismissedTips.includes(tip.id));
+  }, [relevantTips, dismissedTips]);
+
+  // BUG-F-007: Reset currentIndex when it's out of bounds after filtering
+  useEffect(() => {
+    if (visibleTips.length > 0 && currentIndex >= visibleTips.length) {
+      setCurrentIndex(0);
+    }
+  }, [visibleTips.length, currentIndex]);
 
   // Persist dismissed tips
   useEffect(() => {
@@ -97,18 +106,29 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
   }, [dismissedTips]);
 
   const handleDismiss = useCallback((tipId) => {
-    setDismissedTips(prev => [...prev, tipId]);
+    setDismissedTips(prev => {
+      // BUG-F-007: Prevent duplicate dismissals
+      if (prev.includes(tipId)) return prev;
+      return [...prev, tipId];
+    });
+    // Reset index to prevent out-of-bounds after dismissal
+    setCurrentIndex(0);
   }, []);
 
   const handleNext = useCallback(() => {
-    setCurrentIndex(prev => (prev + 1) % visibleTips.length);
+    // BUG-F-007: Only cycle through visible (non-dismissed) tips
+    if (visibleTips.length > 1) {
+      setCurrentIndex(prev => (prev + 1) % visibleTips.length);
+    }
     nextTip();
   }, [visibleTips.length, nextTip]);
 
   if (visibleTips.length === 0) return null;
 
   const tipsToShow = visibleTips.slice(0, maxTips);
-  const tip = tipsToShow[currentIndex % tipsToShow.length];
+  // BUG-F-007: Ensure we get a valid index within bounds
+  const safeIndex = visibleTips.length > 0 ? currentIndex % visibleTips.length : 0;
+  const tip = tipsToShow[safeIndex % tipsToShow.length];
 
   return (
     <div className={`planning-tips-container ${className}`}>
@@ -117,7 +137,7 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
         onDismiss={dismissible ? () => handleDismiss(tip.id) : null}
         onNext={handleNext}
         showNavigation={visibleTips.length > 1}
-        currentIndex={currentIndex % visibleTips.length}
+        currentIndex={safeIndex}
         totalCount={visibleTips.length}
         variant={variant}
       />

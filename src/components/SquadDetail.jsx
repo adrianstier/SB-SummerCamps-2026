@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import BrandIcon from './BrandIcon';
 import {
@@ -6,7 +6,11 @@ import {
   updateSquadMembership,
   leaveSquad,
   deleteSquad,
-  regenerateInviteCode
+  regenerateInviteCode,
+  removeSquadMember,
+  getSquadMessages,
+  sendSquadMessage,
+  subscribeToSquadMessages
 } from '../lib/supabase';
 
 export default function SquadDetail({ squad, onBack, onClose }) {
@@ -16,6 +20,7 @@ export default function SquadDetail({ squad, onBack, onClose }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' or 'chat'
 
   const isOwner = squad.created_by === user?.id;
   const myMembership = squad.squad_members?.find(m => m.user_id === user?.id);
@@ -44,6 +49,8 @@ export default function SquadDetail({ squad, onBack, onClose }) {
       if (!weeks[key].camps[campKey]) {
         weeks[key].camps[campKey] = {
           campId: interest.camp_id,
+          campName: interest.camp_name || interest.camp_id,
+          campCategory: interest.camp_category,
           interests: []
         };
       }
@@ -64,7 +71,19 @@ export default function SquadDetail({ squad, onBack, onClose }) {
 
   async function handleCopyLink() {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(inviteUrl);
+      } else {
+        // Fallback for browsers without clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = inviteUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -88,6 +107,18 @@ export default function SquadDetail({ squad, onBack, onClose }) {
     } else {
       handleCopyLink();
     }
+  }
+
+  async function handleRemoveMember(memberId) {
+    if (!confirm('Remove this member from the squad?')) return;
+
+    const { error } = await removeSquadMember(squad.id, memberId);
+    if (error) {
+      console.error('Failed to remove member:', error);
+      alert('Could not remove member. Please try again.');
+      return;
+    }
+    await refreshSquads();
   }
 
   if (showSettings) {
@@ -154,6 +185,8 @@ export default function SquadDetail({ squad, onBack, onClose }) {
               key={member.id}
               member={member}
               isCurrentUser={member.user_id === user?.id}
+              isOwner={isOwner}
+              onRemove={() => handleRemoveMember(member.id)}
             />
           ))}
           <button
@@ -180,47 +213,80 @@ export default function SquadDetail({ squad, onBack, onClose }) {
         />
       )}
 
-      {/* Schedule Overview */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <h3 className="text-sm font-medium text-earth-700 mb-3">Summer Overview</h3>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="w-6 h-6 border-2 border-ocean-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : groupedInterests.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-sm text-earth-500">No camps scheduled yet</p>
-            <p className="text-xs text-earth-400 mt-1">
-              Add camps to see overlaps
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {groupedInterests.map(week => (
-              <WeekSection
-                key={week.weekNumber}
-                weekNumber={week.weekNumber}
-                camps={week.camps}
-                currentUserId={user?.id}
-              />
-            ))}
-          </div>
-        )}
+      {/* Tab Navigation */}
+      <div className="flex border-b border-sand-200">
+        <button
+          onClick={() => setActiveTab('schedule')}
+          className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+            activeTab === 'schedule'
+              ? 'text-ocean-600 border-b-2 border-ocean-500'
+              : 'text-earth-500 hover:text-earth-700'
+          }`}
+        >
+          Schedule
+        </button>
+        <button
+          onClick={() => setActiveTab('chat')}
+          className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+            activeTab === 'chat'
+              ? 'text-ocean-600 border-b-2 border-ocean-500'
+              : 'text-earth-500 hover:text-earth-700'
+          }`}
+        >
+          Chat
+        </button>
       </div>
+
+      {/* Schedule Tab */}
+      {activeTab === 'schedule' && (
+        <div className="flex-1 overflow-y-auto p-4">
+          <h3 className="text-sm font-medium text-earth-700 mb-3">Summer Overview</h3>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-ocean-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : groupedInterests.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-earth-500">No camps scheduled yet</p>
+              <p className="text-xs text-earth-400 mt-1">
+                Add camps to see overlaps
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {groupedInterests.map(week => (
+                <WeekSection
+                  key={week.weekNumber}
+                  weekNumber={week.weekNumber}
+                  camps={week.camps}
+                  currentUserId={user?.id}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Chat Tab */}
+      {activeTab === 'chat' && (
+        <SquadChat squadId={squad.id} currentUserId={user?.id} />
+      )}
     </div>
   );
 }
 
-function MemberBadge({ member, isCurrentUser }) {
+function MemberBadge({ member, isCurrentUser, isOwner, onRemove }) {
   const name = member.reveal_identity
     ? (member.profiles?.full_name || 'Anonymous')
     : isCurrentUser
       ? 'You'
       : 'Friend';
 
+  const canRemove = isOwner && member.role !== 'owner' && !isCurrentUser;
+
   return (
-    <div className="flex items-center gap-1.5 px-2 py-1 bg-sand-50 rounded-full">
+    <div className="flex items-center gap-1.5 px-2 py-1 bg-sand-50 rounded-full group">
       <div className="w-5 h-5 rounded-full bg-earth-200 flex items-center justify-center">
         {member.profiles?.avatar_url ? (
           <img
@@ -239,6 +305,17 @@ function MemberBadge({ member, isCurrentUser }) {
       </span>
       {member.role === 'owner' && (
         <span className="text-xs text-earth-400">(owner)</span>
+      )}
+      {canRemove && (
+        <button
+          onClick={onRemove}
+          className="ml-0.5 p-0.5 text-earth-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Remove member"
+        >
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       )}
     </div>
   );
@@ -265,6 +342,8 @@ function WeekSection({ weekNumber, camps, currentUserId }) {
           <CampInterestCard
             key={camp.campId}
             campId={camp.campId}
+            campName={camp.campName}
+            campCategory={camp.campCategory}
             interests={camp.interests}
             currentUserId={currentUserId}
           />
@@ -274,7 +353,7 @@ function WeekSection({ weekNumber, camps, currentUserId }) {
   );
 }
 
-function CampInterestCard({ campId, interests, currentUserId }) {
+function CampInterestCard({ campId, campName, campCategory, interests, currentUserId }) {
   const currentUserInterest = interests.find(i => i.user_id === currentUserId);
   const otherInterests = interests.filter(i => i.user_id !== currentUserId);
   const hasMatch = currentUserInterest && otherInterests.length > 0;
@@ -294,7 +373,12 @@ function CampInterestCard({ campId, interests, currentUserId }) {
   return (
     <div className={`p-3 rounded-lg border ${hasMatch ? 'border-green-200 bg-green-50' : 'border-sand-200 bg-white'}`}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-earth-900">{campId}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-earth-900">{campName}</span>
+          {campCategory && (
+            <span className="text-xs text-earth-400">{campCategory}</span>
+          )}
+        </div>
         {hasMatch && (
           <span className="text-xs font-medium text-green-600 flex items-center gap-1">
             <BrandIcon name="confetti" size={16} /> Match!
@@ -542,6 +626,152 @@ function SquadSettings({ squad, membership, isOwner, onBack, onLeave, onDelete }
           onCancel={() => setShowDeleteConfirm(false)}
         />
       )}
+    </div>
+  );
+}
+
+// BUG-F-012: Squad Chat with message persistence
+function SquadChat({ squadId, currentUserId }) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  // Load messages on mount
+  useEffect(() => {
+    async function loadMessages() {
+      setLoading(true);
+      const data = await getSquadMessages(squadId);
+      setMessages(data);
+      setLoading(false);
+    }
+    loadMessages();
+  }, [squadId]);
+
+  // Subscribe to real-time messages
+  useEffect(() => {
+    const subscription = subscribeToSquadMessages(squadId, (newMsg) => {
+      setMessages(prev => {
+        // Avoid duplicates
+        if (prev.some(m => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [squadId]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSend = useCallback(async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || sending) return;
+
+    setSending(true);
+    const { data, error } = await sendSquadMessage(squadId, newMessage);
+
+    if (!error && data) {
+      // Message will be added via real-time subscription
+      // But add optimistically to avoid delay
+      setMessages(prev => {
+        if (prev.some(m => m.id === data.id)) return prev;
+        return [...prev, data];
+      });
+    }
+
+    setNewMessage('');
+    setSending(false);
+  }, [squadId, newMessage, sending]);
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString('en-US', { weekday: 'short' });
+    }
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-ocean-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-sm text-earth-500">No messages yet</p>
+            <p className="text-xs text-earth-400 mt-1">
+              Start the conversation
+            </p>
+          </div>
+        ) : (
+          messages.map(msg => {
+            const isOwn = msg.user_id === currentUserId;
+            return (
+              <div
+                key={msg.id}
+                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[75%] rounded-2xl px-3 py-2 ${
+                    isOwn
+                      ? 'bg-ocean-500 text-white rounded-br-sm'
+                      : 'bg-sand-100 text-earth-800 rounded-bl-sm'
+                  }`}
+                >
+                  {!isOwn && (
+                    <div className="text-xs font-medium mb-0.5 text-earth-600">
+                      {msg.profiles?.full_name || 'Friend'}
+                    </div>
+                  )}
+                  <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                  <div className={`text-xs mt-1 ${isOwn ? 'text-ocean-200' : 'text-earth-400'}`}>
+                    {formatTime(msg.created_at)}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <form onSubmit={handleSend} className="p-3 border-t border-sand-200">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 px-3 py-2 text-sm bg-sand-50 border border-sand-200 rounded-full focus:outline-none focus:border-ocean-400 focus:ring-1 focus:ring-ocean-400"
+            maxLength={1000}
+          />
+          <button
+            type="submit"
+            disabled={!newMessage.trim() || sending}
+            className="px-4 py-2 text-sm font-medium text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: 'var(--ocean-500)' }}
+          >
+            {sending ? '...' : 'Send'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

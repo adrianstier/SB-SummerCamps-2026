@@ -405,7 +405,7 @@ describe('googleCalendar', () => {
       expect(windowOpenMock).toHaveBeenCalledWith(expect.stringContaining('calendar.google.com'), '_blank');
     });
 
-    it('shows alert when more than 5 events', () => {
+    it('returns message when more than 5 events', () => {
       const camps = Array.from({ length: 8 }, (_, i) => ({
         id: `camp-${i}`,
         camp_name: `Camp ${i}`
@@ -416,13 +416,13 @@ describe('googleCalendar', () => {
         end_date: '2026-06-12'
       }));
 
-      exportAllToGoogleCalendar(camps, schedules);
+      const result = exportAllToGoogleCalendar(camps, schedules);
       vi.runAllTimers();
 
       expect(windowOpenMock).toHaveBeenCalledTimes(5);
-      expect(alertMock).toHaveBeenCalledWith(
-        expect.stringContaining('Opened first 5 events')
-      );
+      expect(result.openedCount).toBe(5);
+      expect(result.totalCount).toBe(8);
+      expect(result.message).toContain('Opened first 5 events');
     });
 
     it('handles empty schedules gracefully', () => {

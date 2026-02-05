@@ -206,3 +206,46 @@ function isAgeAppropriate(ageRange, childAge) {
 export function calculateSampleCost(scheduledCamps) {
   return scheduledCamps.reduce((sum, camp) => sum + (camp.price || 0), 0);
 }
+
+/**
+ * Clear all sample data for current user
+ * Deletes all children and scheduled camps where is_sample = true
+ * @param {Object} supabase - Supabase client instance
+ * @returns {Promise<{success: boolean, deletedChildren: number, deletedCamps: number}>}
+ */
+export async function clearSampleData(supabase) {
+  if (!supabase) throw new Error('Supabase client required');
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Delete sample scheduled camps first (foreign key constraint)
+    const { data: deletedCamps, error: campsError } = await supabase
+      .from('scheduled_camps')
+      .delete()
+      .eq('is_sample', true)
+      .select('id');
+
+    if (campsError) throw campsError;
+
+    // Delete sample children
+    const { data: deletedChildren, error: childrenError } = await supabase
+      .from('children')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('is_sample', true)
+      .select('id');
+
+    if (childrenError) throw childrenError;
+
+    return {
+      success: true,
+      deletedChildren: deletedChildren?.length || 0,
+      deletedCamps: deletedCamps?.length || 0
+    };
+  } catch (error) {
+    console.error('Error clearing sample data:', error);
+    throw error;
+  }
+}

@@ -789,9 +789,16 @@ function MapTab({ camps, mapLoaded, setMapLoaded, onSelectCamp }) {
         } else if (address.includes('summerland')) {
           lat = 34.4214; lng = -119.5964;
         } else {
-          // Add some variance for camps without specific location
-          lat += (Math.random() - 0.5) * 0.02;
-          lng += (Math.random() - 0.5) * 0.02;
+          // BUG-B-009: Use deterministic hash based on camp ID for consistent positioning
+          // Simple hash function to generate consistent offsets
+          const hashCode = (camp.id || '').split('').reduce((acc, char) => {
+            return ((acc << 5) - acc) + char.charCodeAt(0);
+          }, 0);
+          // Normalize hash to range [-0.5, 0.5] and apply to coords
+          const offsetLat = ((hashCode % 1000) / 1000 - 0.5) * 0.02;
+          const offsetLng = (((hashCode >> 10) % 1000) / 1000 - 0.5) * 0.02;
+          lat += offsetLat;
+          lng += offsetLng;
         }
 
         return { ...camp, lat, lng };

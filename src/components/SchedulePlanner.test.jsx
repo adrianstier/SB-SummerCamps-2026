@@ -22,6 +22,30 @@ vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
 }));
 
+vi.mock('../contexts/AchievementsContext', () => ({
+  useAchievements: () => ({
+    achievements: [],
+    userProgress: {},
+    checkAndUnlock: vi.fn(),
+    getNextMilestone: vi.fn(() => null),
+    recentUnlock: null,
+    dismissRecentUnlock: vi.fn(),
+    getProgressForAchievement: vi.fn(() => 0),
+    planningStats: {
+      coveragePercent: 0,
+      coveredWeeks: 0,
+      totalWeeks: 11,
+      gapCount: 0,
+      totalCost: 0,
+      budget: 0,
+    },
+    streak: { current: 0, longest: 0 },
+    achievementProgress: {},
+    relevantTips: [],
+    nextTip: null,
+  }),
+}));
+
 vi.mock('../lib/supabase', () => ({
   getSummerWeeks2026: () => [
     { weekNum: 1, startDate: '2026-06-08', endDate: '2026-06-12', label: 'Week 1', display: 'Jun 8-12' },
@@ -74,8 +98,18 @@ const mockCamps = [
   { id: 'camp-5', camp_name: 'Nature Camp', category: 'Nature', min_price: 300, ages: '7-11', image_url: null },
 ];
 
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(() => null),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorageMock.getItem.mockReturnValue(null);
   vi.spyOn(console, 'error').mockImplementation(() => {});
   mockAddScheduledCamp.mockResolvedValue();
   mockDeleteScheduledCamp.mockResolvedValue();

@@ -291,7 +291,7 @@ export default function NotificationBell() {
           <button
             key={notification.id}
             onClick={() => handleNotificationClick(notification)}
-            className={`w-full text-left px-4 py-3 border-b transition-colors hover:bg-sand-50 ${
+            className={`group/notification w-full text-left px-4 py-3 border-b transition-colors hover:bg-sand-50 ${
               !notification.read ? 'bg-ocean-50/30' : ''
             }`}
             style={{ borderColor: 'var(--sand-100)' }}
@@ -314,7 +314,7 @@ export default function NotificationBell() {
                     )}
                     <button
                       onClick={(e) => handleDismiss(e, notification)}
-                      className="p-1 rounded hover:bg-sand-200 transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-1 rounded hover:bg-sand-200 transition-colors opacity-0 group-hover/notification:opacity-100"
                       style={{ color: 'var(--earth-400)' }}
                       title="Dismiss"
                       aria-label="Dismiss notification"

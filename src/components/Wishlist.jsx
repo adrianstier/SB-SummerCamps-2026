@@ -27,11 +27,9 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
       };
     }).filter(Boolean);
 
-    // Filter by child
+    // Filter by child - only show favorites assigned to the selected child
     if (selectedChild !== 'all') {
-      items = items.filter(item =>
-        item.child_id === selectedChild || item.child_id === null
-      );
+      items = items.filter(item => item.child_id === selectedChild);
     }
 
     // Sort
@@ -70,6 +68,15 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
       setEditingNotes(null);
     } catch (err) {
       console.error('Error saving notes:', err);
+    }
+  }
+
+  async function handleChildAssignment(campId, childId) {
+    try {
+      await updateFavorite(campId, { child_id: childId || null });
+      await refreshFavorites();
+    } catch (err) {
+      console.error('Error assigning child:', err);
     }
   }
 
@@ -217,16 +224,29 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                       </span>
                     </div>
 
-                    {/* Child badge */}
-                    {item.childName && (
+                    {/* Child assignment dropdown */}
+                    {children.length > 0 && (
                       <div className="mt-2 flex items-center gap-2">
-                        <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs"
-                          style={{ backgroundColor: item.childColor }}
+                        {item.childColor && (
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs flex-shrink-0"
+                            style={{ backgroundColor: item.childColor }}
+                          >
+                            {item.childName?.charAt(0) || '?'}
+                          </div>
+                        )}
+                        <span className="body-sm text-secondary">For:</span>
+                        <select
+                          value={item.child_id || ''}
+                          onChange={(e) => handleChildAssignment(item.camp_id, e.target.value)}
+                          className="select input-sm"
+                          style={{ width: 'auto', padding: '4px 28px 4px 10px', fontSize: '13px' }}
                         >
-                          {item.childName.charAt(0)}
-                        </div>
-                        <span className="body-sm text-secondary">For {item.childName}</span>
+                          <option value="">No child assigned</option>
+                          {children.map(child => (
+                            <option key={child.id} value={child.id}>{child.name}</option>
+                          ))}
+                        </select>
                       </div>
                     )}
 
@@ -259,16 +279,36 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                     ) : item.notes ? (
                       <div className="mt-2 p-3 rounded-lg" style={{ background: 'var(--sand-50)' }}>
                         <p className="body-sm text-secondary">{item.notes}</p>
-                        <button
-                          onClick={() => {
-                            setNoteText(item.notes);
-                            setEditingNotes(item.camp_id);
-                          }}
-                          className="btn-link btn-sm mt-1"
-                          style={{ padding: 0 }}
-                        >
-                          Edit note
-                        </button>
+                        <div className="flex items-center gap-3 mt-1">
+                          <button
+                            onClick={() => {
+                              setNoteText(item.notes);
+                              setEditingNotes(item.camp_id);
+                            }}
+                            className="btn-link btn-sm"
+                            style={{ padding: 0 }}
+                          >
+                            Edit note
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await updateFavorite(item.camp_id, { notes: null });
+                                await refreshFavorites();
+                              } catch (err) {
+                                console.error('Error deleting note:', err);
+                              }
+                            }}
+                            className="btn-link btn-sm flex items-center gap-1"
+                            style={{ padding: 0, color: 'var(--terra-600)' }}
+                            aria-label="Delete note"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <button

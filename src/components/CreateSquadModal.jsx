@@ -5,6 +5,7 @@ import { createSquad } from '../lib/supabase';
 export default function CreateSquadModal({ onClose }) {
   const { refreshSquads } = useAuth();
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [shareSchedule, setShareSchedule] = useState(true);
   const [revealIdentity, setRevealIdentity] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,7 +21,7 @@ export default function CreateSquadModal({ onClose }) {
     setLoading(true);
     setError(null);
 
-    const { data, error: createError } = await createSquad(name.trim(), revealIdentity);
+    const { data, error: createError } = await createSquad(name.trim(), revealIdentity, shareSchedule, description);
 
     if (createError) {
       setError(createError.message);
@@ -52,7 +53,7 @@ export default function CreateSquadModal({ onClose }) {
 
         <form onSubmit={handleSubmit}>
           {/* Squad Name */}
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-sm font-medium text-earth-700 mb-2">
               Squad name
             </label>
@@ -63,6 +64,20 @@ export default function CreateSquadModal({ onClose }) {
               placeholder='e.g., "Soccer Team Parents"'
               className="w-full px-4 py-3 border border-sand-200 rounded-lg text-earth-800 placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:border-transparent"
               autoFocus
+            />
+          </div>
+
+          {/* Description (optional) */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-earth-700 mb-2">
+              Description <span className="font-normal text-earth-400">(optional)</span>
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What is this squad for?"
+              rows={2}
+              className="w-full px-4 py-3 border border-sand-200 rounded-lg text-earth-800 placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:border-transparent resize-none"
             />
           </div>
 

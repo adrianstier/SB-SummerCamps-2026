@@ -250,13 +250,23 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncFavorites() {
-  // Get pending favorites from IndexedDB and sync
-  console.log('[SW] Syncing favorites...');
+  // TODO: Coming Soon - Implement offline favorites sync
+  // Implementation needed:
+  // 1. Get pending favorites from IndexedDB (offline changes)
+  // 2. POST to Supabase API to sync changes
+  // 3. Clear pending queue on success
+  // 4. Handle conflicts (server wins / client wins strategy)
+  console.log('[SW] syncFavorites: Coming Soon - offline sync not yet implemented');
 }
 
 async function syncSchedule() {
-  // Get pending schedule changes from IndexedDB and sync
-  console.log('[SW] Syncing schedule...');
+  // TODO: Coming Soon - Implement offline schedule sync
+  // Implementation needed:
+  // 1. Get pending schedule changes from IndexedDB (offline changes)
+  // 2. POST to Supabase API to sync changes
+  // 3. Clear pending queue on success
+  // 4. Handle conflicts (server wins / client wins strategy)
+  console.log('[SW] syncSchedule: Coming Soon - offline sync not yet implemented');
 }
 
 // Message handling from main thread

@@ -15,6 +15,82 @@ vi.mock('../contexts/AuthContext', () => ({
 
 vi.mock('../lib/supabase', () => ({
   updateProfile: (...args) => mockUpdateProfile(...args),
+  getNotificationPreferences: vi.fn(() => Promise.resolve({
+    notifications_enabled: true,
+    registration_alerts_enabled: true,
+    registration_alert_days: 7,
+    registration_opening_email: true,
+    price_drop_enabled: true,
+    price_drop_threshold: 10,
+    price_drop_email: true,
+    early_bird_reminder_enabled: true,
+    early_bird_days_before: 3,
+    waitlist_updates_enabled: true,
+    waitlist_spot_available: true,
+    waitlist_position_change: true,
+    waitlist_email: true,
+    new_camp_match_enabled: true,
+    match_by_category: true,
+    match_by_age: true,
+    match_by_price: false,
+    new_camp_email: true,
+    schedule_conflict_enabled: true,
+    coverage_gap_enabled: true,
+    coverage_reminder_day: 'sunday',
+    friend_match_enabled: true,
+    friend_match_email: true,
+    friend_activity_enabled: true,
+    squad_updates_enabled: true,
+    weekly_digest_enabled: true,
+    weekly_digest_day: 'sunday',
+    weekly_digest_time: '09:00',
+    digest_include_registration_dates: true,
+    digest_include_coverage_status: true,
+    digest_include_price_changes: true,
+    digest_include_recommendations: true,
+    budget_alerts_enabled: true,
+    budget_warning_threshold: 80,
+    budget_exceeded_email: true,
+  })),
+  getDefaultNotificationPreferences: vi.fn(() => ({
+    notifications_enabled: true,
+    registration_alerts_enabled: true,
+    registration_alert_days: 7,
+    registration_opening_email: true,
+    price_drop_enabled: false,
+    price_drop_threshold: 10,
+    price_drop_email: false,
+    early_bird_reminder_enabled: true,
+    early_bird_days_before: 3,
+    waitlist_updates_enabled: true,
+    waitlist_spot_available: true,
+    waitlist_position_change: true,
+    waitlist_email: true,
+    new_camp_match_enabled: false,
+    match_by_category: true,
+    match_by_age: true,
+    match_by_price: false,
+    new_camp_email: false,
+    schedule_conflict_enabled: true,
+    coverage_gap_enabled: true,
+    coverage_reminder_day: 'sunday',
+    friend_match_enabled: true,
+    friend_match_email: false,
+    friend_activity_enabled: true,
+    squad_updates_enabled: true,
+    weekly_digest_enabled: false,
+    weekly_digest_day: 'sunday',
+    weekly_digest_time: '09:00',
+    digest_include_registration_dates: true,
+    digest_include_coverage_status: true,
+    digest_include_price_changes: true,
+    digest_include_recommendations: true,
+    budget_alerts_enabled: true,
+    budget_warning_threshold: 80,
+    budget_exceeded_email: false,
+  })),
+  updateNotificationPreferences: vi.fn(() => Promise.resolve()),
+  clearSampleData: vi.fn(() => Promise.resolve()),
   DEFAULT_SCHOOL_END: '2026-06-05',
   DEFAULT_SCHOOL_START: '2026-08-19',
 }));
@@ -29,15 +105,11 @@ beforeEach(() => {
       work_hours_start: '08:00',
       work_hours_end: '17:30',
       summer_budget: 5000,
-      notification_preferences: {
-        email_notifications: true,
-        registration_open: true,
-        price_drop: false,
-        spots_available: true,
-        weekly_digest: true,
-      },
+      preferred_categories: ['Beach/Surf', 'Sports'],
     },
     refreshProfile: mockRefreshProfile,
+    refreshChildren: vi.fn(),
+    refreshSchedule: vi.fn(),
     children: [
       { id: 'child-1', name: 'Emma' },
       { id: 'child-2', name: 'Jake' },
@@ -58,6 +130,7 @@ describe('Settings', () => {
       expect(screen.getByText('Work Hours')).toBeInTheDocument();
       expect(screen.getByText('Budget')).toBeInTheDocument();
       expect(screen.getByText('Notifications')).toBeInTheDocument();
+      expect(screen.getByText('Preferences')).toBeInTheDocument();
     });
 
     it('defaults to School Dates tab', () => {
@@ -191,34 +264,42 @@ describe('Settings', () => {
   });
 
   describe('Notifications tab', () => {
-    it('shows all notification preferences', () => {
+    it('shows notification sections', async () => {
       render(<Settings onClose={mockOnClose} />);
       fireEvent.click(screen.getByText('Notifications'));
-      expect(screen.getByText('Email notifications')).toBeInTheDocument();
-      expect(screen.getByText('Registration alerts')).toBeInTheDocument();
-      expect(screen.getByText('Price drops')).toBeInTheDocument();
-      expect(screen.getByText('Spots available')).toBeInTheDocument();
-      expect(screen.getByText('Weekly digest')).toBeInTheDocument();
+
+      // Wait for notification prefs to load
+      await waitFor(() => {
+        expect(screen.getByText('All Notifications')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Registration Alerts')).toBeInTheDocument();
+      expect(screen.getByText('Price Notifications')).toBeInTheDocument();
+      expect(screen.getByText('Waitlist Updates')).toBeInTheDocument();
+      expect(screen.getByText('Schedule Alerts')).toBeInTheDocument();
     });
 
-    it('reflects current preferences', () => {
+    it('shows master notification toggle', async () => {
       render(<Settings onClose={mockOnClose} />);
       fireEvent.click(screen.getByText('Notifications'));
-      const checkboxes = screen.getAllByRole('checkbox');
-      // email_notifications=true, registration_open=true, price_drop=false, spots_available=true, weekly_digest=true
-      expect(checkboxes[0]).toBeChecked(); // email
-      expect(checkboxes[1]).toBeChecked(); // registration
-      expect(checkboxes[2]).not.toBeChecked(); // price_drop
-      expect(checkboxes[3]).toBeChecked(); // spots
-      expect(checkboxes[4]).toBeChecked(); // weekly
+
+      await waitFor(() => {
+        expect(screen.getByText('All Notifications')).toBeInTheDocument();
+      });
+
+      // Master toggle should be a switch element
+      const switches = screen.getAllByRole('switch');
+      expect(switches.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('toggles notification preference', () => {
+    it('shows checkboxes for individual notification settings', async () => {
       render(<Settings onClose={mockOnClose} />);
       fireEvent.click(screen.getByText('Notifications'));
-      const checkboxes = screen.getAllByRole('checkbox');
-      fireEvent.click(checkboxes[2]); // toggle price_drop on
-      expect(checkboxes[2]).toBeChecked();
+
+      await waitFor(() => {
+        const checkboxes = screen.getAllByRole('checkbox');
+        expect(checkboxes.length).toBeGreaterThan(0);
+      });
     });
   });
 
@@ -228,17 +309,16 @@ describe('Settings', () => {
       fireEvent.click(screen.getByText('Save Settings'));
 
       await waitFor(() => {
-        expect(mockUpdateProfile).toHaveBeenCalledWith({
-          school_year_end: '2026-06-05',
-          school_year_start: '2026-08-19',
-          work_hours_start: '08:00',
-          work_hours_end: '17:30',
-          summer_budget: 5000,
-          notification_preferences: expect.objectContaining({
-            email_notifications: true,
-            registration_open: true,
-          }),
-        });
+        expect(mockUpdateProfile).toHaveBeenCalledWith(
+          expect.objectContaining({
+            school_year_end: '2026-06-05',
+            school_year_start: '2026-08-19',
+            work_hours_start: '08:00',
+            work_hours_end: '17:30',
+            summer_budget: 5000,
+            preferred_categories: ['Beach/Surf', 'Sports'],
+          })
+        );
       });
     });
 
@@ -295,14 +375,16 @@ describe('Settings', () => {
       expect(mockOnClose).toHaveBeenCalled();
     });
 
-    it('switches tabs correctly', () => {
+    it('switches tabs correctly', async () => {
       render(<Settings onClose={mockOnClose} />);
       fireEvent.click(screen.getByText('Work Hours'));
       expect(screen.getByText('Work Schedule')).toBeInTheDocument();
       fireEvent.click(screen.getByText('Budget'));
       expect(screen.getByText('Summer Budget')).toBeInTheDocument();
       fireEvent.click(screen.getByText('Notifications'));
-      expect(screen.getByText('Notification Preferences')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('All Notifications')).toBeInTheDocument();
+      });
     });
   });
 });

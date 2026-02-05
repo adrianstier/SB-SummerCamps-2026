@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { formatDistanceToNow } from '../lib/formatters';
 
 export default function FamilyComments() {
-  const { user, children: familyChildren, scheduledCamps } = useAuth();
+  const { user, children: familyChildren } = useAuth();
   const {
     comments,
     addComment,

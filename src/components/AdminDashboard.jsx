@@ -266,17 +266,32 @@ function OverviewTab({ stats, camps }) {
         <div className="bg-white rounded-xl p-6" style={{ border: '1px solid var(--sand-200)' }}>
           <h3 className="font-semibold mb-4" style={{ color: 'var(--earth-800)' }}>Quick Actions</h3>
           <div className="space-y-2">
-            <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
-              style={{ color: 'var(--earth-700)' }}>
+            <button
+              className="w-full text-left px-4 py-3 rounded-lg transition-colors opacity-60 cursor-not-allowed"
+              style={{ color: 'var(--earth-700)', background: 'var(--sand-50)' }}
+              disabled
+              title="Coming soon"
+            >
               <BrandIcon name="refresh" size={16} /> Trigger Camp Scrape
+              <span className="ml-2 text-xs px-2 py-0.5 rounded" style={{ background: 'var(--sand-200)', color: 'var(--sand-500)' }}>Coming Soon</span>
             </button>
-            <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
-              style={{ color: 'var(--earth-700)' }}>
+            <button
+              className="w-full text-left px-4 py-3 rounded-lg transition-colors opacity-60 cursor-not-allowed"
+              style={{ color: 'var(--earth-700)', background: 'var(--sand-50)' }}
+              disabled
+              title="Coming soon"
+            >
               <BrandIcon name="email" size={16} /> Send Weekly Digest
+              <span className="ml-2 text-xs px-2 py-0.5 rounded" style={{ background: 'var(--sand-200)', color: 'var(--sand-500)' }}>Coming Soon</span>
             </button>
-            <button className="w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-sand-50"
-              style={{ color: 'var(--earth-700)' }}>
+            <button
+              className="w-full text-left px-4 py-3 rounded-lg transition-colors opacity-60 cursor-not-allowed"
+              style={{ color: 'var(--earth-700)', background: 'var(--sand-50)' }}
+              disabled
+              title="Coming soon"
+            >
               <BrandIcon name="chart" size={16} /> Export User Data
+              <span className="ml-2 text-xs px-2 py-0.5 rounded" style={{ background: 'var(--sand-200)', color: 'var(--sand-500)' }}>Coming Soon</span>
             </button>
           </div>
         </div>
@@ -420,11 +435,30 @@ function CampsTab({ camps }) {
 
 // Users Tab
 function UsersTab({ users, onUpdateRole }) {
+  const [search, setSearch] = useState('');
+
+  const filteredUsers = users?.filter(user =>
+    user.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    user.email?.toLowerCase().includes(search.toLowerCase())
+  ) || [];
+
   return (
     <div>
       <h2 className="text-2xl font-serif font-bold mb-6" style={{ color: 'var(--earth-800)' }}>
         User Management
       </h2>
+
+      {/* Search */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search users by name or email..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl"
+          style={{ border: '1px solid var(--sand-200)', background: 'white' }}
+        />
+      </div>
 
       <div className="bg-white rounded-xl overflow-hidden" style={{ border: '1px solid var(--sand-200)' }}>
         <table className="w-full">
@@ -448,7 +482,7 @@ function UsersTab({ users, onUpdateRole }) {
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
+            {filteredUsers.map(user => (
               <tr key={user.id} className="border-t" style={{ borderColor: 'var(--sand-100)' }}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -502,6 +536,12 @@ function UsersTab({ users, onUpdateRole }) {
           </tbody>
         </table>
       </div>
+
+      {filteredUsers.length !== users.length && (
+        <p className="text-center mt-4 text-sm" style={{ color: 'var(--sand-400)' }}>
+          Showing {filteredUsers.length} of {users.length} users
+        </p>
+      )}
     </div>
   );
 }

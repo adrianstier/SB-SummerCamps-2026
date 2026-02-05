@@ -97,7 +97,7 @@ export const ACHIEVEMENTS = {
   },
   STREAK_7: {
     id: 'streak_7',
-    title: 'Week Warrior',
+    title: 'Streak Champion',
     description: '7-day planning streak',
     icon: 'lightning',
     celebration: 'A whole week of planning!',
@@ -217,17 +217,38 @@ export function AchievementsProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Streak tracking
+  // BUG-F-016: Streak tracking using local timezone for day boundaries
+  // BUG-F-004: Streak initialization explained:
+  // - First visit: count starts at 1 (day 1 of streak), NOT 0
+  // - Same-day revisit: count stays the same (checkAndUpdateStreak returns early)
+  // - Next-day visit: checkAndUpdateStreak increments count to 2, etc.
+  // - Skipped day: count resets to 1 in useState initializer (daysDiff > 1)
   const [streak, setStreak] = useState(() => {
     const saved = localStorage.getItem('sb-camps-streak');
-    if (!saved) return { count: 0, lastVisit: null };
+    // First visit: initialize to day 1 of streak (not 0 - this is intentional)
+    if (!saved) {
+      return { count: 1, lastVisit: new Date().toISOString(), bestStreak: 1 };
+    }
     const data = JSON.parse(saved);
-    // Check if streak is still valid (visited yesterday or today)
+    // Ensure bestStreak exists for backwards compatibility
+    if (data.bestStreak === undefined) {
+      data.bestStreak = data.count || 0;
+    }
+
+    // Check if streak is still valid using local calendar days
     const lastVisit = new Date(data.lastVisit);
-    const today = new Date();
-    const diffDays = Math.floor((today - lastVisit) / (1000 * 60 * 60 * 24));
-    if (diffDays > 1) {
-      return { count: 0, lastVisit: null };
+    const now = new Date();
+
+    // Get local date only (midnight) for both dates
+    const lastVisitLocal = new Date(lastVisit.getFullYear(), lastVisit.getMonth(), lastVisit.getDate());
+    const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Calculate calendar days difference
+    const daysDiff = Math.round((todayLocal - lastVisitLocal) / (1000 * 60 * 60 * 24));
+
+    if (daysDiff > 1) {
+      // Streak broken - reset to day 1, but keep bestStreak
+      return { count: 1, lastVisit: new Date().toISOString(), bestStreak: data.bestStreak };
     }
     return data;
   });
@@ -260,36 +281,83 @@ export function AchievementsProvider({ children }) {
     localStorage.setItem('sb-camps-streak', JSON.stringify(streak));
   }, [streak]);
 
-  // Update streak on visit
-  useEffect(() => {
-    const today = new Date().toDateString();
-    const lastVisitDate = streak.lastVisit ? new Date(streak.lastVisit).toDateString() : null;
+  // BUG-F-016: Helper to get local midnight date (ignores time component)
+  const getLocalDateOnly = useCallback((date) => {
+    const d = new Date(date);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }, []);
 
-    if (lastVisitDate !== today) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const isConsecutive = lastVisitDate === yesterday.toDateString();
+  // BUG-F-016: Calculate calendar days difference using local timezone
+  const getCalendarDaysDiff = useCallback((date1, date2) => {
+    const d1 = getLocalDateOnly(date1);
+    const d2 = getLocalDateOnly(date2);
+    return Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
+  }, [getLocalDateOnly]);
 
-      setStreak(prev => ({
-        count: isConsecutive ? prev.count + 1 : 1,
-        lastVisit: new Date().toISOString()
-      }));
+  // Check and update streak based on current date (uses local timezone)
+  const checkAndUpdateStreak = useCallback(() => {
+    const now = new Date();
+    const todayLocal = getLocalDateOnly(now);
+
+    // Get last visit as local date
+    const lastVisitDate = streak.lastVisit
+      ? getLocalDateOnly(new Date(streak.lastVisit))
+      : null;
+
+    // Same local calendar day - no update needed
+    if (lastVisitDate && todayLocal.getTime() === lastVisitDate.getTime()) {
+      return;
     }
-  }, [streak.lastVisit]);
+
+    // Calculate days since last visit using local calendar days
+    const daysSinceLastVisit = lastVisitDate
+      ? getCalendarDaysDiff(todayLocal, lastVisitDate)
+      : null;
+
+    setStreak(prev => {
+      // If exactly 1 day since last visit, continue streak
+      const isConsecutive = daysSinceLastVisit === 1;
+      const newCount = isConsecutive ? prev.count + 1 : 1;
+
+      return {
+        count: newCount,
+        lastVisit: now.toISOString(),
+        bestStreak: Math.max(prev.bestStreak || 0, newCount)
+      };
+    });
+  }, [streak.lastVisit, getLocalDateOnly, getCalendarDaysDiff]);
+
+  // Update streak on mount and when user interacts with schedule
+  useEffect(() => {
+    checkAndUpdateStreak();
+  }, [checkAndUpdateStreak, scheduledCamps.length]);
+
+  // BUG-F-005: Check streak when page becomes visible again (handles long-running sessions)
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        checkAndUpdateStreak();
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [checkAndUpdateStreak]);
 
   // Calculate planning stats
   const planningStats = useMemo(() => {
     const activeCamps = scheduledCamps.filter(sc => sc.status !== 'cancelled');
     const totalWeeks = summerWeeks.length;
 
-    // Count covered weeks (weeks with at least one camp)
+    // Count covered weeks (weeks with at least one camp overlapping)
     const coveredWeekNums = new Set();
     activeCamps.forEach(sc => {
       const scStart = new Date(sc.start_date);
+      const scEnd = sc.end_date ? new Date(sc.end_date) : scStart;
       summerWeeks.forEach(week => {
         const weekStart = new Date(week.startDate);
         const weekEnd = new Date(week.endDate);
-        if (scStart >= weekStart && scStart <= weekEnd) {
+        // Check if camp overlaps with this week (camp starts before week ends AND camp ends after week starts)
+        if (scStart <= weekEnd && scEnd >= weekStart) {
           coveredWeekNums.add(week.weekNum);
         }
       });
@@ -418,7 +486,7 @@ export function AchievementsProvider({ children }) {
       setEarnedAchievements(prev => [...prev, ...newAchievements]);
 
       // Show celebration for first new achievement
-      const firstNew = ACHIEVEMENTS[newAchievements[0].toUpperCase()];
+      const firstNew = Object.values(ACHIEVEMENTS).find(a => a.id === newAchievements[0]);
       if (firstNew) {
         setRecentAchievement(firstNew);
 
@@ -429,11 +497,11 @@ export function AchievementsProvider({ children }) {
           setCelebration('achievement');
         }
 
-        // Clear celebration after delay
+        // Clear celebration after delay (6 seconds to allow reading)
         setTimeout(() => {
           setCelebration(null);
           setRecentAchievement(null);
-        }, 5000);
+        }, 6000);
       }
     }
   }, [earnedAchievements, planningStats, streak.count]);

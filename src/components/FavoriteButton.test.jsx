@@ -67,20 +67,21 @@ describe('FavoriteButton', () => {
   });
 
   describe('sizes', () => {
+    // Note: All sizes use min-w-[44px] for WCAG 2.5.5 compliance (touch targets)
     it('applies small size class', () => {
       render(<FavoriteButton campId="camp-1" size="sm" />);
 
       const button = screen.getByRole('button');
-      expect(button.className).toContain('w-8');
-      expect(button.className).toContain('h-8');
+      expect(button.className).toContain('w-10');
+      expect(button.className).toContain('h-10');
     });
 
     it('applies medium size class by default', () => {
       render(<FavoriteButton campId="camp-1" />);
 
       const button = screen.getByRole('button');
-      expect(button.className).toContain('w-10');
-      expect(button.className).toContain('h-10');
+      expect(button.className).toContain('w-11');
+      expect(button.className).toContain('h-11');
     });
 
     it('applies large size class', () => {

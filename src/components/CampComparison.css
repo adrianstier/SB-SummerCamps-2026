@@ -504,7 +504,7 @@
 .comparison-features-cell {
   display: flex;
   justify-content: center;
-  color: var(--sand-300);
+  color: var(--earth-500); /* Improved contrast for WCAG AA */
 }
 
 .comparison-features-cell.has-feature {
@@ -646,5 +646,10 @@
   .comparison-features-header,
   .comparison-features-row {
     min-width: 400px;
+  }
+
+  /* Minimum font size for readability (WCAG) */
+  .comparison-cell-best-tag {
+    font-size: max(0.6875rem, 11px);
   }
 }

@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAchievements } from '../contexts/AchievementsContext';
 import { FavoriteButton } from './FavoriteButton';
+import { ProgressTracker } from './ProgressTracker';
+import { AchievementBadges } from './AchievementBadges';
 import { getSummerWeeks2026 } from '../lib/supabase';
 import { formatPriceShort } from '../lib/formatters';
 import { GapSuggestions } from './RecommendationSection';
@@ -25,10 +28,13 @@ export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
     return getRecommendationScores(camps).slice(0, 4);
   }, [camps, getRecommendationScores]);
 
-  // Get upcoming scheduled camps
+  // Get upcoming scheduled camps (only future camps)
   const upcomingCamps = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Compare by date only
+
     return scheduledCamps
-      .filter(sc => sc.status !== 'cancelled')
+      .filter(sc => sc.status !== 'cancelled' && new Date(sc.start_date) >= now)
       .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
       .slice(0, 3)
       .map(sc => ({
@@ -147,6 +153,17 @@ export function Dashboard({ camps, onClose, onOpenPlanner, onSelectCamp }) {
               )}
             </section>
           </div>
+
+          {/* Progress & Achievements Section */}
+          <section className="dashboard-section dashboard-gamification">
+            <div className="dashboard-section-header">
+              <h2 className="dashboard-section-title">Your Progress</h2>
+            </div>
+            <ProgressTracker variant="default" showMilestones={true} />
+            <div className="dashboard-achievements-preview">
+              <AchievementBadges variant="compact" maxVisible={8} />
+            </div>
+          </section>
 
           {/* Gap Suggestions - Only show if there are gaps */}
           {totalGaps > 0 && (
