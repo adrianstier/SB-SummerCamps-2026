@@ -132,7 +132,13 @@ export const PLANNING_TIPS = [
   {
     id: 'check_gaps',
     condition: (stats) => stats.gapCount > 0 && stats.scheduledCount > 0,
-    tip: (stats) => `You have ${stats.gapCount} ${stats.gapCount === 1 ? 'gap' : 'gaps'} in your schedule. Consider filling them to avoid last-minute scrambling.`,
+    tip: (stats) => {
+      const hasMultipleKids = stats.childrenCount > 1;
+      const gapWord = stats.gapCount === 1 ? 'gap' : 'gaps';
+      return hasMultipleKids
+        ? `Your family has ${stats.gapCount} total ${gapWord} across all kids. Check each child's schedule to fill them.`
+        : `You have ${stats.gapCount} ${gapWord} in your schedule. Consider filling them to avoid last-minute scrambling.`;
+    },
     icon: 'clipboard'
   },
   {
