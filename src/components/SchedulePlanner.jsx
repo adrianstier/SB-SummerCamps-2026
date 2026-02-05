@@ -72,7 +72,7 @@ export function SchedulePlanner({ camps, onClose }) {
   } = useAuth();
 
   // Get achievements context for gamification features
-  const { celebrationAchievement, dismissCelebration } = useAchievements();
+  const { celebration, dismissCelebration } = useAchievements();
 
   const [selectedChild, setSelectedChild] = useState(children[0]?.id || null);
   const [showAddCamp, setShowAddCamp] = useState(null);
