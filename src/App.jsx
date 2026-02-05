@@ -1096,6 +1096,7 @@ export default function App() {
                   setExtendedCare(true);
                 }}
                 className={`filter-preset-link ${extendedCare && !foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`}
+                data-filter="extended-care"
               >
                 Extended Care
               </button>
@@ -1105,6 +1106,7 @@ export default function App() {
                   setMaxPrice('300');
                 }}
                 className={`filter-preset-link ${maxPrice === '300' && !extendedCare && selectedCategory === 'All' ? 'active' : ''}`}
+                data-filter="under-300"
               >
                 Under $300
               </button>
@@ -1114,6 +1116,7 @@ export default function App() {
                   setSelectedCategory('Sports');
                 }}
                 className={`filter-preset-link ${selectedCategory === 'Sports' ? 'active' : ''}`}
+                data-filter="sports"
               >
                 Sports
               </button>
@@ -1123,6 +1126,7 @@ export default function App() {
                   setSelectedCategory('Art');
                 }}
                 className={`filter-preset-link ${selectedCategory === 'Art' ? 'active' : ''}`}
+                data-filter="art"
               >
                 Art & Creative
               </button>
@@ -1132,6 +1136,7 @@ export default function App() {
                   setSelectedCategory('Science/STEM');
                 }}
                 className={`filter-preset-link ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
+                data-filter="stem"
               >
                 STEM
               </button>
@@ -1141,6 +1146,7 @@ export default function App() {
                   setSelectedCategory('Nature/Outdoor');
                 }}
                 className={`filter-preset-link ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}
+                data-filter="outdoors"
               >
                 Outdoors
               </button>

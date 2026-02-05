@@ -911,97 +911,171 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   FILTER BAR - Editorial Style
+   FILTER BAR - Editorial Warmth Style
+   Refined pills with organic shapes and Santa Barbara coastal warmth
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .filter-bar-section {
-  background: #fefefe;
+  background: linear-gradient(180deg, #fefefe 0%, var(--sand-50) 100%);
   border-bottom: 1px solid var(--sand-200);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 12px -4px rgba(139, 115, 85, 0.08);
 }
 
 .filter-bar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 14px 0;
-  min-height: 56px;
+  gap: 20px;
+  padding: 16px 0;
+  min-height: 64px;
 }
 
-/* Left side: Quick find presets */
+/* Left side: Quick find presets with elegant grouping */
 .filter-presets {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px 0;
+}
+
+.filter-presets::-webkit-scrollbar {
+  display: none;
 }
 
 .filter-presets-label {
   font-family: 'Fraunces', Georgia, serif;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 400;
   font-style: italic;
   color: var(--earth-600);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  padding-right: 4px;
 }
 
 .filter-presets-divider {
   width: 1px;
-  height: 16px;
-  background: var(--sand-200);
+  height: 20px;
+  background: linear-gradient(180deg, transparent, var(--sand-300), transparent);
   margin: 0 8px;
 }
 
+/* Quick filter pills - organic, tactile feel */
 .filter-preset-link {
   font-family: 'Outfit', sans-serif;
-  font-size: 0.9375rem; /* 15px - accessibility improvement */
-  font-weight: 400;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--earth-700);
-  background: none;
-  border: none;
-  padding: 8px 14px;
+  background: linear-gradient(180deg, white 0%, var(--sand-50) 100%);
+  border: 1px solid var(--sand-200);
+  border-radius: 20px;
+  padding: 8px 16px;
   cursor: pointer;
   position: relative;
-  transition: color 0.2s ease;
   white-space: nowrap;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition:
+    all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.15s ease;
 }
 
-.filter-preset-link::after {
+/* Icon before text for quick filters */
+.filter-preset-link::before {
   content: '';
-  position: absolute;
-  bottom: 2px;
-  left: 12px;
-  right: 12px;
-  height: 1px;
-  background: var(--terra-400);
-  transform: scaleX(0);
-  transform-origin: left;
-  /* Fluid underline reveal */
-  transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: -3px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
 }
 
+/* Individual filter icons */
+.filter-preset-link[data-filter="extended-care"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+}
+
+.filter-preset-link[data-filter="under-300"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+}
+
+.filter-preset-link[data-filter="sports"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9'/%3E%3C/svg%3E");
+}
+
+.filter-preset-link[data-filter="art"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42'/%3E%3C/svg%3E");
+}
+
+.filter-preset-link[data-filter="stem"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5'/%3E%3C/svg%3E");
+}
+
+.filter-preset-link[data-filter="outdoors"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z'/%3E%3C/svg%3E");
+}
+
+/* Hover state - lift and glow */
 .filter-preset-link:hover {
-  color: var(--terra-500);
+  color: var(--terra-600);
+  background: linear-gradient(180deg, white 0%, var(--terra-50) 100%);
+  border-color: var(--terra-200);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px -2px rgba(212, 86, 50, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.filter-preset-link:hover::after {
-  transform: scaleX(1);
+.filter-preset-link:hover::before {
+  opacity: 1;
 }
 
+/* Active press state */
 .filter-preset-link:active {
-  color: var(--terra-600);
+  transform: translateY(0);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+/* Selected/active filter */
 .filter-preset-link.active {
-  color: var(--terra-600);
-  font-weight: 500;
+  color: white;
+  background: linear-gradient(180deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
+  border-color: var(--ocean-500);
+  font-weight: 600;
+  box-shadow:
+    0 2px 8px -2px rgba(45, 149, 153, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.filter-preset-link.active::after {
-  transform: scaleX(1);
-  background: var(--terra-500);
-  height: 2px;
+.filter-preset-link.active::before {
+  opacity: 1;
+  filter: brightness(0) invert(1);
+}
+
+.filter-preset-link.active:hover {
+  background: linear-gradient(180deg, var(--ocean-500) 0%, var(--ocean-600) 100%);
+  border-color: var(--ocean-600);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px -2px rgba(45, 149, 153, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* Right side: Filter controls */
@@ -1124,32 +1198,41 @@ body::before {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-    padding: 12px 0;
+    padding: 14px 0;
   }
 
   .filter-presets {
     width: 100%;
     overflow-x: auto;
     flex-wrap: nowrap;
-    padding-bottom: 4px;
+    padding-bottom: 8px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     /* Add gradient fade to indicate scrollable content (only on right side) */
     position: relative;
-    mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
-    padding-right: 24px; /* Space for the fade */
-    gap: 8px; /* Slightly more gap on mobile for readability */
+    mask-image: linear-gradient(to right, black 0, black calc(100% - 32px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 32px), transparent 100%);
+    padding-right: 32px; /* Space for the fade */
+    gap: 8px;
   }
 
   .filter-presets::-webkit-scrollbar {
     display: none;
   }
 
-  /* Ensure filter pills don't wrap or truncate text */
+  /* Compact pills on mobile - keep icons but tighter spacing */
   .filter-preset-link {
     flex-shrink: 0;
     white-space: nowrap;
+    padding: 8px 14px;
+    font-size: 0.8125rem;
+  }
+
+  .filter-preset-link::before {
+    width: 14px;
+    height: 14px;
+    margin-right: 5px;
+    vertical-align: -2px;
   }
 
   .filter-presets-label {
@@ -1826,12 +1909,13 @@ button[title]:focus-visible:not(.btn-primary):not(.btn-secondary) {
     0 0 0 4px var(--ocean-400);
 }
 
-/* Filter preset links - inline focus style */
+/* Filter preset links - pill focus style */
 .filter-preset-link:focus-visible {
   outline: none;
-  background: var(--ocean-50);
-  color: var(--ocean-600);
-  box-shadow: inset 0 0 0 2px var(--ocean-400);
+  border-color: var(--ocean-400);
+  box-shadow:
+    0 0 0 3px var(--ocean-100),
+    0 2px 8px -2px rgba(45, 149, 153, 0.3);
 }
 
 /* Category browse cards - lift on focus */
@@ -1913,17 +1997,26 @@ textarea:focus-visible {
     0 2px 8px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Active filter preset state */
+/* Active filter preset state - enhances base styles */
 .filter-preset-link.active {
-  background: var(--ocean-500);
   color: white;
+  background: linear-gradient(180deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
+  border-color: var(--ocean-500);
   font-weight: 600;
-  box-shadow: 0 2px 8px -2px rgba(59, 168, 168, 0.4);
+  box-shadow:
+    0 2px 8px -2px rgba(45, 149, 153, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .filter-preset-link.active:hover {
-  background: var(--ocean-600);
-  transform: none;
+  background: linear-gradient(180deg, var(--ocean-500) 0%, var(--ocean-600) 100%);
+  border-color: var(--ocean-600);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px -2px rgba(45, 149, 153, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
