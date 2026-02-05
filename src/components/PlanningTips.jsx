@@ -79,7 +79,8 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
   variant = 'default',
   maxTips = 1,
   dismissible = true,
-  className = ''
+  className = '',
+  excludeTips = [] // Array of tip IDs to exclude (e.g., ['check_gaps'] in SchedulePlanner)
 }) {
   const { relevantTips, nextTip } = useAchievements();
   const [dismissedTips, setDismissedTips] = useState(() => {
@@ -88,10 +89,12 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
   });
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Filter out dismissed tips - BUG-F-007: Ensure dismissed tips don't reappear
+  // Filter out dismissed tips and explicitly excluded tips
   const visibleTips = useMemo(() => {
-    return relevantTips.filter(tip => !dismissedTips.includes(tip.id));
-  }, [relevantTips, dismissedTips]);
+    return relevantTips.filter(tip =>
+      !dismissedTips.includes(tip.id) && !excludeTips.includes(tip.id)
+    );
+  }, [relevantTips, dismissedTips, excludeTips]);
 
   // BUG-F-007: Reset currentIndex when it's out of bounds after filtering
   useEffect(() => {

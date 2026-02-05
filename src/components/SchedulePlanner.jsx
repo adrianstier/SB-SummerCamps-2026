@@ -1804,7 +1804,7 @@ export function SchedulePlanner({ camps, onClose }) {
             {/* Planning Progress & Tips */}
             <div className="planner-gamification-strip">
               <ProgressTracker variant="compact" className="planner-progress" />
-              <PlanningTipsContainer variant="inline" className="planner-tips" />
+              <PlanningTipsContainer variant="inline" className="planner-tips" excludeTips={['check_gaps']} />
             </div>
 
             {/* Camp Sidebar */}
