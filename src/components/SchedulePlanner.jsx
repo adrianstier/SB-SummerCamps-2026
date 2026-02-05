@@ -279,12 +279,17 @@ export function SchedulePlanner({ camps, onClose }) {
 
     allDisplayCamps.forEach(sc => {
       const scStart = new Date(sc.start_date);
+      const scEnd = new Date(sc.end_date);
 
       summerWeeks.forEach(week => {
         const weekStart = new Date(week.startDate);
         const weekEnd = new Date(week.endDate);
 
-        if (scStart >= weekStart && scStart <= weekEnd) {
+        // Check for any overlap between camp dates and week dates
+        // Camp overlaps if: camp starts before week ends AND camp ends after week starts
+        const hasOverlap = scStart <= weekEnd && scEnd >= weekStart;
+
+        if (hasOverlap) {
           if (result[sc.child_id] && result[sc.child_id][week.weekNum]) {
             result[sc.child_id][week.weekNum].push(sc);
           }
