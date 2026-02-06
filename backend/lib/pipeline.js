@@ -41,69 +41,297 @@ const QUALITY_WEIGHTS = {
 };
 
 /**
- * Score the quality of extracted data (comprehensive scoring)
+ * Quality tier definitions
+ * Tiers categorize camps by data quality for prioritized improvement
  */
-export function scoreDataQuality(extracted) {
-  if (!extracted) return 0;
+export const QUALITY_TIERS = {
+  GOLD: {
+    name: 'Gold',
+    minScore: 80,
+    description: 'Complete data, high confidence',
+    action: 'maintain',
+    color: '#FFD700'
+  },
+  SILVER: {
+    name: 'Silver',
+    minScore: 60,
+    description: 'Good data, some gaps',
+    action: 'schedule_next_cycle',
+    color: '#C0C0C0'
+  },
+  BRONZE: {
+    name: 'Bronze',
+    minScore: 40,
+    description: 'Partial data, needs enrichment',
+    action: 'flag_for_review',
+    color: '#CD7F32'
+  },
+  NEEDS_WORK: {
+    name: 'Needs Work',
+    minScore: 0,
+    description: 'Significant gaps, priority for Claude/manual',
+    action: 'trigger_claude_extraction',
+    color: '#FF6B6B'
+  }
+};
+
+/**
+ * Determine quality tier based on score
+ * @param {number} score - Quality score (0-100)
+ * @returns {Object} Tier information with name, description, action, and recommendations
+ */
+export function getQualityTier(score) {
+  if (score >= QUALITY_TIERS.GOLD.minScore) {
+    return {
+      tier: 'gold',
+      ...QUALITY_TIERS.GOLD,
+      recommendations: [
+        'Periodic verification (monthly)',
+        'Monitor for price/availability changes',
+        'No immediate action needed'
+      ]
+    };
+  } else if (score >= QUALITY_TIERS.SILVER.minScore) {
+    return {
+      tier: 'silver',
+      ...QUALITY_TIERS.SILVER,
+      recommendations: [
+        'Schedule for next scrape cycle',
+        'Consider targeted page discovery for missing fields',
+        'Check for PDF schedules or registration forms'
+      ]
+    };
+  } else if (score >= QUALITY_TIERS.BRONZE.minScore) {
+    return {
+      tier: 'bronze',
+      ...QUALITY_TIERS.BRONZE,
+      recommendations: [
+        'Flag for manual review',
+        'Try alternate scraping strategies',
+        'Check camp config for site-specific URLs',
+        'Consider screenshot capture for vision analysis'
+      ]
+    };
+  } else {
+    return {
+      tier: 'needs_work',
+      ...QUALITY_TIERS.NEEDS_WORK,
+      recommendations: [
+        'Auto-trigger Claude extraction',
+        'Priority for Claude session semantic extraction',
+        'Manual data entry may be required',
+        'Verify website URL is correct and active'
+      ]
+    };
+  }
+}
+
+/**
+ * Get tier-specific action recommendations
+ * @param {string} tierName - Tier name (gold, silver, bronze, needs_work)
+ * @param {Object} campData - Camp data for context-aware recommendations
+ * @returns {Object} Action details with steps and priority
+ */
+export function getTierRecommendations(tierName, campData = {}) {
+  const extracted = campData.extracted || {};
+  const missingFields = [];
+
+  // Identify specific missing fields
+  if (!extracted.pricing_tiers || !hasPricingData(extracted.pricing_tiers)) {
+    missingFields.push('pricing');
+  }
+  if (!extracted.sessions || extracted.sessions.length === 0) {
+    missingFields.push('sessions');
+  }
+  if (!extracted.hours) {
+    missingFields.push('hours');
+  }
+  if (extracted.has_extended_care === undefined || extracted.has_extended_care === null) {
+    missingFields.push('extended_care');
+  }
+  if (!extracted.activities || extracted.activities.length === 0) {
+    missingFields.push('activities');
+  }
+
+  const recommendations = {
+    gold: {
+      priority: 'low',
+      action: 'maintain',
+      schedule: 'monthly',
+      steps: [
+        'Verify data accuracy periodically',
+        'Monitor for price changes',
+        'Check registration status as summer approaches'
+      ],
+      automatable: true
+    },
+    silver: {
+      priority: 'medium',
+      action: 'enrich',
+      schedule: 'next_cycle',
+      steps: [
+        `Fill gaps in: ${missingFields.join(', ') || 'minor details'}`,
+        'Try Playwright strategy for JS-heavy pages',
+        'Look for linked pricing/schedule pages'
+      ],
+      automatable: true
+    },
+    bronze: {
+      priority: 'high',
+      action: 'review',
+      schedule: 'asap',
+      steps: [
+        'Manual review recommended',
+        `Critical missing: ${missingFields.slice(0, 3).join(', ')}`,
+        'Check if site blocks scrapers',
+        'Try screenshot + Claude Vision analysis'
+      ],
+      automatable: false
+    },
+    needs_work: {
+      priority: 'critical',
+      action: 'claude_extraction',
+      schedule: 'immediate',
+      steps: [
+        'Auto-trigger Claude API extraction',
+        'If Claude unavailable, capture screenshots for manual analysis',
+        'Verify website URL is correct',
+        'Consider contacting camp directly for info'
+      ],
+      missingFields,
+      automatable: isClaudeAutoTriggerEnabled()
+    }
+  };
+
+  return recommendations[tierName] || recommendations.needs_work;
+}
+
+/**
+ * Check if Claude auto-trigger is enabled (API key available)
+ */
+function isClaudeAutoTriggerEnabled() {
+  return !!process.env.ANTHROPIC_API_KEY;
+}
+
+/**
+ * Check if pricing object has actual data
+ */
+function hasPricingData(pricing) {
+  if (!pricing) return false;
+  return Object.values(pricing).some(v => v !== null && v !== undefined && v !== 0);
+}
+
+/**
+ * Apply confidence multiplier to a score component
+ * Higher confidence extractions contribute more to the score
+ * @param {number} baseScore - The base score for the field
+ * @param {number} confidence - Confidence score (0-1)
+ * @returns {number} Adjusted score
+ */
+function applyConfidenceMultiplier(baseScore, confidence) {
+  if (!confidence || confidence <= 0) {
+    // No confidence info - use base score (legacy behavior)
+    return baseScore;
+  }
+  // Scale score by confidence: high confidence (0.9+) = full score, low (0.5) = 70% of score
+  // Formula: score * (0.7 + 0.3 * confidence)
+  const multiplier = 0.7 + 0.3 * confidence;
+  return Math.round(baseScore * multiplier * 100) / 100;
+}
+
+/**
+ * Score the quality of extracted data (comprehensive scoring)
+ * Now factors in confidence scores when available for smarter quality assessment.
+ * @param {Object} extracted - Extracted camp data
+ * @param {boolean} includeTier - Whether to return tier information (default: false for backward compatibility)
+ * @returns {number|Object} Score (0-100) or object with score and tier info
+ */
+export function scoreDataQuality(extracted, includeTier = false) {
+  if (!extracted) {
+    if (includeTier) {
+      return { score: 0, tier: getQualityTier(0) };
+    }
+    return 0;
+  }
 
   let score = 0;
+  const confidence = extracted._confidence || {};
 
   // Pricing (30 points max) - most valuable
   if (extracted.pricing_tiers || extracted.pricing) {
     const pricing = extracted.pricing_tiers || extracted.pricing;
+    const pricingConf = confidence.pricing || 1;
+
     // Base price found
     if (pricing.weekly || pricing.weekly_rate || pricing.session || pricing.perSession) {
-      score += 15;
+      const weeklyConf = confidence.pricing_weekly || pricingConf;
+      score += applyConfidenceMultiplier(15, weeklyConf);
     }
     // Tier pricing (early bird, member, etc.)
     if (pricing.earlyBird || pricing.early_bird || pricing.member || pricing.member_rate) {
-      score += 8;
+      const tierConf = confidence.pricing_earlyBird || confidence.pricing_member || pricingConf;
+      score += applyConfidenceMultiplier(8, tierConf);
     }
     // Half/full day options
     if (pricing.halfDay || pricing.fullDay || pricing.half_day_rate || pricing.daily) {
-      score += 7;
+      const dayConf = confidence.pricing_halfDay || confidence.pricing_fullDay || pricingConf;
+      score += applyConfidenceMultiplier(7, dayConf);
     }
   }
 
   // Sessions (20 points max)
   if (extracted.sessions && Array.isArray(extracted.sessions)) {
-    if (extracted.sessions.length > 0) score += 10;
-    if (extracted.sessions.length >= 5) score += 5;
+    const sessionsConf = confidence.sessions || 1;
+    if (extracted.sessions.length > 0) {
+      score += applyConfidenceMultiplier(10, sessionsConf);
+    }
+    if (extracted.sessions.length >= 5) {
+      score += applyConfidenceMultiplier(5, sessionsConf);
+    }
     // Bonus for 2026 dates
     if (extracted.sessions.some(s => {
       const dateStr = s.dates || s.raw || '';
       return dateStr.includes('2026');
     })) {
-      score += 5;
+      score += applyConfidenceMultiplier(5, sessionsConf);
     }
   }
 
   // Hours (15 points max)
-  if (extracted.hours) {
+  if (extracted.hours || extracted.hours_found) {
+    const hoursConf = confidence.hours || 1;
+    const hours = extracted.hours || extracted.hours_found;
     // Standard hours found
-    if (typeof extracted.hours === 'string' && extracted.hours.includes('-')) {
-      score += 10;
-    } else if (extracted.hours.standard || extracted.hours.start) {
-      score += 10;
+    if (typeof hours === 'string' && hours.includes('-')) {
+      score += applyConfidenceMultiplier(10, hoursConf);
+    } else if (hours?.standard || hours?.start) {
+      score += applyConfidenceMultiplier(10, hoursConf);
+    } else if (hours) {
+      // Some hours info found
+      score += applyConfidenceMultiplier(8, hoursConf);
     }
     // Drop-off/pick-up windows found
     if (extracted.hours_detail?.dropOff || extracted.hours_detail?.pickUp ||
-        extracted.hours?.drop_off_window || extracted.hours?.pick_up_window) {
-      score += 5;
+        extracted.drop_off_window || extracted.pick_up_window) {
+      const windowConf = confidence.drop_off_window || confidence.pick_up_window || hoursConf;
+      score += applyConfidenceMultiplier(5, windowConf);
     }
   }
 
   // Extended care (15 points max)
   if (extracted.has_extended_care !== undefined && extracted.has_extended_care !== null) {
-    score += 8;
+    const ecConf = confidence.extended_care || 1;
+    score += applyConfidenceMultiplier(8, ecConf);
     // Extended care hours documented
     if (extracted.extended_care_hours || extracted.hours_detail?.extendedBefore ||
         extracted.hours_detail?.extendedAfter) {
-      score += 4;
+      const ecHoursConf = confidence.extended_care_hours || ecConf;
+      score += applyConfidenceMultiplier(4, ecHoursConf);
     }
     // Extended care cost documented
     if (extracted.extended_care_cost) {
-      score += 3;
+      const ecCostConf = confidence.extended_care_cost || ecConf;
+      score += applyConfidenceMultiplier(3, ecCostConf);
     }
   } else if (extracted.extended_care_details) {
     // Partial info about extended care
@@ -114,14 +342,22 @@ export function scoreDataQuality(extracted) {
   if (extracted.age_groups && Array.isArray(extracted.age_groups) && extracted.age_groups.length > 0) {
     score += 10;
   } else if (extracted.min_age || extracted.max_age || extracted.ages?.min) {
-    score += 7;
+    const ageConf = confidence.min_age || confidence.max_age || 1;
+    score += applyConfidenceMultiplier(7, ageConf);
   }
 
   // Activities (10 points max)
   if (extracted.activities && Array.isArray(extracted.activities)) {
-    if (extracted.activities.length > 0) score += 5;
-    if (extracted.activities.length >= 5) score += 3;
-    if (extracted.activities.length >= 10) score += 2;
+    const actConf = confidence.activities || 1;
+    if (extracted.activities.length > 0) {
+      score += applyConfidenceMultiplier(5, actConf);
+    }
+    if (extracted.activities.length >= 5) {
+      score += applyConfidenceMultiplier(3, actConf);
+    }
+    if (extracted.activities.length >= 10) {
+      score += applyConfidenceMultiplier(2, actConf);
+    }
   }
 
   // Registration (5 points max - bonus)
@@ -131,7 +367,122 @@ export function scoreDataQuality(extracted) {
     if (reg.opens_date || reg.openingDate) score += 2;
   }
 
-  return Math.min(100, score);
+  const finalScore = Math.min(100, Math.round(score));
+
+  if (includeTier) {
+    return {
+      score: finalScore,
+      tier: getQualityTier(finalScore)
+    };
+  }
+
+  return finalScore;
+}
+
+/**
+ * Get comprehensive quality assessment for a camp
+ * Includes score, tier, breakdown, and recommendations
+ * @param {Object} extracted - Extracted camp data
+ * @param {Object} campData - Full camp data for context
+ * @returns {Object} Complete quality assessment
+ */
+export function getQualityAssessment(extracted, campData = {}) {
+  const scoreResult = scoreDataQuality(extracted, true);
+
+  // Calculate score breakdown
+  const breakdown = {
+    pricing: 0,
+    sessions: 0,
+    hours: 0,
+    extended_care: 0,
+    ages: 0,
+    activities: 0,
+    registration: 0
+  };
+
+  if (extracted) {
+    // Pricing breakdown
+    if (extracted.pricing_tiers || extracted.pricing) {
+      const pricing = extracted.pricing_tiers || extracted.pricing;
+      if (pricing.weekly || pricing.weekly_rate || pricing.session || pricing.perSession) {
+        breakdown.pricing += 15;
+      }
+      if (pricing.earlyBird || pricing.early_bird || pricing.member || pricing.member_rate) {
+        breakdown.pricing += 8;
+      }
+      if (pricing.halfDay || pricing.fullDay || pricing.half_day_rate || pricing.daily) {
+        breakdown.pricing += 7;
+      }
+    }
+
+    // Sessions breakdown
+    if (extracted.sessions && Array.isArray(extracted.sessions)) {
+      if (extracted.sessions.length > 0) breakdown.sessions += 10;
+      if (extracted.sessions.length >= 5) breakdown.sessions += 5;
+      if (extracted.sessions.some(s => (s.dates || s.raw || '').includes('2026'))) {
+        breakdown.sessions += 5;
+      }
+    }
+
+    // Hours breakdown
+    if (extracted.hours) {
+      if (typeof extracted.hours === 'string' && extracted.hours.includes('-')) {
+        breakdown.hours += 10;
+      } else if (extracted.hours.standard || extracted.hours.start) {
+        breakdown.hours += 10;
+      }
+      if (extracted.hours_detail?.dropOff || extracted.hours_detail?.pickUp) {
+        breakdown.hours += 5;
+      }
+    }
+
+    // Extended care breakdown
+    if (extracted.has_extended_care !== undefined && extracted.has_extended_care !== null) {
+      breakdown.extended_care += 8;
+      if (extracted.extended_care_hours || extracted.hours_detail?.extendedBefore) {
+        breakdown.extended_care += 4;
+      }
+      if (extracted.extended_care_cost) {
+        breakdown.extended_care += 3;
+      }
+    }
+
+    // Ages breakdown
+    if (extracted.age_groups && Array.isArray(extracted.age_groups) && extracted.age_groups.length > 0) {
+      breakdown.ages = 10;
+    } else if (extracted.min_age || extracted.max_age) {
+      breakdown.ages = 7;
+    }
+
+    // Activities breakdown
+    if (extracted.activities && Array.isArray(extracted.activities)) {
+      if (extracted.activities.length > 0) breakdown.activities += 5;
+      if (extracted.activities.length >= 5) breakdown.activities += 3;
+      if (extracted.activities.length >= 10) breakdown.activities += 2;
+    }
+
+    // Registration breakdown
+    if (extracted.registration || extracted.availability) {
+      const reg = extracted.registration || extracted.availability;
+      if (reg.status || reg.isOpen !== undefined) breakdown.registration += 3;
+      if (reg.opens_date || reg.openingDate) breakdown.registration += 2;
+    }
+  }
+
+  // Get recommendations
+  const recommendations = getTierRecommendations(scoreResult.tier.tier, campData);
+
+  return {
+    score: scoreResult.score,
+    tier: scoreResult.tier.tier,
+    tierName: scoreResult.tier.name,
+    tierDescription: scoreResult.tier.description,
+    tierColor: scoreResult.tier.color,
+    action: scoreResult.tier.action,
+    breakdown,
+    recommendations: scoreResult.tier.recommendations,
+    actionPlan: recommendations
+  };
 }
 
 /**
@@ -403,9 +754,34 @@ export function validateExtraction(extracted, campConfig = null) {
 }
 
 /**
- * Generate weekly report
+ * Generate weekly report with tier-based grouping
  */
 export function generateWeeklyReport(results, changes) {
+  // Group results by tier
+  const tierGroups = {
+    gold: [],
+    silver: [],
+    bronze: [],
+    needs_work: []
+  };
+
+  for (const result of results) {
+    const tier = getQualityTier(result.quality || 0);
+    tierGroups[tier.tier].push({
+      id: result.campId,
+      name: result.campName,
+      quality: result.quality || 0,
+      bestStrategy: result.bestStrategy,
+      url: result.url
+    });
+  }
+
+  // Sort each tier by quality (descending for gold/silver, ascending for bronze/needs_work)
+  tierGroups.gold.sort((a, b) => b.quality - a.quality);
+  tierGroups.silver.sort((a, b) => b.quality - a.quality);
+  tierGroups.bronze.sort((a, b) => a.quality - b.quality);
+  tierGroups.needs_work.sort((a, b) => a.quality - b.quality);
+
   const report = {
     generatedAt: new Date().toISOString(),
     summary: {
@@ -414,6 +790,69 @@ export function generateWeeklyReport(results, changes) {
       needsReview: results.filter(r => r.quality < 60 && r.quality > 0).length,
       failed: results.filter(r => r.quality === 0).length,
       avgQuality: Math.round(results.reduce((sum, r) => sum + (r.quality || 0), 0) / results.length)
+    },
+    tierSummary: {
+      gold: {
+        count: tierGroups.gold.length,
+        percentage: Math.round((tierGroups.gold.length / results.length) * 100),
+        description: QUALITY_TIERS.GOLD.description,
+        action: 'Maintain with periodic verification'
+      },
+      silver: {
+        count: tierGroups.silver.length,
+        percentage: Math.round((tierGroups.silver.length / results.length) * 100),
+        description: QUALITY_TIERS.SILVER.description,
+        action: 'Schedule for next scrape cycle'
+      },
+      bronze: {
+        count: tierGroups.bronze.length,
+        percentage: Math.round((tierGroups.bronze.length / results.length) * 100),
+        description: QUALITY_TIERS.BRONZE.description,
+        action: 'Flag for manual review'
+      },
+      needs_work: {
+        count: tierGroups.needs_work.length,
+        percentage: Math.round((tierGroups.needs_work.length / results.length) * 100),
+        description: QUALITY_TIERS.NEEDS_WORK.description,
+        action: 'Auto-trigger Claude extraction'
+      }
+    },
+    tierDetails: {
+      gold: {
+        camps: tierGroups.gold,
+        recommendations: [
+          'No immediate action required',
+          'Schedule monthly verification checks',
+          'Monitor for price/availability changes'
+        ]
+      },
+      silver: {
+        camps: tierGroups.silver,
+        recommendations: [
+          'Include in next weekly scrape',
+          'Try additional page discovery for missing data',
+          'Check for PDF schedules or registration forms'
+        ]
+      },
+      bronze: {
+        camps: tierGroups.bronze,
+        recommendations: [
+          'Manual review recommended',
+          'Try screenshot + Claude Vision analysis',
+          'Verify camp website URLs are correct',
+          'Check camp config files for site-specific hints'
+        ]
+      },
+      needs_work: {
+        camps: tierGroups.needs_work,
+        recommendations: [
+          'Priority: Run Claude semantic extraction',
+          'Capture screenshots for vision analysis',
+          'Consider contacting camp directly',
+          'Manual data entry may be required'
+        ],
+        autoTriggerEnabled: !!process.env.ANTHROPIC_API_KEY
+      }
     },
     changes: {
       total: changes.filter(c => c.hasChanges).length,
@@ -429,6 +868,7 @@ export function generateWeeklyReport(results, changes) {
         id: r.campId,
         name: r.campName,
         quality: r.quality,
+        tier: getQualityTier(r.quality || 0).tier,
         bestStrategy: r.bestStrategy
       }))
   };
@@ -455,6 +895,25 @@ export function generateWeeklyReport(results, changes) {
   return report;
 }
 
+/**
+ * Generate tier summary for console output
+ * @param {Object} tierSummary - Tier summary from report
+ * @returns {string} Formatted tier summary for console
+ */
+export function formatTierSummary(tierSummary) {
+  const lines = [
+    '',
+    '  QUALITY TIERS',
+    '  ' + '-'.repeat(50),
+    `  Gold (80+):       ${tierSummary.gold.count.toString().padStart(3)} camps (${tierSummary.gold.percentage}%) - ${tierSummary.gold.action}`,
+    `  Silver (60-79):   ${tierSummary.silver.count.toString().padStart(3)} camps (${tierSummary.silver.percentage}%) - ${tierSummary.silver.action}`,
+    `  Bronze (40-59):   ${tierSummary.bronze.count.toString().padStart(3)} camps (${tierSummary.bronze.percentage}%) - ${tierSummary.bronze.action}`,
+    `  Needs Work (<40): ${tierSummary.needs_work.count.toString().padStart(3)} camps (${tierSummary.needs_work.percentage}%) - ${tierSummary.needs_work.action}`,
+    ''
+  ];
+  return lines.join('\n');
+}
+
 export default {
   scoreDataQuality,
   mergeExtractions,
@@ -462,5 +921,11 @@ export default {
   validateExtraction,
   logPipelineRun,
   logChanges,
-  generateWeeklyReport
+  generateWeeklyReport,
+  // Quality tiering exports
+  QUALITY_TIERS,
+  getQualityTier,
+  getTierRecommendations,
+  getQualityAssessment,
+  formatTierSummary
 };

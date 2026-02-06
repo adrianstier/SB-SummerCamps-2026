@@ -38,6 +38,37 @@ async function uploadCamps() {
 
   console.log(`Found ${campsData.length} camps to upload`);
 
+  // Helper functions to parse boolean values from text fields
+  const parseFoodIncluded = (foodProvided) => {
+    if (!foodProvided) return false;
+    const text = foodProvided.toLowerCase();
+    // True if starts with "yes" or mentions food being included/provided (not "bring")
+    return /^yes/i.test(foodProvided) ||
+           (text.includes('included') && !text.includes('bring')) ||
+           (text.includes('provided') && !text.includes('bring') && !text.includes('snack'));
+  };
+
+  const parseSiblingDiscount = (siblingDiscount) => {
+    if (!siblingDiscount) return false;
+    const text = siblingDiscount.toLowerCase();
+    // False if unknown, no, or N/A
+    if (text === 'unknown' || text === 'no' || text === 'n/a') return false;
+    // True if starts with "yes" or contains discount indicators ($, %, off)
+    return /^yes/i.test(siblingDiscount) ||
+           text.includes('$') ||
+           text.includes('%') ||
+           text.includes('off');
+  };
+
+  const parseTransport = (transport) => {
+    if (!transport) return false;
+    const text = transport.toLowerCase();
+    // True if starts with "yes" or mentions bus/van
+    return /^yes/i.test(transport) ||
+           (text.includes('bus') && !text.includes('no')) ||
+           (text.includes('van') && !text.includes('no'));
+  };
+
   // Transform data to match table schema
   const camps = campsData.map(camp => ({
     id: camp.id,
@@ -56,16 +87,16 @@ async function uploadCamps() {
     pick_up: camp.pick_up || null,
     indoor_outdoor: camp.indoor_outdoor || null,
     food_provided: camp.food_provided || null,
-    food_included: camp.food_included || false,
+    food_included: camp.food_included || parseFoodIncluded(camp.food_provided),
     extended_care: camp.extended_care || null,
     extended_care_cost: camp.extended_care_cost || null,
     has_extended_care: camp.has_extended_care || (camp.extended_care && /^yes/i.test(camp.extended_care)) || false,
     sibling_discount: camp.sibling_discount || null,
-    has_sibling_discount: camp.has_sibling_discount || false,
+    has_sibling_discount: camp.has_sibling_discount || parseSiblingDiscount(camp.sibling_discount),
     multi_week_discount: camp['multi-week_discount'] || camp.multi_week_discount || null,
     swim_requirement: camp.swim_requirement || null,
     transport: camp.transport || null,
-    has_transport: camp.has_transport || false,
+    has_transport: camp.has_transport || parseTransport(camp.transport),
     refund_policy: camp.refund_policy || null,
     contact_phone: camp.contact_phone || null,
     contact_email: camp.contact_email || null,

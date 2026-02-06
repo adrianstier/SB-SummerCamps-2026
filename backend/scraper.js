@@ -8,8 +8,11 @@ import {
   extractWithClaude,
   mergeWithCSVFallback,
   checkNeedsReview,
-  addToReviewQueue
+  addToReviewQueue,
+  isClaudeAvailable
 } from './lib/claude-extractor.js';
+import { scoreDataQuality } from './lib/pipeline.js';
+import { normalizeExtracted } from './lib/schema-normalizer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, '..', 'data');
@@ -31,6 +34,34 @@ const CONFIG = {
   cacheMaxAge: 24 * 60 * 60 * 1000, // Cache valid for 24 hours
   userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 };
+
+// Confidence scores for different extraction methods
+// These enable smarter field updates based on extraction confidence
+const CONFIDENCE = {
+  DIRECT_TEXT_MATCH: 0.9,    // Exact pattern match with clear label (e.g., "Price: $300")
+  PATTERN_MATCH: 0.7,        // Regex pattern match without explicit label
+  CLAUDE_EXTRACTION: 0.85,   // Claude API semantic extraction
+  HEURISTIC_GUESS: 0.5,      // Inferred from context or fallback logic
+  TABLE_EXTRACTION: 0.8,     // Extracted from structured table data
+  JSON_LD_EXTRACTION: 0.95,  // From structured JSON-LD data
+  IMAGE_ALT_TEXT: 0.6,       // From image alt text (activities)
+};
+
+/**
+ * Build confidence object for extracted data
+ * Tracks confidence per-field based on extraction method
+ * @param {Object} extractions - Map of field name to {value, confidence, method}
+ * @returns {Object} _confidence object with field scores
+ */
+function buildConfidenceObject(extractions) {
+  const confidence = {};
+  for (const [field, data] of Object.entries(extractions)) {
+    if (data && typeof data.confidence === 'number') {
+      confidence[field] = data.confidence;
+    }
+  }
+  return confidence;
+}
 
 // Rate limiter with exponential backoff
 class RateLimiter {
@@ -540,9 +571,11 @@ async function extractStructuredData(page) {
   });
 }
 
-// Extract session schedules with dates and themes
+// Extract session schedules with dates and themes, with confidence tracking
 function extractSessionSchedules(text, tables) {
   const sessions = [];
+  let confidenceScore = 0;
+  let method = 'none';
 
   // Pattern for session listings like "Session 1: June 16-20 - Art Week"
   const sessionPatterns = [
@@ -555,12 +588,20 @@ function extractSessionSchedules(text, tables) {
     while ((match = pattern.exec(text)) !== null) {
       sessions.push({
         raw: match[0].substring(0, 100),
-        parsed: true
+        parsed: true,
+        _source: 'regex'
       });
+      // First pattern with session/week label is higher confidence
+      if (method !== 'table' && confidenceScore < CONFIDENCE.DIRECT_TEXT_MATCH) {
+        confidenceScore = match[0].toLowerCase().includes('session') || match[0].toLowerCase().includes('week')
+          ? CONFIDENCE.DIRECT_TEXT_MATCH
+          : CONFIDENCE.PATTERN_MATCH;
+        method = 'regex';
+      }
     }
   }
 
-  // Also extract from tables
+  // Also extract from tables (higher confidence for structured data)
   if (tables && tables.length > 0) {
     for (const table of tables) {
       const headers = table.headers.map(h => h?.toLowerCase() || '');
@@ -577,18 +618,26 @@ function extractSessionSchedules(text, tables) {
             sessions.push({
               date: dateColIdx >= 0 ? row[dateColIdx] : null,
               theme: themeColIdx >= 0 ? row[themeColIdx] : null,
-              fromTable: true
+              fromTable: true,
+              _source: 'table'
             });
           }
         }
+        // Table extraction is high confidence
+        confidenceScore = CONFIDENCE.TABLE_EXTRACTION;
+        method = 'table';
       }
     }
   }
 
-  return sessions.length > 0 ? sessions.slice(0, 20) : null;
+  return {
+    sessions: sessions.length > 0 ? sessions.slice(0, 20) : null,
+    confidence: sessions.length > 0 ? confidenceScore : 0,
+    method
+  };
 }
 
-// Extract pricing tiers (early bird, regular, late)
+// Extract pricing tiers (early bird, regular, late) with confidence tracking
 function extractPricingTiers(text) {
   const pricing = {
     earlyBird: null,
@@ -599,67 +648,94 @@ function extractPricingTiers(text) {
     weekly: null,
     perSession: null
   };
+  const confidence = {
+    earlyBird: 0,
+    regular: 0,
+    late: 0,
+    halfDay: 0,
+    fullDay: 0,
+    weekly: 0,
+    perSession: 0
+  };
 
-  // Early bird pricing patterns (various formats)
+  // Early bird pricing patterns (various formats) - direct label match = 0.9
   const earlyBirdPatterns = [
-    /early[\s-]*(?:bird|registration)?[:\s-]*\$(\d{2,4})/i,
-    /\$(\d{2,4})[^$\n]{0,30}early[\s-]*(?:bird|registration)/i,
-    /early[\s-]*-?\s*\$(\d{2,4})/i
+    { pattern: /early[\s-]*(?:bird|registration)?[:\s-]*\$(\d{2,4})/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /\$(\d{2,4})[^$\n]{0,30}early[\s-]*(?:bird|registration)/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /early[\s-]*-?\s*\$(\d{2,4})/i, conf: CONFIDENCE.PATTERN_MATCH }
   ];
-  for (const pattern of earlyBirdPatterns) {
+  for (const { pattern, conf } of earlyBirdPatterns) {
     const match = text.match(pattern);
     if (match) {
       pricing.earlyBird = parseInt(match[1]);
+      confidence.earlyBird = conf;
       break;
     }
   }
 
   // Regular pricing patterns
   const regularPatterns = [
-    /regular[\s-]*(?:price|rate|registration)?[:\s-]*\$(\d{2,4})/i,
-    /standard[\s-]*(?:price|rate)?[:\s-]*\$(\d{2,4})/i,
-    /\$(\d{2,4})[^$\n]{0,30}regular(?:\s*(?:price|rate))?/i,
-    /regular\s*-?\s*\$(\d{2,4})/i
+    { pattern: /regular[\s-]*(?:price|rate|registration)?[:\s-]*\$(\d{2,4})/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /standard[\s-]*(?:price|rate)?[:\s-]*\$(\d{2,4})/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /\$(\d{2,4})[^$\n]{0,30}regular(?:\s*(?:price|rate))?/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /regular\s*-?\s*\$(\d{2,4})/i, conf: CONFIDENCE.PATTERN_MATCH }
   ];
-  for (const pattern of regularPatterns) {
+  for (const { pattern, conf } of regularPatterns) {
     const match = text.match(pattern);
     if (match) {
       pricing.regular = parseInt(match[1]);
+      confidence.regular = conf;
       break;
     }
   }
 
-  // Late registration
+  // Late registration - direct match
   const lateMatch = text.match(/late(?:\s*registration)?[:\s]*\$(\d{2,4})/i);
   if (lateMatch) {
     pricing.late = parseInt(lateMatch[1]);
+    confidence.late = CONFIDENCE.DIRECT_TEXT_MATCH;
   }
 
-  // Half day vs full day
+  // Half day vs full day - direct label match
   const halfDayMatch = text.match(/half[\s-]?day[:\s]*\$(\d{2,4})/i);
   const fullDayMatch = text.match(/full[\s-]?day[:\s]*\$(\d{2,4})/i);
-  if (halfDayMatch) pricing.halfDay = parseInt(halfDayMatch[1]);
-  if (fullDayMatch) pricing.fullDay = parseInt(fullDayMatch[1]);
+  if (halfDayMatch) {
+    pricing.halfDay = parseInt(halfDayMatch[1]);
+    confidence.halfDay = CONFIDENCE.DIRECT_TEXT_MATCH;
+  }
+  if (fullDayMatch) {
+    pricing.fullDay = parseInt(fullDayMatch[1]);
+    confidence.fullDay = CONFIDENCE.DIRECT_TEXT_MATCH;
+  }
 
-  // Weekly rate
+  // Weekly rate - pattern match
   const weeklyMatch = text.match(/\$(\d{2,4})\s*(?:\/|\s*per\s*)?\s*week/i);
-  if (weeklyMatch) pricing.weekly = parseInt(weeklyMatch[1]);
+  if (weeklyMatch) {
+    pricing.weekly = parseInt(weeklyMatch[1]);
+    confidence.weekly = CONFIDENCE.PATTERN_MATCH;
+  }
 
-  // Per session
+  // Per session - pattern match
   const sessionMatch = text.match(/\$(\d{2,4})\s*(?:\/|\s*per\s*)?\s*session/i);
-  if (sessionMatch) pricing.perSession = parseInt(sessionMatch[1]);
+  if (sessionMatch) {
+    pricing.perSession = parseInt(sessionMatch[1]);
+    confidence.perSession = CONFIDENCE.PATTERN_MATCH;
+  }
 
-  // If we found early bird but not regular, look for general price that's higher
+  // If we found early bird but not regular, look for general price that's higher (heuristic)
   if (pricing.earlyBird && !pricing.regular) {
     const allPrices = text.match(/\$(\d{2,4})/g);
     if (allPrices) {
       const prices = allPrices.map(p => parseInt(p.replace('$', '')));
       const higherPrice = prices.find(p => p > pricing.earlyBird && p < pricing.earlyBird * 1.5);
-      if (higherPrice) pricing.regular = higherPrice;
+      if (higherPrice) {
+        pricing.regular = higherPrice;
+        confidence.regular = CONFIDENCE.HEURISTIC_GUESS;
+      }
     }
   }
 
-  return pricing;
+  return { pricing, confidence };
 }
 
 // Extract staff to camper ratio
@@ -863,23 +939,41 @@ function extractCampInfo(text, html, existingCamp, structuredData = null) {
   const extracted = {};
   const tables = structuredData?.tables || [];
 
-  // === PRICING (Enhanced with tiers) ===
-  extracted.pricing_tiers = extractPricingTiers(text);
+  // Initialize confidence tracking object
+  const fieldConfidence = {};
+
+  // === PRICING (Enhanced with tiers and confidence) ===
+  const pricingResult = extractPricingTiers(text);
+  extracted.pricing_tiers = pricingResult.pricing;
+
+  // Track confidence for each pricing field that has a value
+  for (const [field, conf] of Object.entries(pricingResult.confidence)) {
+    if (pricingResult.pricing[field] !== null) {
+      fieldConfidence[`pricing_${field}`] = conf;
+    }
+  }
+
+  // Calculate overall pricing confidence (average of non-zero fields)
+  const pricingConfScores = Object.values(pricingResult.confidence).filter(c => c > 0);
+  if (pricingConfScores.length > 0) {
+    fieldConfidence.pricing = pricingConfScores.reduce((a, b) => a + b, 0) / pricingConfScores.length;
+  }
 
   // Also keep simple price patterns as fallback
+  let priceMinMaxConfidence = 0;
   const pricePatterns = [
-    /\$(\d{1,4}(?:,\d{3})?(?:\s*[-–—]\s*\$?\d{1,4}(?:,\d{3})?)?)\s*(?:per\s*week|\/week|weekly|\/wk)/i,
-    /(?:price|cost|tuition|fee|rate)[:\s]*\$(\d{1,4}(?:,\d{3})?(?:\s*[-–—]\s*\$?\d{1,4}(?:,\d{3})?)?)/i,
-    /\$(\d{2,4})\s*(?:full|half)[\s-]?day/i,
-    /(?:weekly\s*(?:rate|fee|tuition))[:\s]*\$(\d{2,4})/i,
-    /\$(\d{2,4})\s*(?:\/|per)\s*(?:day|session|week)/i,
-    /(?:camp|session|week)\s*(?:is|costs?|:)\s*\$(\d{2,4})/i,
-    /(?:starting\s*(?:at|from)|from)\s*\$(\d{2,4})/i,
-    /\$(\d{2,4})\s*[-–—]\s*\$(\d{2,4})/,  // Price range like "$300 - $500"
-    /Price[:\s]*\$(\d{2,4})/i,
+    { pattern: /\$(\d{1,4}(?:,\d{3})?(?:\s*[-–—]\s*\$?\d{1,4}(?:,\d{3})?)?)\s*(?:per\s*week|\/week|weekly|\/wk)/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /(?:price|cost|tuition|fee|rate)[:\s]*\$(\d{1,4}(?:,\d{3})?(?:\s*[-–—]\s*\$?\d{1,4}(?:,\d{3})?)?)/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /\$(\d{2,4})\s*(?:full|half)[\s-]?day/i, conf: CONFIDENCE.PATTERN_MATCH },
+    { pattern: /(?:weekly\s*(?:rate|fee|tuition))[:\s]*\$(\d{2,4})/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /\$(\d{2,4})\s*(?:\/|per)\s*(?:day|session|week)/i, conf: CONFIDENCE.PATTERN_MATCH },
+    { pattern: /(?:camp|session|week)\s*(?:is|costs?|:)\s*\$(\d{2,4})/i, conf: CONFIDENCE.PATTERN_MATCH },
+    { pattern: /(?:starting\s*(?:at|from)|from)\s*\$(\d{2,4})/i, conf: CONFIDENCE.HEURISTIC_GUESS },
+    { pattern: /\$(\d{2,4})\s*[-–—]\s*\$(\d{2,4})/, conf: CONFIDENCE.PATTERN_MATCH },  // Price range like "$300 - $500"
+    { pattern: /Price[:\s]*\$(\d{2,4})/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
   ];
 
-  for (const pattern of pricePatterns) {
+  for (const { pattern, conf } of pricePatterns) {
     const match = text.match(pattern);
     if (match) {
       extracted.price_found = match[0];
@@ -889,28 +983,33 @@ function extractCampInfo(text, html, existingCamp, structuredData = null) {
         if (numPrices.length > 0) {
           extracted.price_min = Math.min(...numPrices);
           extracted.price_max = Math.max(...numPrices);
+          priceMinMaxConfidence = conf;
         }
       }
       break;
     }
   }
+  if (priceMinMaxConfidence > 0) {
+    fieldConfidence.price_min = priceMinMaxConfidence;
+    fieldConfidence.price_max = priceMinMaxConfidence;
+  }
 
-  // === AGES (Enhanced with named groups) ===
+  // === AGES (Enhanced with named groups and confidence) ===
   extracted.age_groups = extractAgeGroups(text);
 
   const agePatterns = [
-    /ages?\s*(\d{1,2})\s*(?:to|[-–—])\s*(\d{1,2})/i,
-    /(?:grades?|gr\.?)\s*(K|TK|PK|\d{1,2})\s*(?:to|[-–—]|through)\s*(K|TK|\d{1,2})/i,
-    /(\d{1,2})\s*(?:to|[-–—])\s*(\d{1,2})\s*years?\s*old/i,
-    /for\s*(?:ages?|children|kids?)\s*(\d{1,2})\s*(?:to|[-–—]|and\s*(?:up|older))/i,
-    /(?:children|kids?|campers?)\s*(?:ages?)?\s*(\d{1,2})\s*(?:to|[-–—])\s*(\d{1,2})/i,
-    /(\d{1,2})\s*[-–—]\s*(\d{1,2})\s*(?:yrs?|years?)/i,
-    /(?:preschool|pre-k|prek).*?(\d{1,2})/i,  // Preschool programs
-    /(?:entering|rising)\s*(?:grades?|gr\.?)\s*(K|\d{1,2})/i,
-    /\b(\d{1,2})\s*(?:and\s*)?(?:up|older|\+)\b/i,  // "5 and up", "5+"
+    { pattern: /ages?\s*(\d{1,2})\s*(?:to|[-–—])\s*(\d{1,2})/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /(?:grades?|gr\.?)\s*(K|TK|PK|\d{1,2})\s*(?:to|[-–—]|through)\s*(K|TK|\d{1,2})/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /(\d{1,2})\s*(?:to|[-–—])\s*(\d{1,2})\s*years?\s*old/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /for\s*(?:ages?|children|kids?)\s*(\d{1,2})\s*(?:to|[-–—]|and\s*(?:up|older))/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /(?:children|kids?|campers?)\s*(?:ages?)?\s*(\d{1,2})\s*(?:to|[-–—])\s*(\d{1,2})/i, conf: CONFIDENCE.PATTERN_MATCH },
+    { pattern: /(\d{1,2})\s*[-–—]\s*(\d{1,2})\s*(?:yrs?|years?)/i, conf: CONFIDENCE.PATTERN_MATCH },
+    { pattern: /(?:preschool|pre-k|prek).*?(\d{1,2})/i, conf: CONFIDENCE.HEURISTIC_GUESS },  // Preschool programs
+    { pattern: /(?:entering|rising)\s*(?:grades?|gr\.?)\s*(K|\d{1,2})/i, conf: CONFIDENCE.PATTERN_MATCH },
+    { pattern: /\b(\d{1,2})\s*(?:and\s*)?(?:up|older|\+)\b/i, conf: CONFIDENCE.HEURISTIC_GUESS },  // "5 and up", "5+"
   ];
 
-  for (const pattern of agePatterns) {
+  for (const { pattern, conf } of agePatterns) {
     const match = text.match(pattern);
     if (match) {
       extracted.ages_found = match[0];
@@ -919,41 +1018,52 @@ function extractCampInfo(text, html, existingCamp, structuredData = null) {
       if (ages && ages.length >= 2) {
         extracted.min_age = parseInt(ages[0]);
         extracted.max_age = parseInt(ages[1]);
+        fieldConfidence.min_age = conf;
+        fieldConfidence.max_age = conf;
       } else if (ages && ages.length === 1) {
         // Single age like "5 and up"
         extracted.min_age = parseInt(ages[0]);
+        fieldConfidence.min_age = conf;
         if (/up|older|\+/i.test(match[0])) {
           extracted.max_age = 18; // Assume up to 18
+          fieldConfidence.max_age = CONFIDENCE.HEURISTIC_GUESS; // max is inferred
         }
       }
       break;
     }
   }
 
-  // === HOURS (Enhanced with drop-off/pick-up windows) ===
+  // === HOURS (Enhanced with drop-off/pick-up windows and confidence) ===
   const hoursPatterns = [
-    /(\d{1,2}(?::\d{2})?\s*(?:am|a\.m\.?))\s*(?:to|[-–—])\s*(\d{1,2}(?::\d{2})?\s*(?:pm|p\.m\.?))/i,
-    /(?:camp\s*)?hours?[:\s]*(\d{1,2}(?::\d{2})?\s*(?:am|a\.m\.?))\s*(?:to|[-–—])\s*(\d{1,2}(?::\d{2})?\s*(?:pm|p\.m\.?))/i,
-    /(?:drop[\s-]?off|check[\s-]?in)[:\s]*(\d{1,2}(?::\d{2})?\s*(?:am|a\.m\.?))/i,
-    /(\d{1,2}:\d{2})\s*(?:am|a\.?m\.?)\s*[-–—to]+\s*(\d{1,2}:\d{2})\s*(?:pm|p\.?m\.?)/i,
-    /(?:daily|program|session)\s*(?:hours?)?[:\s]*(\d{1,2}(?::\d{2})?)\s*(?:am|a\.?m\.?)\s*[-–—to]+\s*(\d{1,2}(?::\d{2})?)\s*(?:pm|p\.?m\.?)/i,
-    /(\d{1,2})\s*(?:am|a\.?m\.?)\s*[-–—]\s*(\d{1,2})\s*(?:pm|p\.?m\.?)/i,  // "9am - 3pm" format
-    /(?:time|schedule)[:\s]*(\d{1,2}(?::\d{2})?)\s*[-–—]\s*(\d{1,2}(?::\d{2})?)/i,
+    { pattern: /(?:camp\s*)?hours?[:\s]*(\d{1,2}(?::\d{2})?\s*(?:am|a\.m\.?))\s*(?:to|[-–—])\s*(\d{1,2}(?::\d{2})?\s*(?:pm|p\.m\.?))/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /(?:daily|program|session)\s*(?:hours?)?[:\s]*(\d{1,2}(?::\d{2})?)\s*(?:am|a\.?m\.?)\s*[-–—to]+\s*(\d{1,2}(?::\d{2})?)\s*(?:pm|p\.?m\.?)/i, conf: CONFIDENCE.DIRECT_TEXT_MATCH },
+    { pattern: /(\d{1,2}:\d{2})\s*(?:am|a\.?m\.?)\s*[-–—to]+\s*(\d{1,2}:\d{2})\s*(?:pm|p\.?m\.?)/i, conf: CONFIDENCE.PATTERN_MATCH },
+    { pattern: /(\d{1,2}(?::\d{2})?\s*(?:am|a\.m\.?))\s*(?:to|[-–—])\s*(\d{1,2}(?::\d{2})?\s*(?:pm|p\.m\.?))/i, conf: CONFIDENCE.PATTERN_MATCH },
+    { pattern: /(?:drop[\s-]?off|check[\s-]?in)[:\s]*(\d{1,2}(?::\d{2})?\s*(?:am|a\.m\.?))/i, conf: CONFIDENCE.HEURISTIC_GUESS },
+    { pattern: /(\d{1,2})\s*(?:am|a\.?m\.?)\s*[-–—]\s*(\d{1,2})\s*(?:pm|p\.?m\.?)/i, conf: CONFIDENCE.PATTERN_MATCH },  // "9am - 3pm" format
+    { pattern: /(?:time|schedule)[:\s]*(\d{1,2}(?::\d{2})?)\s*[-–—]\s*(\d{1,2}(?::\d{2})?)/i, conf: CONFIDENCE.HEURISTIC_GUESS },
   ];
 
-  for (const pattern of hoursPatterns) {
+  for (const { pattern, conf } of hoursPatterns) {
     const match = text.match(pattern);
     if (match) {
       extracted.hours_found = match[0];
+      fieldConfidence.hours = conf;
       break;
     }
   }
 
-  // Specific drop-off/pick-up times
+  // Specific drop-off/pick-up times (direct label match = high confidence)
   const dropOffMatch = text.match(/drop[\s-]?off[:\s]*(\d{1,2}(?::\d{2})?\s*(?:am|a\.m\.)?)\s*[-–to]*\s*(\d{1,2}(?::\d{2})?\s*(?:am|a\.m\.)?)?/i);
   const pickUpMatch = text.match(/pick[\s-]?up[:\s]*(\d{1,2}(?::\d{2})?\s*(?:pm|p\.m\.)?)\s*[-–to]*\s*(\d{1,2}(?::\d{2})?\s*(?:pm|p\.m\.)?)?/i);
-  if (dropOffMatch) extracted.drop_off_window = dropOffMatch[0];
-  if (pickUpMatch) extracted.pick_up_window = pickUpMatch[0];
+  if (dropOffMatch) {
+    extracted.drop_off_window = dropOffMatch[0];
+    fieldConfidence.drop_off_window = CONFIDENCE.DIRECT_TEXT_MATCH;
+  }
+  if (pickUpMatch) {
+    extracted.pick_up_window = pickUpMatch[0];
+    fieldConfidence.pick_up_window = CONFIDENCE.DIRECT_TEXT_MATCH;
+  }
 
   // === REGISTRATION ===
   const regPatterns = [
@@ -971,8 +1081,12 @@ function extractCampInfo(text, html, existingCamp, structuredData = null) {
     }
   }
 
-  // === SESSION SCHEDULES (NEW) ===
-  extracted.sessions = extractSessionSchedules(text, tables);
+  // === SESSION SCHEDULES (with confidence) ===
+  const sessionsResult = extractSessionSchedules(text, tables);
+  extracted.sessions = sessionsResult.sessions;
+  if (sessionsResult.confidence > 0) {
+    fieldConfidence.sessions = sessionsResult.confidence;
+  }
 
   // === STAFF RATIO (NEW) ===
   extracted.staff_ratio = extractStaffRatio(text);
@@ -983,20 +1097,28 @@ function extractCampInfo(text, html, existingCamp, structuredData = null) {
   // === FOOD INFORMATION ===
   extracted.food_info = extractFoodInfo(text);
 
-  // === EXTENDED CARE ===
+  // === EXTENDED CARE (with confidence) ===
   if (/extended\s*(?:care|day)|before[\s-]?care|after[\s-]?care|early\s*drop|late\s*pick/i.test(text)) {
     extracted.has_extended_care = true;
+    // Check if there's an explicit label for extended care
+    const hasExplicitLabel = /extended\s*(?:care|day)[:\s]/i.test(text) ||
+                             /before[\s-]?care[:\s]/i.test(text) ||
+                             /after[\s-]?care[:\s]/i.test(text);
+    fieldConfidence.extended_care = hasExplicitLabel ? CONFIDENCE.DIRECT_TEXT_MATCH : CONFIDENCE.PATTERN_MATCH;
+
     const ecCostMatch = text.match(/(?:extended|before|after)[\s-]?care[:\s]*\$(\d+)/i) ||
                         text.match(/early\s*(?:drop[\s-]?off|bird)[:\s]*\$(\d+)/i) ||
                         text.match(/late\s*pick[\s-]?up[:\s]*\$(\d+)/i);
     if (ecCostMatch) {
       extracted.extended_care_cost = `$${ecCostMatch[1]}`;
+      fieldConfidence.extended_care_cost = CONFIDENCE.DIRECT_TEXT_MATCH;
     }
 
     // Also check for extended care hours
     const ecHoursMatch = text.match(/(?:extended|before|after)[\s-]?care[:\s]*(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[-–to]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))/i);
     if (ecHoursMatch) {
       extracted.extended_care_hours = ecHoursMatch[0];
+      fieldConfidence.extended_care_hours = CONFIDENCE.DIRECT_TEXT_MATCH;
     }
   }
 
@@ -1113,6 +1235,8 @@ function extractCampInfo(text, html, existingCamp, structuredData = null) {
   );
   if (foundActivities.length > 0) {
     extracted.activities = foundActivities;
+    // Activities from keyword matching are moderate confidence
+    fieldConfidence.activities = CONFIDENCE.PATTERN_MATCH;
   }
 
   // === WHAT TO BRING / PACKING LIST ===
@@ -1159,12 +1283,37 @@ function extractCampInfo(text, html, existingCamp, structuredData = null) {
     extracted.max_capacity = parseInt(capacityMatch[1]);
   }
 
+  // === ATTACH CONFIDENCE TRACKING ===
+  // Store per-field confidence scores to enable smarter field updates
+  extracted._confidence = fieldConfidence;
+
+  // Calculate overall extraction confidence (weighted average of key fields)
+  const keyFieldWeights = {
+    pricing: 0.25,
+    hours: 0.15,
+    extended_care: 0.15,
+    sessions: 0.2,
+    min_age: 0.1,
+    max_age: 0.1,
+    activities: 0.05
+  };
+
+  let weightedSum = 0;
+  let totalWeight = 0;
+  for (const [field, weight] of Object.entries(keyFieldWeights)) {
+    if (fieldConfidence[field] !== undefined) {
+      weightedSum += fieldConfidence[field] * weight;
+      totalWeight += weight;
+    }
+  }
+  extracted._confidence._overall = totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) / 100 : 0;
+
   return extracted;
 }
 
 // Scrape a single camp website with retry logic and multi-page crawling
 async function scrapeCamp(browser, camp, retryCount = 0, options = {}) {
-  const { useCache = true, forceFresh = false, withAI = false } = options;
+  const { useCache = true, forceFresh = false, noAI = false } = options;
 
   if (!camp.website_url || camp.website_url === 'N/A' || camp.website_url.includes('CLOSED')) {
     return { ...camp, scrape_status: 'skipped', scrape_reason: 'No valid URL' };
@@ -1309,10 +1458,14 @@ async function scrapeCamp(browser, camp, retryCount = 0, options = {}) {
     scrapedData.extracted = extractCampInfo(allText, pageHtml, camp, structuredData);
     scrapedData.scrape_status = 'success';
 
-    // === AI-ENHANCED EXTRACTION (optional) ===
-    if (withAI) {
+    // === AI-ENHANCED EXTRACTION (automatic for low quality, unless disabled) ===
+    // Calculate quality score from regex extraction
+    const regexQuality = scoreDataQuality(scrapedData.extracted);
+    const useAI = !noAI && regexQuality < 50 && isClaudeAvailable();
+
+    if (useAI) {
       try {
-        console.log(`    🤖 Running Claude AI extraction...`);
+        console.log(`    Running Claude AI extraction (quality ${regexQuality} < 50)...`);
 
         // Load camp-specific config if available
         const campConfig = await loadCampConfig(camp.id);
@@ -1349,6 +1502,7 @@ async function scrapeCamp(browser, camp, retryCount = 0, options = {}) {
           ...scrapedData.extracted,
           ...merged,
           _extraction_method: 'ai+regex',
+          _regex_quality: regexQuality,
           _ai_confidence: aiExtracted.confidence,
           _ai_notes: aiExtracted.extraction_notes
         };
@@ -1356,7 +1510,7 @@ async function scrapeCamp(browser, camp, retryCount = 0, options = {}) {
         // Check if any fields need manual review
         const needsReview = checkNeedsReview(aiExtracted, 70);
         if (needsReview.length > 0) {
-          console.log(`    ⚠️ Low confidence fields: ${needsReview.map(r => r.field).join(', ')}`);
+          console.log(`    Low confidence fields: ${needsReview.map(r => r.field).join(', ')}`);
           await addToReviewQueue(
             camp.id,
             needsReview,
@@ -1365,14 +1519,19 @@ async function scrapeCamp(browser, camp, retryCount = 0, options = {}) {
           );
         }
 
-        console.log(`    ✅ AI extraction complete`);
+        console.log(`    AI extraction complete`);
       } catch (aiError) {
-        console.log(`    ❌ AI extraction failed: ${aiError.message}`);
+        console.log(`    AI extraction failed: ${aiError.message}`);
         scrapedData.extracted._extraction_method = 'regex_only';
+        scrapedData.extracted._regex_quality = regexQuality;
         scrapedData.extracted._ai_error = aiError.message;
       }
     } else {
       scrapedData.extracted._extraction_method = 'regex_only';
+      scrapedData.extracted._regex_quality = regexQuality;
+      if (noAI && regexQuality < 50) {
+        scrapedData.extracted._ai_skipped = 'disabled via --no-ai';
+      }
     }
 
     // Merge image-detected activities with text-detected activities
@@ -1381,6 +1540,10 @@ async function scrapeCamp(browser, camp, retryCount = 0, options = {}) {
       const imageActivities = scrapedData.image_detected.activities;
       scrapedData.extracted.activities = [...new Set([...textActivities, ...imageActivities])];
     }
+
+    // Normalize extracted data to canonical schema
+    // The camp object contains CSV baseline data (min_age, max_age, price_min, price_max, hours, etc.)
+    scrapedData.extracted = normalizeExtracted(scrapedData.extracted, camp);
 
     // Quick indicators
     scrapedData.has_registration_open = /register|sign up|enroll|book now/i.test(allText);
@@ -1495,18 +1658,15 @@ async function processCampsInParallel(browser, camps, concurrency, options = {})
 
 // Main scraper function
 async function runScraper(options = {}) {
-  const { singleCamp, limit, concurrency = CONFIG.concurrency, forceFresh = false, noCache = false, withAI = false } = options;
+  const { singleCamp, limit, concurrency = CONFIG.concurrency, forceFresh = false, noCache = false, noAI = false } = options;
 
   console.log('Starting optimized camp scraper...');
   console.log(`Concurrency: ${concurrency} parallel scrapers`);
   console.log(`Data directory: ${DATA_DIR}`);
   console.log(`Cache: ${noCache ? 'disabled' : (forceFresh ? 'force refresh' : 'enabled')}`);
-  console.log(`AI Extraction: ${withAI ? 'ENABLED (Claude)' : 'disabled (regex only)'}`);
+  const claudeAvailable = isClaudeAvailable();
+  console.log(`AI Extraction: ${noAI ? 'DISABLED (--no-ai)' : (claudeAvailable ? 'enabled for quality < 50' : 'unavailable (no ANTHROPIC_API_KEY)')}`);
 
-  if (withAI && !process.env.ANTHROPIC_API_KEY) {
-    console.error('ERROR: --with-ai requires ANTHROPIC_API_KEY environment variable');
-    process.exit(1);
-  }
 
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.mkdir(PDF_DIR, { recursive: true });
@@ -1540,7 +1700,7 @@ async function runScraper(options = {}) {
 
   try {
     console.log(`\nScraping ${camps.length} camps...`);
-    const scrapeOptions = { useCache: !noCache, forceFresh, withAI };
+    const scrapeOptions = { useCache: !noCache, forceFresh, noAI };
     ({ results, scrapeLog } = await processCampsInParallel(browser, camps, concurrency, scrapeOptions));
   } finally {
     await browser.close();
@@ -1592,8 +1752,13 @@ Options:
   --concurrency <n>   Number of parallel scrapers (default: ${CONFIG.concurrency})
   --fresh             Force fresh scrape (ignore cache)
   --no-cache          Disable caching entirely
-  --with-ai           Use Claude AI for semantic extraction (requires ANTHROPIC_API_KEY)
+  --no-ai             Disable Claude AI extraction (by default, AI runs for quality < 50)
   --help              Show this help
+
+AI Extraction:
+  By default, Claude AI extraction runs automatically for camps with quality
+  score < 50 (if ANTHROPIC_API_KEY is set). This enhances low-quality regex
+  extractions with semantic understanding. Use --no-ai to disable.
 
 Features:
   • Multi-page crawling (FAQ, policies, registration pages)
@@ -1605,12 +1770,14 @@ Features:
   • Smart caching (24-hour validity)
   • Structured data extraction (JSON-LD, tables)
   • Availability/waitlist status detection
+  • Automatic Claude AI extraction for low-quality data
 
 Examples:
-  node scraper.js                     # Scrape all camps (uses cache)
+  node scraper.js                     # Scrape all camps (uses cache, AI for quality < 50)
   node scraper.js --fresh             # Force fresh scrape of all camps
   node scraper.js --single "UCSB"     # Scrape only UCSB camps
   node scraper.js --limit 5           # Scrape first 5 camps
+  node scraper.js --no-ai             # Scrape without Claude AI extraction
   node scraper.js --concurrency 5     # Use 5 parallel scrapers
 `);
 } else if (args.includes('--single')) {
@@ -1618,8 +1785,8 @@ Examples:
   const campName = args[idx + 1];
   const forceFresh = args.includes('--fresh');
   const noCache = args.includes('--no-cache');
-  const withAI = args.includes('--with-ai');
-  runScraper({ singleCamp: campName, forceFresh, noCache, withAI }).catch(console.error);
+  const noAI = args.includes('--no-ai');
+  runScraper({ singleCamp: campName, forceFresh, noCache, noAI }).catch(console.error);
 } else if (args.includes('--limit')) {
   const idx = args.indexOf('--limit');
   const limit = parseInt(args[idx + 1]);
@@ -1627,15 +1794,15 @@ Examples:
   const concurrency = concurrencyIdx >= 0 ? parseInt(args[concurrencyIdx + 1]) : CONFIG.concurrency;
   const forceFresh = args.includes('--fresh');
   const noCache = args.includes('--no-cache');
-  const withAI = args.includes('--with-ai');
-  runScraper({ limit, concurrency, forceFresh, noCache, withAI }).catch(console.error);
+  const noAI = args.includes('--no-ai');
+  runScraper({ limit, concurrency, forceFresh, noCache, noAI }).catch(console.error);
 } else if (import.meta.url === `file://${process.argv[1]}`) {
   const concurrencyIdx = args.indexOf('--concurrency');
   const concurrency = concurrencyIdx >= 0 ? parseInt(args[concurrencyIdx + 1]) : CONFIG.concurrency;
   const forceFresh = args.includes('--fresh');
-  const withAI = args.includes('--with-ai');
+  const noAI = args.includes('--no-ai');
   const noCache = args.includes('--no-cache');
-  runScraper({ concurrency, forceFresh, noCache, withAI }).catch(console.error);
+  runScraper({ concurrency, forceFresh, noCache, noAI }).catch(console.error);
 }
 
 export { runScraper, loadCampsFromCSV };

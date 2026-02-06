@@ -25,7 +25,10 @@ import {
   validateExtraction,
   logPipelineRun,
   logChanges,
-  generateWeeklyReport
+  generateWeeklyReport,
+  getQualityTier,
+  getQualityAssessment,
+  formatTierSummary
 } from './lib/pipeline.js';
 
 import {
@@ -61,6 +64,8 @@ import {
   mergeWithCSVFallback
 } from './lib/claude-extractor.js';
 
+import { normalizeExtracted } from './lib/schema-normalizer.js';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const CAMPS_FILE = path.join(DATA_DIR, 'camps.json');
@@ -82,6 +87,7 @@ function parseArgs() {
     limit: limitArg ? parseInt(limitArg) : null,
     reportOnly: args.includes('--report'),
     dryRun: args.includes('--dry-run'),
+    noAI: args.includes('--no-ai'),
     verbose: args.includes('--verbose') || args.includes('-v'),
     help: args.includes('--help') || args.includes('-h')
   };
@@ -433,8 +439,19 @@ async function strategyScreenshot(campId, urls, campName) {
   }
 }
 
+// Confidence scores for different extraction methods (matching scraper.js)
+const CONFIDENCE = {
+  DIRECT_TEXT_MATCH: 0.9,    // Exact pattern match with clear label
+  PATTERN_MATCH: 0.7,        // Regex pattern match without explicit label
+  CLAUDE_EXTRACTION: 0.85,   // Claude API semantic extraction
+  HEURISTIC_GUESS: 0.5,      // Inferred from context or fallback logic
+  TABLE_EXTRACTION: 0.8,     // Extracted from structured table data
+  JSON_LD_EXTRACTION: 0.95,  // From structured JSON-LD data
+};
+
 /**
  * Extract structured data from raw text using smart-extractor methods
+ * Now includes confidence tracking for smarter field updates
  */
 function extractFromText(text, campName) {
   const extracted = {
@@ -447,7 +464,13 @@ function extractFromText(text, campName) {
     hours: null
   };
 
-  if (!text) return extracted;
+  // Initialize confidence tracking
+  const fieldConfidence = {};
+
+  if (!text) {
+    extracted._confidence = fieldConfidence;
+    return extracted;
+  }
 
   // Use smart-extractor for pricing (much more comprehensive)
   const prices = extractPrices(text);
@@ -462,9 +485,25 @@ function extractFromText(text, campName) {
       member: prices.member,
       nonMember: prices.nonMember
     };
+
+    // Track confidence for pricing fields
+    if (prices.weekly) fieldConfidence.pricing_weekly = CONFIDENCE.PATTERN_MATCH;
+    if (prices.earlyBird) fieldConfidence.pricing_earlyBird = CONFIDENCE.DIRECT_TEXT_MATCH;
+    if (prices.member) fieldConfidence.pricing_member = CONFIDENCE.DIRECT_TEXT_MATCH;
+    if (prices.halfDay) fieldConfidence.pricing_halfDay = CONFIDENCE.DIRECT_TEXT_MATCH;
+    if (prices.fullDay) fieldConfidence.pricing_fullDay = CONFIDENCE.DIRECT_TEXT_MATCH;
+
+    // Calculate overall pricing confidence
+    const pricingFields = ['weekly', 'earlyBird', 'member', 'halfDay', 'fullDay'].filter(f => prices[f]);
+    if (pricingFields.length > 0) {
+      fieldConfidence.pricing = pricingFields.reduce((sum, f) =>
+        sum + (fieldConfidence[`pricing_${f}`] || CONFIDENCE.PATTERN_MATCH), 0) / pricingFields.length;
+    }
+
     // Also store extended care pricing separately
     if (prices.extendedCare) {
       extracted.extended_care_cost = `$${prices.extendedCare}`;
+      fieldConfidence.extended_care_cost = CONFIDENCE.DIRECT_TEXT_MATCH;
     }
   }
 
@@ -479,6 +518,10 @@ function extractFromText(text, campName) {
       extendedBefore: hours.extendedBefore,
       extendedAfter: hours.extendedAfter
     };
+    // Hours with explicit label are high confidence
+    fieldConfidence.hours = hours.standard ? CONFIDENCE.PATTERN_MATCH : CONFIDENCE.HEURISTIC_GUESS;
+    if (hours.dropOff) fieldConfidence.drop_off_window = CONFIDENCE.DIRECT_TEXT_MATCH;
+    if (hours.pickUp) fieldConfidence.pick_up_window = CONFIDENCE.DIRECT_TEXT_MATCH;
   }
 
   // Use smart-extractor for extended care detection (more nuanced)
@@ -486,11 +529,15 @@ function extractFromText(text, campName) {
   if (extendedCare.available !== null) {
     extracted.has_extended_care = extendedCare.available;
     extracted.extended_care_details = extendedCare.details;
+    // Extended care found with details is high confidence
+    fieldConfidence.extended_care = extendedCare.details ? CONFIDENCE.DIRECT_TEXT_MATCH : CONFIDENCE.PATTERN_MATCH;
     if (extendedCare.cost) {
       extracted.extended_care_cost = extendedCare.cost;
+      fieldConfidence.extended_care_cost = CONFIDENCE.DIRECT_TEXT_MATCH;
     }
     if (extendedCare.times) {
       extracted.extended_care_hours = extendedCare.times;
+      fieldConfidence.extended_care_hours = CONFIDENCE.DIRECT_TEXT_MATCH;
     }
   }
 
@@ -498,12 +545,17 @@ function extractFromText(text, campName) {
   const activities = extractActivities(text);
   if (activities.length > 0) {
     extracted.activities = activities;
+    // Activities from keyword matching are moderate confidence
+    fieldConfidence.activities = CONFIDENCE.PATTERN_MATCH;
   }
 
   // Use smart-extractor for sessions (handles Week 1: pattern, date ranges)
   const sessions = extractSessions(text);
   if (sessions.length > 0) {
     extracted.sessions = sessions;
+    // Sessions with labeled weeks/sessions are high confidence
+    const hasLabeled = sessions.some(s => s.name && (s.name.includes('Session') || s.name.includes('Week')));
+    fieldConfidence.sessions = hasLabeled ? CONFIDENCE.DIRECT_TEXT_MATCH : CONFIDENCE.PATTERN_MATCH;
   }
 
   // Extract ages (keep existing logic, works well)
@@ -511,6 +563,9 @@ function extractFromText(text, campName) {
   if (ageMatch) {
     extracted.min_age = parseInt(ageMatch[1]);
     extracted.max_age = parseInt(ageMatch[2]);
+    // Age with explicit "ages" label is high confidence
+    fieldConfidence.min_age = CONFIDENCE.DIRECT_TEXT_MATCH;
+    fieldConfidence.max_age = CONFIDENCE.DIRECT_TEXT_MATCH;
   }
 
   // Look for named age groups
@@ -531,24 +586,61 @@ function extractFromText(text, campName) {
     }
   }
 
+  // Attach confidence tracking to extracted data
+  extracted._confidence = fieldConfidence;
+
+  // Calculate overall extraction confidence (weighted average of key fields)
+  const keyFieldWeights = {
+    pricing: 0.25,
+    hours: 0.15,
+    extended_care: 0.15,
+    sessions: 0.2,
+    min_age: 0.1,
+    max_age: 0.1,
+    activities: 0.05
+  };
+
+  let weightedSum = 0;
+  let totalWeight = 0;
+  for (const [field, weight] of Object.entries(keyFieldWeights)) {
+    if (fieldConfidence[field] !== undefined) {
+      weightedSum += fieldConfidence[field] * weight;
+      totalWeight += weight;
+    }
+  }
+  extracted._confidence._overall = totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) / 100 : 0;
+
   return extracted;
 }
 
 /**
  * Merge data from JSON-LD structured data (using smart-extractor)
+ * JSON-LD is high confidence (structured schema data)
  */
 function mergeFromJsonLd(extracted, jsonLd) {
   const jsonLdData = extractFromJsonLd(jsonLd);
 
-  // Merge pricing
-  if (jsonLdData.pricing) {
-    extracted.pricing_tiers = {
-      ...extracted.pricing_tiers,
-      ...jsonLdData.pricing
-    };
+  // Initialize confidence tracking if not present
+  if (!extracted._confidence) {
+    extracted._confidence = {};
   }
 
-  // Merge sessions
+  // Merge pricing (JSON-LD pricing is very high confidence)
+  if (jsonLdData.pricing) {
+    // Only overwrite if JSON-LD has values
+    for (const [key, value] of Object.entries(jsonLdData.pricing)) {
+      if (value !== null && value !== undefined) {
+        extracted.pricing_tiers[key] = value;
+        extracted._confidence[`pricing_${key}`] = CONFIDENCE.JSON_LD_EXTRACTION;
+      }
+    }
+    // Update overall pricing confidence if we got JSON-LD data
+    if (Object.values(jsonLdData.pricing).some(v => v !== null)) {
+      extracted._confidence.pricing = CONFIDENCE.JSON_LD_EXTRACTION;
+    }
+  }
+
+  // Merge sessions (JSON-LD sessions are very high confidence)
   if (jsonLdData.sessions && jsonLdData.sessions.length > 0) {
     extracted.sessions = [
       ...(extracted.sessions || []),
@@ -558,6 +650,7 @@ function mergeFromJsonLd(extracted, jsonLd) {
         )
       )
     ];
+    extracted._confidence.sessions = CONFIDENCE.JSON_LD_EXTRACTION;
   }
 
   // Merge contact info
@@ -571,21 +664,36 @@ function mergeFromJsonLd(extracted, jsonLd) {
 
 /**
  * Merge data from HTML tables (using smart-extractor)
+ * Table data is high confidence (structured format)
  */
 function mergeFromTables(extracted, tables) {
   // Convert to format expected by smart-extractor
   const formattedTables = tables.map(rows => ({ rows }));
   const tableData = extractFromTables(formattedTables);
 
-  // Merge pricing from tables
-  if (tableData.pricing) {
-    extracted.pricing_tiers = {
-      ...extracted.pricing_tiers,
-      ...tableData.pricing
-    };
+  // Initialize confidence tracking if not present
+  if (!extracted._confidence) {
+    extracted._confidence = {};
   }
 
-  // Merge sessions from tables
+  // Merge pricing from tables (table pricing is high confidence)
+  if (tableData.pricing) {
+    for (const [key, value] of Object.entries(tableData.pricing)) {
+      if (value !== null && value !== undefined) {
+        extracted.pricing_tiers[key] = value;
+        extracted._confidence[`pricing_${key}`] = CONFIDENCE.TABLE_EXTRACTION;
+      }
+    }
+    // Update overall pricing confidence if we got table data
+    if (Object.values(tableData.pricing).some(v => v !== null)) {
+      // Only upgrade if current confidence is lower
+      if (!extracted._confidence.pricing || extracted._confidence.pricing < CONFIDENCE.TABLE_EXTRACTION) {
+        extracted._confidence.pricing = CONFIDENCE.TABLE_EXTRACTION;
+      }
+    }
+  }
+
+  // Merge sessions from tables (table sessions are high confidence)
   if (tableData.sessions && tableData.sessions.length > 0) {
     extracted.sessions = [
       ...(extracted.sessions || []),
@@ -595,6 +703,10 @@ function mergeFromTables(extracted, tables) {
         )
       )
     ];
+    // Only upgrade if current confidence is lower
+    if (!extracted._confidence.sessions || extracted._confidence.sessions < CONFIDENCE.TABLE_EXTRACTION) {
+      extracted._confidence.sessions = CONFIDENCE.TABLE_EXTRACTION;
+    }
   }
 
   // Merge age groups from tables
@@ -622,7 +734,7 @@ function parseAccessibilityTree(tree, depth = 0) {
  * Run all strategies for a single camp
  */
 async function processCamp(camp, options = {}) {
-  const { verbose = false, strategies = ['webfetch', 'playwright', 'accessibility'] } = options;
+  const { verbose = false, strategies = ['webfetch', 'playwright', 'accessibility'], noAI = false } = options;
 
   const campId = camp.id;
   const campName = camp.camp_name;
@@ -699,9 +811,24 @@ async function processCamp(camp, options = {}) {
     }
   }
 
+  // Merge results from all strategies (before Claude)
+  let merged = mergeExtractions(results);
+  let initialQuality = scoreDataQuality(merged);
+
   // Strategy 5: Claude API (highest quality, requires ANTHROPIC_API_KEY)
-  if ((strategies.includes('claude') || strategies.includes('all')) && isClaudeAvailable()) {
-    if (verbose) console.log('  Strategy: Claude API...');
+  // Runs if explicitly requested via strategies, OR automatically if quality < 50 (unless --no-ai)
+  const explicitClaude = strategies.includes('claude') || strategies.includes('all');
+  const autoClaudeNeeded = !noAI && initialQuality < 50;
+  const shouldRunClaude = (explicitClaude || autoClaudeNeeded) && isClaudeAvailable();
+
+  if (shouldRunClaude) {
+    if (verbose) {
+      if (autoClaudeNeeded && !explicitClaude) {
+        console.log(`  Strategy: Claude API (auto-triggered, quality ${initialQuality} < 50)...`);
+      } else {
+        console.log('  Strategy: Claude API...');
+      }
+    }
     try {
       // Collect all text from other strategies to feed to Claude
       const pageContents = {};
@@ -734,7 +861,9 @@ async function processCamp(camp, options = {}) {
           strategy: 'claude',
           extracted: {
             ...normalized,
-            _strategy: 'claude-api'
+            _strategy: 'claude-api',
+            _auto_triggered: autoClaudeNeeded && !explicitClaude,
+            _initial_quality: initialQuality
           },
           quality: 0 // Will calculate below
         };
@@ -746,18 +875,25 @@ async function processCamp(camp, options = {}) {
 
         results.push(result);
         if (verbose) console.log(`    Quality: ${result.quality}`);
+
+        // Re-merge with Claude results included
+        merged = mergeExtractions(results);
       }
     } catch (error) {
       if (verbose) console.log(`    Failed: ${error.message}`);
     }
+  } else if (!noAI && initialQuality < 50 && !isClaudeAvailable()) {
+    if (verbose) console.log(`  Claude API unavailable (quality ${initialQuality} < 50, would benefit from AI)`);
   }
 
-  // Merge results from all strategies
-  const merged = mergeExtractions(results);
-  const finalQuality = scoreDataQuality(merged);
+  // Normalize extracted data to canonical schema
+  // The camp object contains CSV baseline data (min_age, max_age, price_min, price_max, hours, etc.)
+  const normalizedExtracted = normalizeExtracted(merged, camp);
+
+  const finalQuality = scoreDataQuality(normalizedExtracted);
 
   // Validate
-  const validation = validateExtraction(merged, config);
+  const validation = validateExtraction(normalizedExtracted, config);
 
   // Track best strategy
   const bestResult = results.reduce((best, r) =>
@@ -772,9 +908,10 @@ async function processCamp(camp, options = {}) {
     strategyQualities: Object.fromEntries(
       results.map(r => [r.strategy, r.quality || 0])
     ),
-    extracted: merged,
+    extracted: normalizedExtracted,
     validation,
-    strategies: results.length
+    strategies: results.length,
+    _claude_auto_triggered: autoClaudeNeeded && !explicitClaude && shouldRunClaude
   };
 }
 
@@ -797,16 +934,22 @@ Options:
   --strategy <type>   Use only specific strategy (webfetch|playwright|accessibility|screenshot|claude|all)
   --report            Generate report from existing data (no scraping)
   --dry-run           Preview without saving changes
+  --no-ai             Disable automatic Claude AI extraction for low-quality data
   --verbose, -v       Show detailed progress
   --help, -h          Show this help
 
-Note: Claude strategy requires ANTHROPIC_API_KEY environment variable.
+AI Extraction:
+  By default, Claude AI extraction runs automatically for camps with quality
+  score < 50 (if ANTHROPIC_API_KEY is set). This enhances low-quality extractions
+  with semantic understanding. Use --no-ai to disable this automatic behavior.
+  You can also explicitly run Claude via --strategy claude or --strategy all.
 
 Examples:
-  node backend/weekly-scraper.js                        # Full weekly run
+  node backend/weekly-scraper.js                        # Full weekly run (auto AI for quality < 50)
   node backend/weekly-scraper.js --camp "zoo" -v        # Single camp, verbose
   node backend/weekly-scraper.js --limit 10             # First 10 camps only
   node backend/weekly-scraper.js --strategy playwright  # Playwright only
+  node backend/weekly-scraper.js --no-ai                # Disable auto AI extraction
   node backend/weekly-scraper.js --report               # Generate report
 `);
     process.exit(0);
@@ -874,6 +1017,7 @@ Examples:
     try {
       const result = await processCamp(camp, {
         verbose: args.verbose,
+        noAI: args.noAI,
         strategies: args.strategy === 'all' ? ['webfetch', 'playwright', 'accessibility', 'screenshot'] :
           [args.strategy]
       });
@@ -892,13 +1036,20 @@ Examples:
 
       // Update camp data if not dry run
       if (!args.dryRun && result.extracted) {
+        // Get quality tier for this camp
+        const tierInfo = getQualityTier(result.quality);
+
         camp.extracted = {
           ...camp.extracted,
-          ...result.extracted
+          ...result.extracted,
+          _quality_tier: tierInfo.tier,
+          _quality_tier_name: tierInfo.name,
+          _quality_tier_action: tierInfo.action
         };
         camp.scrape_timestamp = new Date().toISOString();
         camp.scrape_status = 'scraped';
         camp._last_quality = result.quality;
+        camp._last_quality_tier = tierInfo.tier;
         camp._last_strategy = result.bestStrategy;
       }
 
@@ -968,10 +1119,42 @@ Examples:
   Duration:          ${Math.round((Date.now() - startTime) / 1000)}s
 `);
 
-  if (report.campsNeedingAttention.length > 0) {
-    console.log('  Camps needing attention:');
-    for (const camp of report.campsNeedingAttention.slice(0, 5)) {
-      console.log(`    - ${camp.name} (quality: ${camp.quality})`);
+  // Print tier summary
+  if (report.tierSummary) {
+    console.log(formatTierSummary(report.tierSummary));
+  }
+
+  // Print camps by tier that need attention
+  if (report.tierDetails) {
+    // Show Needs Work tier camps (highest priority)
+    if (report.tierDetails.needs_work.camps.length > 0) {
+      console.log('  PRIORITY: Needs Work (quality < 40)');
+      console.log('  ' + '-'.repeat(50));
+      for (const camp of report.tierDetails.needs_work.camps.slice(0, 5)) {
+        console.log(`    - ${camp.name} (quality: ${camp.quality})`);
+      }
+      if (report.tierDetails.needs_work.camps.length > 5) {
+        console.log(`    ... and ${report.tierDetails.needs_work.camps.length - 5} more`);
+      }
+      console.log('');
+      console.log('  Recommended actions:');
+      for (const rec of report.tierDetails.needs_work.recommendations.slice(0, 2)) {
+        console.log(`    > ${rec}`);
+      }
+      console.log('');
+    }
+
+    // Show Bronze tier camps
+    if (report.tierDetails.bronze.camps.length > 0) {
+      console.log('  Bronze tier (quality 40-59) - Flag for review:');
+      console.log('  ' + '-'.repeat(50));
+      for (const camp of report.tierDetails.bronze.camps.slice(0, 3)) {
+        console.log(`    - ${camp.name} (quality: ${camp.quality})`);
+      }
+      if (report.tierDetails.bronze.camps.length > 3) {
+        console.log(`    ... and ${report.tierDetails.bronze.camps.length - 3} more`);
+      }
+      console.log('');
     }
   }
 
