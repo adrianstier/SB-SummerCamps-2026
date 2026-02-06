@@ -967,7 +967,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   padding: 16px 0;
   min-height: 64px;
 }
@@ -976,18 +976,15 @@ body::before {
 .filter-presets {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding: 4px 0;
   flex: 1;
   min-width: 0;
-  mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
-  padding-right: 20px;
+  max-width: calc(100% - 400px);
 }
 
 .filter-presets::-webkit-scrollbar {
