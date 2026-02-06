@@ -8477,3 +8477,265 @@ section + section {
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FILTER BAR - REBUILT FROM SCRATCH
+   Clean, simple layout that just works
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Reset all filter bar styles with high specificity */
+section.filter-bar-section {
+  background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(250,248,244,0.95) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--sand-200);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+section.filter-bar-section .filter-bar-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 0;
+  min-height: 64px;
+}
+
+/* Quick filters - scrollable container */
+section.filter-bar-section .filter-presets {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 6px 4px;
+  margin: -6px -4px;
+}
+
+section.filter-bar-section .filter-presets::-webkit-scrollbar {
+  display: none;
+}
+
+/* Quick filters label */
+section.filter-bar-section .filter-presets-label {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--earth-600);
+  opacity: 0.85;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+section.filter-bar-section .filter-presets-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--sand-300);
+  flex-shrink: 0;
+  margin: 0 4px;
+}
+
+/* Quick filter buttons */
+section.filter-bar-section .filter-preset-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-700);
+  background: white;
+  border: 1px solid var(--sand-200);
+  border-radius: 20px;
+  padding: 8px 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+section.filter-bar-section .filter-preset-link:hover {
+  background: var(--sand-50);
+  border-color: var(--sand-300);
+  transform: translateY(-1px);
+}
+
+section.filter-bar-section .filter-preset-link.active {
+  background: var(--ocean-500);
+  border-color: var(--ocean-600);
+  color: white;
+  font-weight: 600;
+}
+
+section.filter-bar-section .filter-preset-link.active:hover {
+  background: var(--ocean-600);
+}
+
+/* Filter controls - right side */
+section.filter-bar-section .filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+section.filter-bar-section .filter-control-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-700);
+  background: white;
+  border: 1px solid var(--sand-200);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+section.filter-bar-section .filter-control-btn:hover {
+  background: var(--sand-50);
+  border-color: var(--sand-300);
+}
+
+section.filter-bar-section .filter-control-btn.active {
+  background: var(--earth-700);
+  border-color: var(--earth-700);
+  color: white;
+}
+
+section.filter-bar-section .filter-control-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+section.filter-bar-section .filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--terra-500);
+  color: white;
+  border-radius: 10px;
+  padding: 0 6px;
+}
+
+section.filter-bar-section .filter-control-btn.active .filter-count {
+  background: white;
+  color: var(--earth-700);
+}
+
+/* Sort select */
+section.filter-bar-section .filter-sort-select {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-700);
+  background: white;
+  border: 1px solid var(--sand-200);
+  border-radius: 8px;
+  padding: 8px 32px 8px 14px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 9l4-4 4 4m0 6l-4 4-4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+}
+
+section.filter-bar-section .filter-sort-select:hover {
+  background-color: var(--sand-50);
+  border-color: var(--sand-300);
+}
+
+/* Share button */
+section.filter-bar-section .share-url-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-700);
+  background: white;
+  border: 1px solid var(--sand-200);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+section.filter-bar-section .share-url-btn:hover {
+  background: var(--sand-50);
+}
+
+section.filter-bar-section .share-url-btn.copied {
+  background: var(--sage-100);
+  border-color: var(--sage-300);
+  color: var(--sage-700);
+}
+
+/* Clear button */
+section.filter-bar-section .filter-clear-btn {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--terra-600);
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+section.filter-bar-section .filter-clear-btn:hover {
+  text-decoration: underline;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  section.filter-bar-section .filter-bar-inner {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  section.filter-bar-section .filter-presets {
+    order: 1;
+    width: 100%;
+    padding-bottom: 4px;
+  }
+
+  section.filter-bar-section .filter-presets-label,
+  section.filter-bar-section .filter-presets-divider {
+    display: none;
+  }
+
+  section.filter-bar-section .filter-controls {
+    order: 2;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  section.filter-bar-section .filter-control-btn span:not(.filter-count) {
+    display: none;
+  }
+
+  section.filter-bar-section .filter-control-btn {
+    padding: 8px 12px;
+  }
+}
