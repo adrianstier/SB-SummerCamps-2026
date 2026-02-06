@@ -979,9 +979,15 @@ body::before {
   gap: 10px;
   flex-wrap: nowrap;
   overflow-x: auto;
+  overflow-y: visible;
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding: 4px 0;
+  flex: 1;
+  min-width: 0;
+  mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
+  padding-right: 20px;
 }
 
 .filter-presets::-webkit-scrollbar {
