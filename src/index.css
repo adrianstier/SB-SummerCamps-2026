@@ -978,13 +978,14 @@ body::before {
   align-items: center;
   gap: 8px;
   flex-wrap: nowrap;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding: 4px 0;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
-  max-width: calc(100% - 400px);
+  margin-right: 8px;
 }
 
 .filter-presets::-webkit-scrollbar {
