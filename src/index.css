@@ -966,7 +966,6 @@ body::before {
 .filter-bar-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   padding: 16px 0;
   min-height: 64px;
@@ -1128,6 +1127,7 @@ body::before {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .filter-control-btn {
