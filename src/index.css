@@ -8741,3 +8741,208 @@ section.filter-bar-section .filter-clear-btn:hover {
     padding: 8px 12px;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FILTER BAR - PROGRESSIVE DISCLOSURE WITH "MORE" DROPDOWN
+   UX-optimized responsive pattern: show priority filters, hide overflow in dropdown
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Reset filter-presets to visible (no scroll clipping) */
+section.filter-bar-section .filter-presets {
+  overflow: visible;
+}
+
+/* Priority quick filters - always visible */
+section.filter-bar-section .filter-preset-link.priority {
+  flex-shrink: 0;
+}
+
+/* Overflow quick filters - visible on large screens, hidden at medium */
+section.filter-bar-section .filter-preset-link.overflow {
+  flex-shrink: 0;
+}
+
+/* "More filters" wrapper for positioning */
+section.filter-bar-section .filter-more-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* "More filters" dropdown button */
+section.filter-bar-section .filter-more-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-700);
+  background: white;
+  border: 1px solid var(--sand-200);
+  border-radius: 20px;
+  padding: 8px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+section.filter-bar-section .filter-more-btn:hover {
+  background: var(--sand-50);
+  border-color: var(--sand-300);
+}
+
+section.filter-bar-section .filter-more-btn.has-selection {
+  background: var(--ocean-50);
+  border-color: var(--ocean-300);
+  color: var(--ocean-700);
+}
+
+section.filter-bar-section .filter-more-btn svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+section.filter-bar-section .filter-more-btn[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+/* More filters dropdown panel */
+section.filter-bar-section .filter-more-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 160px;
+  background: white;
+  border: 1px solid var(--sand-200);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  z-index: 50;
+}
+
+section.filter-bar-section .filter-more-dropdown .filter-preset-link {
+  width: 100%;
+  justify-content: flex-start;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+section.filter-bar-section .filter-more-dropdown .filter-preset-link:last-child {
+  margin-bottom: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE BREAKPOINTS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Extra large screens: 1440px+ - all filters visible */
+@media (min-width: 1440px) {
+  section.filter-bar-section .filter-preset-link.overflow {
+    display: inline-flex;
+  }
+
+  section.filter-bar-section .filter-more-wrapper {
+    display: none;
+  }
+}
+
+/* Large screens: 1280-1439px - all filters visible */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  section.filter-bar-section .filter-preset-link.overflow {
+    display: inline-flex;
+  }
+
+  section.filter-bar-section .filter-more-wrapper {
+    display: none;
+  }
+}
+
+/* Medium-large screens: 1024-1279px - show 3 filters + More */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  section.filter-bar-section .filter-preset-link.overflow {
+    display: none;
+  }
+
+  section.filter-bar-section .filter-more-wrapper {
+    display: block;
+  }
+
+  section.filter-bar-section .filter-more-btn {
+    display: inline-flex;
+  }
+
+  /* Condense right-side controls */
+  section.filter-bar-section .filter-control-btn span:not(.filter-count) {
+    display: none;
+  }
+
+  section.filter-bar-section .filter-control-btn {
+    padding: 8px 12px;
+  }
+}
+
+/* Tablet: 768-1023px - show priority filters + More */
+@media (min-width: 768px) and (max-width: 1023px) {
+  section.filter-bar-section .filter-preset-link.overflow {
+    display: none;
+  }
+
+  section.filter-bar-section .filter-more-wrapper {
+    display: block;
+  }
+
+  section.filter-bar-section .filter-more-btn {
+    display: inline-flex;
+  }
+
+  section.filter-bar-section .filter-presets-label,
+  section.filter-bar-section .filter-presets-divider {
+    display: none;
+  }
+
+  section.filter-bar-section .filter-control-btn span:not(.filter-count) {
+    display: none;
+  }
+}
+
+/* Mobile: <768px - horizontal scroll with all filters */
+@media (max-width: 767px) {
+  section.filter-bar-section .filter-bar-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  section.filter-bar-section .filter-presets {
+    order: 1;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  section.filter-bar-section .filter-presets-label,
+  section.filter-bar-section .filter-presets-divider {
+    display: none;
+  }
+
+  /* On mobile, show all filters (scroll) and hide More button */
+  section.filter-bar-section .filter-preset-link.overflow {
+    display: inline-flex;
+  }
+
+  section.filter-bar-section .filter-more-wrapper {
+    display: none;
+  }
+
+  section.filter-bar-section .filter-controls {
+    order: 2;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

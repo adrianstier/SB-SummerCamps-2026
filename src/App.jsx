@@ -445,6 +445,7 @@ export default function App() {
   const [showCostDashboard, setShowCostDashboard] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
   const [showFamilyWorkspace, setShowFamilyWorkspace] = useState(false);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [compareList, setCompareList] = useState([]);
   const [modalCamp, setModalCamp] = useState(null); // Camp detail modal
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -797,6 +798,17 @@ export default function App() {
     }
   }, [filters.search]);
 
+  // Close "More filters" dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showMoreFilters && !e.target.closest('.filter-more-btn') && !e.target.closest('.filter-more-dropdown')) {
+        setShowMoreFilters(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showMoreFilters]);
+
   // Handle join squad route
   if (joinInviteCode) {
     return (
@@ -1097,16 +1109,18 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* Main Filter Row */}
           <div className="filter-bar-inner">
-            {/* Left: Quick Presets as elegant text links */}
+            {/* Left: Quick Presets with progressive disclosure */}
             <div className="filter-presets">
               <span className="filter-presets-label">Quick filters</span>
               <div className="filter-presets-divider" />
+
+              {/* Priority filters - always visible */}
               <button
                 onClick={() => {
                   clearFilters();
                   setExtendedCare(true);
                 }}
-                className={`filter-preset-link ${extendedCare && !foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`}
+                className={`filter-preset-link priority ${extendedCare && !foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`}
                 data-filter="extended-care"
               >
                 Extended Care
@@ -1116,7 +1130,7 @@ export default function App() {
                   clearFilters();
                   setMaxPrice('300');
                 }}
-                className={`filter-preset-link ${maxPrice === '300' && !extendedCare && selectedCategory === 'All' ? 'active' : ''}`}
+                className={`filter-preset-link priority ${maxPrice === '300' && !extendedCare && selectedCategory === 'All' ? 'active' : ''}`}
                 data-filter="under-300"
               >
                 Under $300
@@ -1126,17 +1140,19 @@ export default function App() {
                   clearFilters();
                   setSelectedCategory('Sports');
                 }}
-                className={`filter-preset-link ${selectedCategory === 'Sports' ? 'active' : ''}`}
+                className={`filter-preset-link priority ${selectedCategory === 'Sports' ? 'active' : ''}`}
                 data-filter="sports"
               >
                 Sports
               </button>
+
+              {/* Overflow filters - hidden at medium viewports, shown in dropdown */}
               <button
                 onClick={() => {
                   clearFilters();
                   setSelectedCategory('Art');
                 }}
-                className={`filter-preset-link ${selectedCategory === 'Art' ? 'active' : ''}`}
+                className={`filter-preset-link overflow ${selectedCategory === 'Art' ? 'active' : ''}`}
                 data-filter="art"
               >
                 Art & Creative
@@ -1146,7 +1162,7 @@ export default function App() {
                   clearFilters();
                   setSelectedCategory('Science/STEM');
                 }}
-                className={`filter-preset-link ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
+                className={`filter-preset-link overflow ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
                 data-filter="stem"
               >
                 STEM
@@ -1156,11 +1172,61 @@ export default function App() {
                   clearFilters();
                   setSelectedCategory('Nature/Outdoor');
                 }}
-                className={`filter-preset-link ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}
+                className={`filter-preset-link overflow ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}
                 data-filter="outdoors"
               >
                 Outdoors
               </button>
+
+              {/* "More" dropdown for overflow filters at constrained viewports */}
+              <div className="filter-more-wrapper">
+                <button
+                  onClick={() => setShowMoreFilters(!showMoreFilters)}
+                  className={`filter-more-btn ${['Art', 'Science/STEM', 'Nature/Outdoor'].includes(selectedCategory) ? 'has-selection' : ''}`}
+                  aria-expanded={showMoreFilters}
+                  aria-haspopup="true"
+                >
+                  More
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showMoreFilters && (
+                  <div className="filter-more-dropdown open">
+                    <button
+                      onClick={() => {
+                        clearFilters();
+                        setSelectedCategory('Art');
+                        setShowMoreFilters(false);
+                      }}
+                      className={`filter-preset-link ${selectedCategory === 'Art' ? 'active' : ''}`}
+                    >
+                      Art & Creative
+                    </button>
+                    <button
+                      onClick={() => {
+                        clearFilters();
+                        setSelectedCategory('Science/STEM');
+                        setShowMoreFilters(false);
+                      }}
+                      className={`filter-preset-link ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
+                    >
+                      STEM
+                    </button>
+                    <button
+                      onClick={() => {
+                        clearFilters();
+                        setSelectedCategory('Nature/Outdoor');
+                        setShowMoreFilters(false);
+                      }}
+                      className={`filter-preset-link ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}
+                    >
+                      Outdoors
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right: Filter Controls */}
