@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAchievements } from '../contexts/AchievementsContext';
 import { getSummerWeeks2026, addScheduledCamp, deleteScheduledCamp, updateScheduledCamp, clearSampleData, toggleLookingForFriends, getCampSessions, checkConflicts, checkWorkScheduleCoverage, updateProfile, getNotificationPreferences } from '../lib/supabase';
-import { createGoogleCalendarUrl, exportAllToICal, formatCampForCalendar, generateICalFile } from '../lib/googleCalendar';
+import { createGoogleCalendarUrl, exportAllToICal, formatCampForCalendar, formatBlockedWeekForCalendar, generateICalFile } from '../lib/googleCalendar';
 import { GuidedTour } from './GuidedTour';
 import SquadsPanel from './SquadsPanel';
 import SquadNotificationBell from './SquadNotificationBell';
@@ -34,7 +34,33 @@ const BLOCK_TYPES = [
   { id: 'vacation', label: 'Vacation', icon: 'beach-surf', color: '#60a5fa' },
   { id: 'family', label: 'Family Time', icon: 'family', color: '#a78bfa' },
   { id: 'travel', label: 'Travel', icon: 'van', color: '#34d399' },
-  { id: 'other', label: 'Other Plans', icon: 'calendar', color: '#f472b6' },
+  { id: 'staycation', label: 'Staycation', icon: 'home', color: '#fb923c' },
+  { id: 'visiting', label: 'Visitors Coming', icon: 'party', color: '#c084fc' },
+  { id: 'custom', label: 'Custom...', icon: 'pencil', color: '#94a3b8', isCustom: true },
+];
+
+// Color options for custom blocks
+const BLOCK_COLORS = [
+  { id: 'blue', color: '#60a5fa', label: 'Ocean Blue' },
+  { id: 'purple', color: '#a78bfa', label: 'Lavender' },
+  { id: 'green', color: '#34d399', label: 'Mint' },
+  { id: 'orange', color: '#fb923c', label: 'Sunset' },
+  { id: 'pink', color: '#f472b6', label: 'Rose' },
+  { id: 'teal', color: '#2dd4bf', label: 'Teal' },
+  { id: 'amber', color: '#fbbf24', label: 'Amber' },
+  { id: 'gray', color: '#94a3b8', label: 'Stone' },
+];
+
+// Icon options for custom blocks
+const BLOCK_ICONS = [
+  { id: 'beach-surf', label: 'Beach' },
+  { id: 'family', label: 'Family' },
+  { id: 'van', label: 'Travel' },
+  { id: 'home', label: 'Home' },
+  { id: 'party', label: 'Party' },
+  { id: 'calendar', label: 'Event' },
+  { id: 'star', label: 'Special' },
+  { id: 'heart', label: 'Love' },
 ];
 
 // Conflict types
@@ -83,8 +109,9 @@ export function SchedulePlanner({ camps, onClose }) {
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
   const [dragOverWeek, setDragOverWeek] = useState(null);
   const [showBlockMenu, setShowBlockMenu] = useState(null); // { weekNum }
+  const [showCustomBlockModal, setShowCustomBlockModal] = useState(null); // { weekNum, editExisting?: block }
   // BUG-D-001: Initialize blockedWeeks from profile for cross-device persistence
-  const [blockedWeeks, setBlockedWeeks] = useState(() => profile?.blocked_weeks || {}); // { [childId]: { [weekNum]: { type, label, note } } }
+  const [blockedWeeks, setBlockedWeeks] = useState(() => profile?.blocked_weeks || {}); // { [childId]: { [weekNum]: { type, label, note, icon, color } } }
   const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' or 'squads'
   const [draggedCamp, setDraggedCamp] = useState(null);
   const [sidebarSearch, setSidebarSearch] = useState('');
@@ -632,6 +659,14 @@ export function SchedulePlanner({ camps, onClose }) {
   // Block week functions
   function handleBlockWeek(weekNum, blockType) {
     if (!selectedChild) return;
+
+    // If it's the custom type, open the custom block modal
+    if (blockType.isCustom) {
+      setShowBlockMenu(null);
+      setShowCustomBlockModal({ weekNum });
+      return;
+    }
+
     setBlockedWeeks(prev => ({
       ...prev,
       [selectedChild]: {
@@ -640,6 +675,26 @@ export function SchedulePlanner({ camps, onClose }) {
       }
     }));
     setShowBlockMenu(null);
+  }
+
+  function handleSaveCustomBlock(weekNum, customBlock) {
+    if (!selectedChild) return;
+    setBlockedWeeks(prev => ({
+      ...prev,
+      [selectedChild]: {
+        ...(prev[selectedChild] || {}),
+        [weekNum]: customBlock
+      }
+    }));
+    setShowCustomBlockModal(null);
+  }
+
+  function handleEditBlock(weekNum) {
+    if (!selectedChild) return;
+    const existingBlock = blockedWeeks[selectedChild]?.[weekNum];
+    if (existingBlock) {
+      setShowCustomBlockModal({ weekNum, editExisting: existingBlock });
+    }
   }
 
   function handleUnblockWeek(weekNum) {
@@ -1177,19 +1232,53 @@ export function SchedulePlanner({ camps, onClose }) {
         {/* Week Content */}
         <div className="week-card-content">
           {blocked ? (
-            <div className="week-blocked" style={{ '--block-color': blocked.color }}>
-              <span className="week-blocked-icon"><BrandIcon name={blocked.icon} size={16} /></span>
-              <span className="week-blocked-label">{blocked.label}</span>
-              <button
-                onClick={(e) => {
+            <div
+              className="week-blocked"
+              style={{ '--block-color': blocked.color }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditBlock(week.weekNum);
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
                   e.stopPropagation();
-                  handleUnblockWeek(week.weekNum);
-                }}
-                className="week-blocked-remove"
-                aria-label={`Remove ${blocked.label} block`}
-              >
-                <XIcon />
-              </button>
+                  handleEditBlock(week.weekNum);
+                }
+              }}
+              title={blocked.note ? `${blocked.label}: ${blocked.note}` : blocked.label}
+            >
+              <span className="week-blocked-icon"><BrandIcon name={blocked.icon} size={24} /></span>
+              <span className="week-blocked-label">{blocked.label}</span>
+              {blocked.note && (
+                <span className="week-blocked-note">{blocked.note}</span>
+              )}
+              <div className="week-blocked-actions">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditBlock(week.weekNum);
+                  }}
+                  className="week-blocked-edit"
+                  aria-label={`Edit ${blocked.label}`}
+                >
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnblockWeek(week.weekNum);
+                  }}
+                  className="week-blocked-remove"
+                  aria-label={`Remove ${blocked.label} block`}
+                >
+                  <XIcon />
+                </button>
+              </div>
             </div>
           ) : weekCamps.length > 0 ? (
             weekCamps.map(sc => {
@@ -1468,6 +1557,17 @@ export function SchedulePlanner({ camps, onClose }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Custom Block Modal */}
+      {showCustomBlockModal && (
+        <CustomBlockModal
+          weekNum={showCustomBlockModal.weekNum}
+          editExisting={showCustomBlockModal.editExisting}
+          summerWeeks={summerWeeks}
+          onSave={handleSaveCustomBlock}
+          onClose={() => setShowCustomBlockModal(null)}
+        />
       )}
 
       {/* Elegant Header */}
@@ -2132,16 +2232,21 @@ export function SchedulePlanner({ camps, onClose }) {
 
           {/* Export Actions */}
           <div className="planner-bottom-actions">
-            {scheduledCamps.filter(sc => sc.child_id === selectedChild).length > 0 && (
+            {(scheduledCamps.filter(sc => sc.child_id === selectedChild).length > 0 || Object.keys(blockedWeeks[selectedChild] || {}).length > 0) && (
               <>
                 <button
                   onClick={() => {
                     const child = children.find(c => c.id === selectedChild);
                     const childSchedules = scheduledCamps.filter(sc => sc.child_id === selectedChild);
-                    exportAllToICal(camps, childSchedules, child?.name);
+                    // Include blocked weeks as all-day events
+                    const childBlocks = blockedWeeks[selectedChild] || {};
+                    const blockEvents = Object.entries(childBlocks).map(([weekNum, block]) =>
+                      formatBlockedWeekForCalendar(block, parseInt(weekNum), summerWeeks)
+                    ).filter(Boolean);
+                    exportAllToICal(camps, childSchedules, child?.name, blockEvents);
                   }}
                   className="planner-bottom-action-btn"
-                  title="Download .ics file"
+                  title="Download .ics file (includes blocked weeks)"
                 >
                   <DownloadIcon />
                   <span>Export</span>
@@ -2149,30 +2254,38 @@ export function SchedulePlanner({ camps, onClose }) {
                 <button
                   onClick={() => {
                     const childSchedules = scheduledCamps.filter(sc => sc.child_id === selectedChild);
-                    if (childSchedules.length > 0) {
-                      // Export all scheduled camps to Google Calendar
-                      const child = children.find(c => c.id === selectedChild);
-                      const events = childSchedules.map(schedule => {
-                        const camp = campLookup.get(schedule.camp_id);
-                        if (!camp) return null;
-                        return formatCampForCalendar(camp, schedule);
-                      }).filter(Boolean);
+                    const childBlocks = blockedWeeks[selectedChild] || {};
 
+                    // Collect camp events
+                    const campEvents = childSchedules.map(schedule => {
+                      const camp = campLookup.get(schedule.camp_id);
+                      if (!camp) return null;
+                      return formatCampForCalendar(camp, schedule);
+                    }).filter(Boolean);
+
+                    // Collect blocked week events
+                    const blockEvents = Object.entries(childBlocks).map(([weekNum, block]) =>
+                      formatBlockedWeekForCalendar(block, parseInt(weekNum), summerWeeks)
+                    ).filter(Boolean);
+
+                    const allEvents = [...campEvents, ...blockEvents];
+
+                    if (allEvents.length > 0) {
                       // Open each event with staggered timing (max 5 to avoid popup blocking)
                       const maxTabs = 5;
-                      events.slice(0, maxTabs).forEach((event, index) => {
+                      allEvents.slice(0, maxTabs).forEach((event, index) => {
                         setTimeout(() => {
                           window.open(createGoogleCalendarUrl(event), '_blank', 'noopener,noreferrer');
                         }, index * 500);
                       });
 
-                      if (events.length > maxTabs) {
-                        showStatus(`Opened first ${maxTabs} events. Use Export to download all ${events.length} as .ics file.`);
+                      if (allEvents.length > maxTabs) {
+                        showStatus(`Opened first ${maxTabs} events. Use Export to download all ${allEvents.length} as .ics file.`);
                       }
                     }
                   }}
                   className="planner-bottom-action-btn"
-                  title="Add all camps to Google Calendar"
+                  title="Add all camps and blocked weeks to Google Calendar"
                 >
                   <CalendarExportIcon />
                   <span>Calendar</span>
@@ -2596,6 +2709,131 @@ function DragIcon() {
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
     </svg>
+  );
+}
+
+// Custom Block Modal for vacations, family time, etc.
+function CustomBlockModal({ weekNum, editExisting, summerWeeks, onSave, onClose }) {
+  const week = summerWeeks.find(w => w.weekNum === weekNum);
+  const [label, setLabel] = useState(editExisting?.label || '');
+  const [note, setNote] = useState(editExisting?.note || '');
+  const [selectedColor, setSelectedColor] = useState(editExisting?.color || BLOCK_COLORS[0].color);
+  const [selectedIcon, setSelectedIcon] = useState(editExisting?.icon || 'beach-surf');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!label.trim()) return;
+
+    onSave(weekNum, {
+      id: 'custom',
+      label: label.trim(),
+      note: note.trim() || undefined,
+      icon: selectedIcon,
+      color: selectedColor
+    });
+  };
+
+  return (
+    <div className="custom-block-overlay" onClick={onClose}>
+      <div className="custom-block-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="custom-block-header">
+          <h3>{editExisting ? 'Edit Block' : 'Block This Week'}</h3>
+          <button onClick={onClose} className="custom-block-close" aria-label="Close">
+            <XIcon />
+          </button>
+        </div>
+
+        <div className="custom-block-week-info">
+          <span className="custom-block-week-dates">
+            {week ? `Week ${weekNum}: ${new Date(week.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(week.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : `Week ${weekNum}`}
+          </span>
+        </div>
+
+        <form onSubmit={handleSubmit} className="custom-block-form">
+          <div className="custom-block-field">
+            <label htmlFor="block-label">What's happening this week?</label>
+            <input
+              id="block-label"
+              type="text"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="e.g., Beach vacation, Grandparents visiting..."
+              autoFocus
+              maxLength={50}
+            />
+          </div>
+
+          <div className="custom-block-field">
+            <label htmlFor="block-note">Notes (optional)</label>
+            <textarea
+              id="block-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Add any details..."
+              rows={2}
+              maxLength={200}
+            />
+          </div>
+
+          <div className="custom-block-field">
+            <label>Choose an icon</label>
+            <div className="custom-block-icons">
+              {BLOCK_ICONS.map(icon => (
+                <button
+                  key={icon.id}
+                  type="button"
+                  className={`custom-block-icon-btn ${selectedIcon === icon.id ? 'selected' : ''}`}
+                  onClick={() => setSelectedIcon(icon.id)}
+                  title={icon.label}
+                  style={{ '--icon-color': selectedColor }}
+                >
+                  <BrandIcon name={icon.id} size={20} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="custom-block-field">
+            <label>Choose a color</label>
+            <div className="custom-block-colors">
+              {BLOCK_COLORS.map(color => (
+                <button
+                  key={color.id}
+                  type="button"
+                  className={`custom-block-color-btn ${selectedColor === color.color ? 'selected' : ''}`}
+                  onClick={() => setSelectedColor(color.color)}
+                  title={color.label}
+                  style={{ '--swatch-color': color.color }}
+                >
+                  {selectedColor === color.color && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="custom-block-preview">
+            <span className="custom-block-preview-label">Preview:</span>
+            <div className="custom-block-preview-card" style={{ '--block-color': selectedColor }}>
+              <span className="preview-icon"><BrandIcon name={selectedIcon} size={16} /></span>
+              <span className="preview-label">{label || 'Your event'}</span>
+            </div>
+          </div>
+
+          <div className="custom-block-actions">
+            <button type="button" onClick={onClose} className="custom-block-cancel">
+              Cancel
+            </button>
+            <button type="submit" disabled={!label.trim()} className="custom-block-save">
+              {editExisting ? 'Save Changes' : 'Block Week'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 

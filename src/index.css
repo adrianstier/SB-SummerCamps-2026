@@ -448,17 +448,39 @@ body::before {
 .hero-year-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(212, 86, 50, 0.1);
-  color: var(--terra-500);
-  padding: 8px 16px;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(212, 86, 50, 0.12) 0%, rgba(225, 190, 58, 0.1) 100%);
+  color: var(--terra-600);
+  padding: 10px 20px;
   border-radius: var(--radius-full);
   font-family: 'Outfit', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(212, 86, 50, 0.15);
+  box-shadow: 0 2px 8px -2px rgba(212, 86, 50, 0.2);
+  animation: badgePulse 3s ease-in-out infinite;
+}
+
+.hero-year-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--terra-500);
+  border-radius: 50%;
+  animation: badgeDot 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes badgeDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
 }
 
 .hero-subtitle {
@@ -471,6 +493,17 @@ body::before {
 
 .hero-stats {
   animation: heroFadeIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) 0.28s both;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 16px 24px;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 4px 20px -4px rgba(45, 38, 30, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  max-width: fit-content;
+  margin: 0 auto;
 }
 
 /* Staggered entrance for individual trust signal items */
@@ -481,6 +514,13 @@ body::before {
 
 .hero-stats > div {
   animation: trustSignalFadeIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  padding: 4px 0;
+}
+
+.hero-stats > div strong {
+  font-weight: 700;
+  font-size: 1.125em;
+  color: var(--earth-800);
 }
 
 @keyframes heroFadeIn {
@@ -2883,42 +2923,66 @@ textarea:focus-visible {
 /* Mobile hero optimizations */
 @media (max-width: 640px) {
   .hero-section {
-    padding-top: 2rem;
-    padding-bottom: 4rem;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
   }
 
   .hero-title h1 {
-    font-size: 2.5rem; /* Down from 3rem+ */
-    line-height: 1.15;
-    margin-bottom: 1rem;
+    font-size: 2.25rem;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
   }
 
   .hero-subtitle {
-    font-size: 1rem; /* Down from 1.125rem */
-    margin-bottom: 2rem;
-    line-height: 1.6;
+    font-size: 0.9375rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    opacity: 0.9;
+  }
+
+  .hero-year-badge {
+    padding: 8px 14px;
+    font-size: 0.6875rem;
+    margin-bottom: 12px;
   }
 
   .hero-stats {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
-    padding: 0 0.5rem;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 12px;
+    padding: 12px 16px;
+    width: 100%;
+    max-width: 100%;
+    border-radius: var(--radius-lg);
+    text-align: left;
   }
 
   .hero-stats > div {
-    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
     justify-content: flex-start;
   }
 
+  .hero-stats > div strong {
+    font-size: 1em;
+    font-weight: 700;
+  }
+
+  .hero-stats > div .w-2 {
+    width: 6px;
+    height: 6px;
+  }
+
   .hero-search {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
 
   /* Adjust search input for mobile */
   .search-input {
     font-size: 1rem;
-    padding: 1rem 1rem 1rem 3rem;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
   }
 }
 
@@ -6801,13 +6865,30 @@ body.modal-open {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.95);
+  z-index: 250; /* Above install banner (200) */
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-top: 1px solid var(--sand-200);
   transform: translateY(0);
   transition: transform 0.3s var(--ease-spring);
+  display: none; /* Hidden by default on desktop */
+}
+
+/* Show mobile nav only on mobile devices */
+@media (max-width: 768px) {
+  .mobile-nav {
+    display: block;
+  }
+
+  /* Add padding to prevent content from being hidden behind mobile nav */
+  body {
+    padding-bottom: 70px;
+  }
+
+  footer, .contentinfo {
+    padding-bottom: 70px;
+  }
 }
 
 .mobile-nav--hidden {
@@ -6898,18 +6979,36 @@ body.modal-open {
 
 .install-banner {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
   z-index: 200;
-  background: linear-gradient(to right, var(--ocean-600), var(--ocean-500));
+  background: linear-gradient(135deg, var(--ocean-600) 0%, var(--ocean-500) 100%);
   color: white;
   padding: var(--space-4) var(--space-5);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-4);
+  box-shadow:
+    0 8px 32px -8px rgba(30, 117, 120, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.1);
   animation: slideUp 0.4s var(--ease-spring);
+  border-radius: var(--radius-xl);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Position install banner above mobile nav on mobile */
+@media (max-width: 768px) {
+  .install-banner {
+    bottom: 76px; /* Height of mobile nav + spacing */
+    left: 12px;
+    right: 12px;
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-3);
+    border-radius: var(--radius-lg);
+  }
 }
 
 @keyframes slideUp {
@@ -6927,14 +7026,16 @@ body.modal-open {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
 }
 
 .install-banner-icon {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-lg);
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6943,55 +7044,76 @@ body.modal-open {
 
 .install-banner-icon svg,
 .install-banner-icon img {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
 }
 
 .install-banner-text {
   flex: 1;
+  min-width: 0;
 }
 
 .install-banner-title {
   font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 2px;
+  font-size: 0.9375rem;
+  margin-bottom: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .install-banner-subtitle {
-  font-size: 0.875rem;
-  opacity: 0.85;
+  font-size: 0.8125rem;
+  opacity: 0.8;
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .install-banner-subtitle {
+    display: block;
+  }
 }
 
 .install-banner-actions {
   display: flex;
-  gap: var(--space-3);
-  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 .install-banner-dismiss {
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 36px;
+  min-width: 36px;
+  transition: color 0.2s ease;
+}
+
+.install-banner-dismiss:hover {
+  color: rgba(255, 255, 255, 1);
 }
 
 .install-banner-install {
-  padding: var(--space-2) var(--space-5);
+  padding: var(--space-2) var(--space-4);
   background: white;
   border: none;
   border-radius: var(--radius-full);
   color: var(--ocean-600);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: 44px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  min-height: 36px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.install-banner-install:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .install-banner-install:active {
@@ -7581,4 +7703,773 @@ body.modal-open {
 
 @media (prefers-color-scheme: dark) {
   /* Future dark mode styles - currently keeping light mode for brand consistency */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN ENHANCEMENTS - February 2026 Homepage Polish
+   Based on Visual, Motion, Content, and UX audits
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────────────────────────────────────
+   MOTION TOKENS - Consistent animation system
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Duration scale */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 400ms;
+  --duration-slowest: 500ms;
+  --duration-stagger: 60ms;
+
+  /* Easing curves - brand personality: smooth and confident */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+  --ease-gentle: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   HERO TYPOGRAPHY ENHANCEMENTS - More dramatic, more confident
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.hero-title h1 {
+  font-size: clamp(2.75rem, 8vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+@media (min-width: 768px) {
+  .hero-title h1 {
+    font-size: clamp(3.5rem, 7vw, 5.5rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-title h1 {
+    font-size: clamp(4rem, 6vw, 6rem);
+    letter-spacing: -0.035em;
+  }
+}
+
+/* Hero subtitle - slightly larger for balance */
+.hero-section .hero-subtitle,
+.hero-section p.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 768px) {
+  .hero-section .hero-subtitle,
+  .hero-section p.text-lg {
+    font-size: 1.25rem;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   CAMP CARD STAGGER ANIMATION - Cards fade up on load
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.camp-card {
+  opacity: 0;
+  animation: cardReveal 0.5s var(--ease-default) forwards;
+  animation-delay: calc(var(--stagger-index, 0) * var(--duration-stagger));
+}
+
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   ENHANCED CARD HOVER - More polished interaction
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.camp-card {
+  transition:
+    transform var(--duration-slow) var(--ease-default),
+    box-shadow var(--duration-slow) var(--ease-default),
+    border-color var(--duration-normal) ease;
+}
+
+.camp-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--sand-300);
+}
+
+.camp-card:active {
+  transform: translateY(-4px) scale(0.995);
+  transition-duration: var(--duration-fast);
+}
+
+/* Image zoom on hover */
+.camp-card .camp-card-image img,
+.camp-card .relative.overflow-hidden img {
+  transition: transform var(--duration-slower) var(--ease-default);
+}
+
+.camp-card:hover .camp-card-image img,
+.camp-card:hover .relative.overflow-hidden img {
+  transform: scale(1.06);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   FAVORITE BUTTON HEART POP - Delightful feedback
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.favorite-btn,
+button[aria-label*="favorite"] {
+  transition:
+    transform var(--duration-normal) var(--ease-default),
+    background var(--duration-normal) ease,
+    border-color var(--duration-normal) ease;
+}
+
+.favorite-btn:hover:not(:disabled),
+button[aria-label*="favorite"]:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.favorite-btn:active:not(:disabled),
+button[aria-label*="favorite"]:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Heart pop animation class - add via JS on favorite toggle */
+.favorite-btn.is-favorited,
+.heart-pop {
+  animation: heartPop 0.6s var(--ease-bounce);
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(0.95); }
+  75% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   FILTER BAR POLISH - Frosted glass, better active states
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.filter-bar-section {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(233, 224, 210, 0.6);
+  box-shadow:
+    0 4px 20px -4px rgba(45, 38, 30, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Enhanced active filter pill */
+.filter-preset-link.active {
+  background: linear-gradient(180deg, var(--ocean-500) 0%, var(--ocean-600) 100%);
+  border-color: var(--ocean-600);
+  color: white;
+  font-weight: 600;
+  box-shadow:
+    0 2px 8px rgba(30, 117, 120, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.filter-preset-link.active:hover {
+  background: linear-gradient(180deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
+}
+
+/* Filter pill hover bounce */
+.filter-preset-link {
+  transition:
+    transform var(--duration-normal) var(--ease-bounce),
+    background var(--duration-normal) ease,
+    border-color var(--duration-normal) ease,
+    box-shadow var(--duration-normal) ease;
+}
+
+.filter-preset-link:hover:not(.active) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 117, 120, 0.12);
+}
+
+/* Mobile scroll fade indicator */
+@media (max-width: 768px) {
+  .filter-presets {
+    position: relative;
+  }
+
+  .filter-presets::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(270deg, var(--sand-50) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 1;
+    transition: opacity var(--duration-normal) ease;
+  }
+
+  .filter-presets.scrolled-end::after {
+    opacity: 0;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   SECTION COLOR BLOCKING - Visual rhythm
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Results section - subtle sand background */
+main > .px-4,
+main > .container {
+  background: var(--sand-50);
+}
+
+/* Category browse section - warm accent */
+.category-browse-section,
+section:has(.category-browse-grid) {
+  background: linear-gradient(180deg, var(--sand-100) 0%, var(--sand-50) 100%);
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-12);
+  margin-top: var(--space-8);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   BUTTON ENHANCEMENTS - Better press feedback
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.btn-primary,
+.btn-secondary {
+  transition:
+    transform var(--duration-fast) var(--ease-default),
+    background var(--duration-normal) ease,
+    box-shadow var(--duration-normal) ease;
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* Primary button colored shadow */
+.btn-primary {
+  box-shadow:
+    0 4px 14px -3px rgba(212, 86, 50, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary:hover {
+  box-shadow:
+    0 6px 20px -4px rgba(212, 86, 50, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   SKELETON SHIMMER - Premium loading
+   ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes skeletonShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton,
+.animate-pulse {
+  background: linear-gradient(
+    90deg,
+    var(--sand-100) 0%,
+    var(--sand-200) 20%,
+    var(--sand-100) 40%,
+    var(--sand-100) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.8s ease-in-out infinite;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   MODAL ANIMATIONS - Consistent entrance/exit
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.modal-overlay,
+.fixed.inset-0.bg-black {
+  animation: modalOverlayEnter 0.25s var(--ease-default);
+}
+
+@keyframes modalOverlayEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.planner-container,
+.comparison-container,
+[role="dialog"] > div {
+  animation: modalContentEnter 0.35s var(--ease-spring);
+}
+
+@keyframes modalContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   ACCESSIBILITY - Focus indicators & touch targets
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Enhanced focus indicators */
+.filter-preset-link:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+  outline: 3px solid var(--ocean-400);
+  outline-offset: 3px;
+}
+
+/* Skip link for keyboard users */
+.skip-to-results {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-to-results:focus {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: auto;
+  height: auto;
+  padding: 12px 24px;
+  background: var(--ocean-600);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Mobile touch targets - minimum 48px */
+@media (max-width: 768px) {
+  .filter-preset-link {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  button[aria-label*="compare"],
+  button[aria-label*="favorite"],
+  .favorite-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   REDUCED MOTION - Accessibility fallbacks
+   ─────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Instant appearance for cards */
+  .camp-card {
+    opacity: 1;
+    animation: none;
+  }
+
+  /* Keep skeleton visible but static */
+  .skeleton,
+  .animate-pulse {
+    animation: none;
+    background: var(--sand-100);
+  }
+
+  /* Remove hover transforms */
+  .camp-card:hover,
+  .filter-preset-link:hover {
+    transform: none;
+  }
+
+  /* Keep color/shadow changes for UX feedback */
+  .camp-card:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UX/UI DESIGN ENHANCEMENTS - Jan 2026 Audit Fixes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. ENHANCED ACTIVE FILTER STATES
+   Make active filters more visually distinct with stronger contrast and glow */
+
+.filter-preset-link.active {
+  color: white;
+  background: linear-gradient(180deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
+  border-color: var(--ocean-600);
+  font-weight: 600;
+  box-shadow:
+    0 4px 14px -3px rgba(45, 149, 153, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 2px rgba(45, 149, 153, 0.15);
+  transform: translateY(-1px);
+}
+
+.filter-pill.active {
+  background: var(--ocean-500);
+  color: white;
+  border-color: var(--ocean-600);
+  box-shadow:
+    0 4px 14px -3px rgba(45, 149, 153, 0.5),
+    0 0 0 2px rgba(45, 149, 153, 0.15);
+}
+
+.filter-control-btn.active {
+  background: linear-gradient(180deg, var(--ocean-100) 0%, var(--ocean-50) 100%);
+  color: var(--ocean-700);
+  border-color: var(--ocean-400);
+  box-shadow:
+    0 0 0 2px rgba(45, 149, 153, 0.12),
+    inset 0 1px 2px rgba(45, 149, 153, 0.1);
+}
+
+/* Active filter count badge pulsing animation */
+.filter-count {
+  animation: filterCountPulse 2s ease-in-out infinite;
+}
+
+@keyframes filterCountPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+
+/* 2. CATEGORY-SPECIFIC COLORED SHADOWS FOR FILTER PILLS
+   When browsing by category, add colored shadows matching the category */
+
+.category-browse-card[data-category="Beach/Surf"]:hover,
+.category-browse-card.category-beach-surf:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(6, 182, 212, 0.25),
+    0 4px 12px rgba(8, 145, 178, 0.15);
+  border-color: #0891b2;
+}
+
+.category-browse-card[data-category="Theater"]:hover,
+.category-browse-card.category-theater:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(168, 85, 247, 0.25),
+    0 4px 12px rgba(147, 51, 234, 0.15);
+  border-color: #9333ea;
+}
+
+.category-browse-card[data-category="Dance"]:hover,
+.category-browse-card.category-dance:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(236, 72, 153, 0.25),
+    0 4px 12px rgba(219, 39, 119, 0.15);
+  border-color: #db2777;
+}
+
+.category-browse-card[data-category="Art"]:hover,
+.category-browse-card.category-art:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(245, 158, 11, 0.25),
+    0 4px 12px rgba(217, 119, 6, 0.15);
+  border-color: #d97706;
+}
+
+.category-browse-card[data-category="Science/STEM"]:hover,
+.category-browse-card.category-science-stem:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(59, 130, 246, 0.25),
+    0 4px 12px rgba(37, 99, 235, 0.15);
+  border-color: #2563eb;
+}
+
+.category-browse-card[data-category="Nature/Outdoor"]:hover,
+.category-browse-card.category-nature-outdoor:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(34, 197, 94, 0.25),
+    0 4px 12px rgba(22, 163, 74, 0.15);
+  border-color: #16a34a;
+}
+
+.category-browse-card[data-category="Sports"]:hover,
+.category-browse-card.category-sports:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(249, 115, 22, 0.25),
+    0 4px 12px rgba(234, 88, 12, 0.15);
+  border-color: #ea580c;
+}
+
+.category-browse-card[data-category="Music"]:hover,
+.category-browse-card.category-music:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(99, 102, 241, 0.25),
+    0 4px 12px rgba(79, 70, 229, 0.15);
+  border-color: #4f46e5;
+}
+
+.category-browse-card[data-category="Cooking"]:hover,
+.category-browse-card.category-cooking:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(239, 68, 68, 0.25),
+    0 4px 12px rgba(220, 38, 38, 0.15);
+  border-color: #dc2626;
+}
+
+.category-browse-card[data-category="Faith-Based"]:hover,
+.category-browse-card.category-faith-based:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(139, 92, 246, 0.25),
+    0 4px 12px rgba(124, 58, 237, 0.15);
+  border-color: #7c3aed;
+}
+
+.category-browse-card[data-category="Animals/Zoo"]:hover,
+.category-browse-card.category-animals-zoo:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(132, 204, 22, 0.25),
+    0 4px 12px rgba(101, 163, 13, 0.15);
+  border-color: #65a30d;
+}
+
+.category-browse-card[data-category="Multi-Activity"]:hover,
+.category-browse-card.category-multi-activity:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(100, 116, 139, 0.25),
+    0 4px 12px rgba(71, 85, 105, 0.15);
+  border-color: #475569;
+}
+
+.category-browse-card[data-category="Education"]:hover,
+.category-browse-card.category-education:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(20, 184, 166, 0.25),
+    0 4px 12px rgba(13, 148, 136, 0.15);
+  border-color: #0d9488;
+}
+
+.category-browse-card[data-category="Overnight"]:hover,
+.category-browse-card.category-overnight:hover {
+  box-shadow:
+    0 8px 24px -8px rgba(244, 63, 94, 0.25),
+    0 4px 12px rgba(225, 29, 72, 0.15);
+  border-color: #e11d48;
+}
+
+
+/* 3. SCROLL FADE INDICATOR
+   Subtle gradient at the bottom of scrollable containers */
+
+.scroll-fade-container {
+  position: relative;
+}
+
+.scroll-fade-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(250, 248, 244, 0.7) 50%,
+    rgba(250, 248, 244, 0.95) 100%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-fade-container.has-scroll::after {
+  opacity: 1;
+}
+
+/* Filter bar scroll fade */
+.filter-presets {
+  position: relative;
+}
+
+.filter-presets::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(to right, transparent, rgba(254, 254, 254, 0.95));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.filter-presets.can-scroll::after {
+  opacity: 1;
+}
+
+
+/* 4. INCREASED PRICE PROMINENCE ON CAMP CARDS
+   Larger font, better contrast, highlighted display */
+
+.camp-quick-info-value.price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--terra-600);
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 2px rgba(212, 86, 50, 0.1);
+}
+
+/* Price highlight wrapper for extra emphasis */
+.price-highlight {
+  background: linear-gradient(135deg, rgba(254, 244, 241, 0.8) 0%, rgba(252, 228, 219, 0.6) 100%);
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+/* Camp card price in the quick info row */
+.camp-quick-info-item:has(.price) {
+  background: linear-gradient(180deg, rgba(254, 244, 241, 0.5) 0%, rgba(252, 228, 219, 0.3) 100%);
+  margin: -16px -12px;
+  padding: 16px 12px;
+  border-radius: var(--radius-sm);
+}
+
+
+/* 5. SECTION SPACING CONSISTENCY
+   Standardized spacing between major sections */
+
+.hero-section {
+  padding-bottom: 4rem;
+}
+
+.filter-bar-section {
+  padding: 1rem 0;
+}
+
+section + section {
+  margin-top: 0;
+}
+
+.category-browse {
+  padding: 3.5rem 0 4rem;
+}
+
+.testimonial-banner {
+  padding: 4rem 2rem;
+}
+
+/* Consistent max-width container padding */
+.max-w-7xl {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+@media (min-width: 640px) {
+  .max-w-7xl {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
+}
+
+@media (min-width: 1024px) {
+  .max-w-7xl {
+    padding-left: max(2rem, env(safe-area-inset-left));
+    padding-right: max(2rem, env(safe-area-inset-right));
+  }
+}
+
+
+/* 6. SUBTLE CARD TEXTURE/DEPTH ENHANCEMENTS
+   Premium paper-like texture and refined shadows */
+
+.camp-card {
+  background:
+    linear-gradient(180deg, #ffffff 0%, #faf8f4 100%);
+  border: 1px solid rgba(217, 208, 190, 0.7);
+}
+
+/* Subtle inner highlight for depth */
+.camp-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px rgba(45, 38, 30, 0.02);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Enhanced shadow on hover */
+.camp-card:hover {
+  box-shadow:
+    0 12px 32px -8px rgba(45, 38, 30, 0.12),
+    0 4px 12px rgba(45, 38, 30, 0.06),
+    0 1px 3px rgba(45, 38, 30, 0.04);
+}
+
+/* Category browse cards - subtle texture */
+.category-browse-card {
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fdfcfb 100%);
+}
+
+/* Skeleton cards - subtle shimmer enhancement */
+.skeleton-card {
+  background:
+    linear-gradient(180deg, #ffffff 0%, var(--sand-50) 100%);
+  border: 1px solid var(--sand-200);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-card-image {
+  background: linear-gradient(90deg,
+    var(--sand-100) 0%,
+    var(--sand-50) 20%,
+    var(--sand-200) 40%,
+    var(--sand-50) 60%,
+    var(--sand-100) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }

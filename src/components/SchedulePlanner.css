@@ -1222,39 +1222,82 @@
   gap: 6px;
   padding: 16px;
   background: linear-gradient(135deg, color-mix(in srgb, var(--block-color) 12%, white) 0%, color-mix(in srgb, var(--block-color) 20%, white) 100%);
+  border: 2px solid color-mix(in srgb, var(--block-color) 25%, white);
   border-radius: 12px;
   position: relative;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.week-blocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--block-color) 20%, transparent);
 }
 
 .week-blocked-icon {
   font-size: 1.75rem;
+  color: var(--block-color);
 }
 
 .week-blocked-label {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: color-mix(in srgb, var(--block-color) 60%, black);
+  color: color-mix(in srgb, var(--block-color) 70%, black);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.week-blocked-remove {
+.week-blocked-note {
+  font-size: 0.75rem;
+  color: var(--earth-500);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+}
+
+.week-blocked-actions {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.week-blocked:hover .week-blocked-actions {
+  opacity: 1;
+}
+
+.week-blocked-edit,
+.week-blocked-remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   background: white;
   border: 1px solid var(--sand-200);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
-.week-blocked:hover .week-blocked-remove {
-  opacity: 1;
+.week-blocked-edit:hover {
+  background: var(--ocean-50);
+  border-color: var(--ocean-300);
+}
+
+.week-blocked-edit svg {
+  width: 12px;
+  height: 12px;
+  color: var(--ocean-600);
 }
 
 .week-blocked-remove:hover {
@@ -3635,10 +3678,334 @@
     gap: 0.5rem;
     padding: 0.5rem;
   }
-  
+
   .planner-gamification-strip .planner-progress,
   .planner-gamification-strip .planner-tips {
     width: 100%;
     min-width: 0;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   CUSTOM BLOCK MODAL (Vacations, Family Time, etc.)
+   ───────────────────────────────────────────────────────────────────── */
+
+.custom-block-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.custom-block-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--sand-200);
+}
+
+.custom-block-header h3 {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--earth-800);
+}
+
+.custom-block-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.custom-block-close:hover {
+  background: var(--sand-100);
+}
+
+.custom-block-close svg {
+  width: 18px;
+  height: 18px;
+  color: var(--earth-600);
+}
+
+.custom-block-week-info {
+  padding: 0.75rem 1.5rem;
+  background: var(--sand-50);
+  border-bottom: 1px solid var(--sand-100);
+}
+
+.custom-block-week-dates {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-600);
+}
+
+.custom-block-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.custom-block-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.custom-block-field label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--earth-700);
+}
+
+.custom-block-field input,
+.custom-block-field textarea {
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  border: 2px solid var(--sand-200);
+  border-radius: 0.75rem;
+  background: white;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  resize: none;
+}
+
+.custom-block-field input:focus,
+.custom-block-field textarea:focus {
+  outline: none;
+  border-color: var(--ocean-400);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.custom-block-field input::placeholder,
+.custom-block-field textarea::placeholder {
+  color: var(--sand-400);
+}
+
+/* Icon grid */
+.custom-block-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.custom-block-icon-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--sand-200);
+  border-radius: 0.75rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--earth-500);
+}
+
+.custom-block-icon-btn:hover {
+  border-color: var(--sand-300);
+  background: var(--sand-50);
+}
+
+.custom-block-icon-btn.selected {
+  border-color: var(--icon-color, var(--ocean-400));
+  background: color-mix(in srgb, var(--icon-color, var(--ocean-400)) 10%, white);
+  color: var(--icon-color, var(--ocean-600));
+}
+
+/* Color swatches */
+.custom-block-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.custom-block-color-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  background: var(--swatch-color);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.custom-block-color-btn:hover {
+  transform: scale(1.1);
+}
+
+.custom-block-color-btn.selected {
+  border-color: white;
+  box-shadow: 0 0 0 2px var(--swatch-color), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-block-color-btn svg {
+  width: 16px;
+  height: 16px;
+  color: white;
+}
+
+/* Preview */
+.custom-block-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--sand-50);
+  border-radius: 0.75rem;
+}
+
+.custom-block-preview-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--sand-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.custom-block-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: color-mix(in srgb, var(--block-color) 15%, white);
+  border: 1px solid color-mix(in srgb, var(--block-color) 30%, white);
+  border-radius: 0.5rem;
+}
+
+.custom-block-preview-card .preview-icon {
+  color: var(--block-color);
+}
+
+.custom-block-preview-card .preview-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-800);
+}
+
+/* Actions */
+.custom-block-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.custom-block-cancel,
+.custom-block-save {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.custom-block-cancel {
+  border: 2px solid var(--sand-200);
+  background: white;
+  color: var(--earth-700);
+}
+
+.custom-block-cancel:hover {
+  background: var(--sand-50);
+  border-color: var(--sand-300);
+}
+
+.custom-block-save {
+  border: none;
+  background: var(--ocean-500);
+  color: white;
+}
+
+.custom-block-save:hover:not(:disabled) {
+  background: var(--ocean-600);
+}
+
+.custom-block-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile adjustments */
+@media (max-width: 479px) {
+  .custom-block-modal {
+    max-height: 85vh;
+    border-radius: 1rem 1rem 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    animation: slideUpMobile 0.25s ease-out;
+  }
+
+  @keyframes slideUpMobile {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .custom-block-form {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .custom-block-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .custom-block-color-btn {
+    width: 32px;
+    height: 32px;
   }
 }

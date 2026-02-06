@@ -251,6 +251,32 @@ export function formatCampForCalendar(camp, schedule) {
 }
 
 /**
+ * Format a blocked week for calendar export
+ * Creates an all-day event for vacations, family time, etc.
+ */
+export function formatBlockedWeekForCalendar(block, weekNum, summerWeeks) {
+  const week = summerWeeks.find(w => w.weekNum === weekNum);
+  if (!week) return null;
+
+  // Build description
+  const descParts = [];
+  if (block.note) descParts.push(block.note);
+  descParts.push(`Blocked: ${block.label}`);
+
+  return {
+    blockId: `blocked-${weekNum}`,
+    title: `🚫 ${block.label}`,
+    description: descParts.join('\n\n'),
+    location: '',
+    startDate: week.startDate,
+    endDate: week.endDate,
+    startTime: null, // All-day event
+    endTime: null,
+    isBlocked: true
+  };
+}
+
+/**
  * Export all scheduled camps to Google Calendar (opens multiple tabs)
  */
 export function exportAllToGoogleCalendar(camps, schedules) {
@@ -279,18 +305,25 @@ export function exportAllToGoogleCalendar(camps, schedules) {
 }
 
 /**
- * Export all scheduled camps to iCal file
+ * Export all scheduled camps (and blocked weeks) to iCal file
+ * @param {Array} camps - All camps data
+ * @param {Array} schedules - Scheduled camps for the child
+ * @param {string} childName - Optional child name for filename
+ * @param {Array} blockedEvents - Optional blocked week events
  */
-export function exportAllToICal(camps, schedules, childName = null) {
-  const events = schedules.map(schedule => {
+export function exportAllToICal(camps, schedules, childName = null, blockedEvents = []) {
+  const campEvents = schedules.map(schedule => {
     const camp = camps.find(c => c.id === schedule.camp_id);
     if (!camp) return null;
     return formatCampForCalendar(camp, schedule);
   }).filter(Boolean);
 
-  const filename = childName
-    ? `${childName.toLowerCase().replace(/\s+/g, '-')}-summer-camps-2026.ics`
-    : 'summer-camps-2026.ics';
+  // Combine camp events with blocked week events
+  const allEvents = [...campEvents, ...blockedEvents];
 
-  downloadICalFile(events, filename);
+  const filename = childName
+    ? `${childName.toLowerCase().replace(/\s+/g, '-')}-summer-2026.ics`
+    : 'summer-2026.ics';
+
+  downloadICalFile(allEvents, filename);
 }

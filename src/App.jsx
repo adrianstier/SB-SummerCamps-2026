@@ -34,7 +34,7 @@ const ModalLoadingFallback = memo(function ModalLoadingFallback() {
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
       <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4">
         <LoadingSpinner className="w-8 h-8" />
-        <p style={{ color: 'var(--earth-700)' }}>Loading...</p>
+        <p style={{ color: 'var(--earth-700)' }}>Preparing your view...</p>
       </div>
     </div>
   );
@@ -518,18 +518,29 @@ export default function App() {
   const handleMobileTabChange = useCallback((tab) => {
     haptic.light();
     setMobileTab(tab);
-    if (tab === 'favorites') {
+
+    // Close all views first
+    setShowWishlist(false);
+    setShowPlanner(false);
+    setShowDashboard(false);
+    setShowSettings(false);
+
+    // Open the requested view
+    if (tab === 'wishlist') {
       setShowWishlist(true);
-    } else if (tab === 'planner') {
+    } else if (tab === 'schedule') {
       setShowPlanner(true);
-    } else if (tab === 'profile') {
+    } else if (tab === 'dashboard') {
       if (user) {
         setShowDashboard(true);
       } else {
-        // Trigger sign in
+        // Trigger sign in for non-logged users
         window.dispatchEvent(new CustomEvent('navigate', { detail: 'signin' }));
       }
+    } else if (tab === 'more') {
+      setShowSettings(true);
     }
+    // 'browse' is the default - just closes everything
   }, [haptic, user]);
 
   // Check for join squad route
@@ -883,26 +894,26 @@ export default function App() {
       )}
 
       {/* Hero Section */}
-      <header className="hero-section relative pt-8 pb-24 md:pt-12 md:pb-32">
+      <header className="hero-section relative pt-4 pb-16 sm:pt-8 sm:pb-24 md:pt-12 md:pb-32">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
-          {/* Top Bar */}
-          <div className="flex items-center justify-between mb-12 md:mb-16">
-            <div className="flex items-center gap-3">
-              <AppLogo className="w-9 h-9" />
-              <span className="font-sans font-medium text-sm tracking-wide uppercase" style={{ color: 'var(--earth-700)', letterSpacing: '0.1em' }}>
+          {/* Top Bar - simplified on mobile */}
+          <div className="flex items-center justify-between mb-6 sm:mb-12 md:mb-16">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <AppLogo className="w-8 h-8 sm:w-9 sm:h-9" />
+              <span className="font-sans font-semibold text-xs sm:text-sm tracking-wide uppercase hidden xs:block" style={{ color: 'var(--earth-700)', letterSpacing: '0.08em' }}>
                 Santa Barbara
               </span>
             </div>
-            <div className="flex items-center gap-3">
-              {/* Dashboard button (logged in users) */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Dashboard button (logged in users) - desktop only */}
               {user && (
                 <button
                   onClick={() => setShowDashboard(true)}
-                  className="btn-secondary hidden sm:flex"
-                  title="My Dashboard"
+                  className="btn-secondary hidden md:flex"
+                  title="My Plan"
                 >
                   <DashboardIcon />
-                  <span className="hidden md:inline">Dashboard</span>
+                  <span className="hidden lg:inline">My Plan</span>
                 </button>
               )}
 
@@ -910,18 +921,18 @@ export default function App() {
               {compareList.length > 0 && (
                 <button
                   onClick={() => setShowComparison(true)}
-                  className="btn-secondary relative"
+                  className="btn-secondary relative p-2 sm:px-3"
                   title="Compare camps"
                 >
                   <CompareIcon />
-                  <span className="hidden sm:inline">Compare</span>
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center text-white" style={{ background: 'var(--terra-500)' }}>
+                  <span className="hidden md:inline ml-1">Compare</span>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[10px] sm:text-xs font-bold flex items-center justify-center text-white" style={{ background: 'var(--terra-500)' }}>
                     {compareList.length}
                   </span>
                 </button>
               )}
 
-              {/* Plan My Summer button */}
+              {/* Plan My Summer button - primary CTA, always visible on tablet+ */}
               <button
                 onClick={() => {
                   setIsPlannerLoading(true);
@@ -930,13 +941,13 @@ export default function App() {
                     setIsPlannerLoading(false);
                   }, 100);
                 }}
-                className="btn-primary hidden sm:flex"
+                className="btn-primary text-sm sm:text-base px-3 sm:px-4"
                 disabled={isPlannerLoading}
               >
                 {isPlannerLoading ? (
                   <>
                     <LoadingSpinner className="w-5 h-5" />
-                    <span>Loading...</span>
+                    <span>Opening planner...</span>
                   </>
                 ) : (
                   <>
@@ -946,7 +957,7 @@ export default function App() {
                 )}
               </button>
 
-              {/* View toggle */}
+              {/* View toggle - desktop only */}
               <button
                 onClick={() => {
                   const newView = viewMode === 'grid' ? 'table' : 'grid';
@@ -957,24 +968,24 @@ export default function App() {
                     }, 100);
                   }
                 }}
-                className="btn-secondary"
+                className="btn-secondary hidden sm:flex"
                 title={viewMode === 'grid' ? 'Switch to table view' : 'Switch to grid view'}
               >
                 {viewMode === 'grid' ? <TableIcon /> : <GridIcon />}
-                <span className="hidden sm:inline">{viewMode === 'grid' ? 'Table' : 'Grid'}</span>
+                <span className="hidden md:inline">{viewMode === 'grid' ? 'Table' : 'Grid'}</span>
               </button>
 
-              {/* Family workspace - only for logged in users */}
+              {/* Family workspace - desktop only for logged in users */}
               {user && (
                 <button
                   onClick={() => setShowFamilyWorkspace(true)}
-                  className="filter-control-btn"
+                  className="filter-control-btn hidden md:flex"
                   title="Family planning workspace"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="hidden sm:inline">Family</span>
+                  <span className="hidden lg:inline">Family</span>
                 </button>
               )}
 
@@ -1535,37 +1546,6 @@ export default function App() {
         </section>
       )}
 
-      {/* Featured Section - Editor's Picks */}
-      {!loading && camps.length > 0 && activeFilterCount === 0 && (
-        <section className="featured-section">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="featured-header">
-              <h2 className="featured-title">Top Picks</h2>
-              <span className="featured-subtitle">Curated for local families</span>
-            </div>
-            <div className="featured-grid">
-              {camps
-                .filter(c => c.image_url)
-                .slice(0, 3)
-                .map((camp, index) => (
-                  <FeaturedCard
-                    key={camp.id}
-                    camp={camp}
-                    badge={index === 0 ? 'Most Popular' : index === 1 ? 'Great Value' : 'New This Year'}
-                    onClick={(e) => {
-                      // Store trigger for focus restoration (WCAG 2.1 AA)
-                      modalTriggerRef.current = e.currentTarget;
-                      // Open the camp detail modal
-                      setModalCamp(camp);
-                      document.body.classList.add('modal-open');
-                    }}
-                  />
-                ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Category Browse Grid */}
       {!loading && camps.length > 0 && activeFilterCount === 0 && (
         <section className="category-browse">
@@ -1582,7 +1562,8 @@ export default function App() {
                       clearFilters();
                       setSelectedCategory(name);
                     }}
-                    className={`category-browse-card ${selectedCategory === name ? 'active' : ''}`}
+                    className={`category-browse-card ${categoryClasses[name] || ''} ${selectedCategory === name ? 'active' : ''}`}
+                    data-category={name}
                   >
                     <span className="category-browse-icon"><BrandIcon name={icon} size={28} /></span>
                     <span className="category-browse-name">{name}</span>
@@ -1621,18 +1602,21 @@ export default function App() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Loading camps" aria-busy="true">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="skeleton-card" aria-hidden="true">
-                <div className="skeleton-card-image" />
-                <div className="skeleton-card-content">
-                  <div className="skeleton-line title" />
-                  <div className="skeleton-badge" style={{ marginBottom: '12px' }} />
-                  <div className="skeleton-line text" />
-                  <div className="skeleton-line text short" />
+          <div aria-label="Finding camps" aria-busy="true">
+            <p className="text-center mb-6 font-medium" style={{ color: 'var(--earth-600)' }}>Finding camps...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="skeleton-card" aria-hidden="true">
+                  <div className="skeleton-card-image" />
+                  <div className="skeleton-card-content">
+                    <div className="skeleton-line title" />
+                    <div className="skeleton-badge" style={{ marginBottom: '12px' }} />
+                    <div className="skeleton-line text" />
+                    <div className="skeleton-line text short" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : filteredCamps.length === 0 ? (
           <div className="text-center py-20">
@@ -1927,6 +1911,14 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Mobile Bottom Navigation - CSS controls visibility via media query */}
+      <MobileNav
+        activeTab={mobileTab}
+        onTabChange={handleMobileTabChange}
+        favoritesCount={favorites?.length || 0}
+        hasNotifications={false}
+      />
     </div>
   );
 }
@@ -2010,7 +2002,7 @@ function FavoritesModal({ camps, onClose, onOpenPlanner, isPlannerLoading, setIs
                 {isPlannerLoading ? (
                   <>
                     <LoadingSpinner className="w-5 h-5" />
-                    <span>Loading...</span>
+                    <span>Opening planner...</span>
                   </>
                 ) : (
                   <>
@@ -2213,53 +2205,6 @@ const VerifiedIcon = memo(function VerifiedIcon() {
   );
 });
 
-// Featured Card Component for Editor's Picks section - memoized to prevent unnecessary re-renders
-const FeaturedCard = memo(function FeaturedCard({ camp, badge, onClick }) {
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onClick();
-    }
-  };
-  const [imageError, setImageError] = useState(false);
-
-  return (
-    <div className="featured-card cursor-pointer" onClick={onClick} role="button" tabIndex={0} onKeyDown={handleKeyDown} aria-label={`View details for ${camp.camp_name}`}>
-      <div className="featured-card-image">
-        {camp.image_url && !imageError ? (
-          <img
-            src={camp.image_url}
-            alt={camp.camp_name}
-            loading="lazy"
-            decoding="async"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ background: categoryGradients[camp.category] || 'var(--sand-200)' }}
-          >
-            <span className="text-white opacity-50"><BrandIcon name="overnight" size={40} /></span>
-          </div>
-        )}
-        <span className="featured-card-badge">{badge}</span>
-      </div>
-      <div className="featured-card-content">
-        <p className="featured-card-category">{camp.category}</p>
-        <h3 className="featured-card-title">{camp.camp_name}</h3>
-        <p className="featured-card-tagline line-clamp-2">
-          {camp.description?.slice(0, 100)}{camp.description?.length > 100 ? '...' : ''}
-        </p>
-        <div className="featured-card-meta">
-          <span>{camp.ages || 'All ages'}</span>
-          <span>•</span>
-          <span style={{ color: 'var(--terra-500)', fontWeight: 600 }}>{formatPrice(camp)}</span>
-        </div>
-      </div>
-    </div>
-  );
-});
-
 // Camp Card Component with scroll-triggered reveal - memoized for performance
 // Only re-renders when camp data, expanded state, or compare state changes
 const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare, friendInterestCounts = {}, hasSquads = false }) {
@@ -2276,7 +2221,10 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
       id={`camp-${camp.id}`}
       ref={cardRef}
       className={`camp-card scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`}
-      style={isComparing ? { ringColor: 'var(--ocean-500)' } : undefined}
+      style={{
+        '--stagger-index': index % 12,
+        ...(isComparing ? { ringColor: 'var(--ocean-500)' } : {})
+      }}
     >
       <div
         className="camp-card-button"

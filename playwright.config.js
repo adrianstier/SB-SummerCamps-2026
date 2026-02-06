@@ -21,20 +21,20 @@ export default defineConfig({
       name: 'setup',
       testMatch: /auth-setup\.js/,
     },
-    // Unauthenticated tests (camp discovery, accessibility)
+    // Unauthenticated tests (camp discovery, accessibility, comparison, wishlist, onboarding)
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: /auth-setup\.js|schedule-planner\.spec\.js/,
+      testIgnore: /auth-setup\.js|schedule-planner\.spec\.js|vacation-blocking\.spec\.js/,
     },
-    // Authenticated tests (schedule planner)
+    // Authenticated tests (schedule planner, vacation blocking)
     {
       name: 'authenticated',
       use: {
         ...devices['Desktop Chrome'],
         storageState: authFile,
       },
-      testMatch: /schedule-planner\.spec\.js/,
+      testMatch: /schedule-planner\.spec\.js|vacation-blocking\.spec\.js/,
       dependencies: ['setup'],
     },
   ],
