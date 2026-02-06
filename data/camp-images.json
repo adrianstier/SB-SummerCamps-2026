@@ -210,18 +210,103 @@
     "image_url": "https://cdn.prod.website-files.com/68ffd65bba83385ed54983ce/68ffd65bba83385ed54983f8_Rectangle%206.jpg"
   },
   {
-    "id": "fairview-gardens",
-    "camp_name": "Fairview Gardens",
-    "image_url": "https://fairviewgardens.org/wp-content/uploads/2024/09/Orange-on-vine.png"
-  },
-  {
-    "id": "south-coast-railroad-museum",
-    "camp_name": "South Coast Railroad Museum",
-    "image_url": "https://goletadepot.org/wp-content/uploads/Hop-Aboard-the-Goleta-Short-Line-300x300.png"
-  },
-  {
     "id": "safety-town",
     "camp_name": "Safety Town",
     "image_url": "https://i0.wp.com/www.noozhawk.com/wp-content/uploads/2010/07/072910-safetytown-300.jpg"
+  },
+  {
+    "id": "805-beach-volleyball-club",
+    "camp_name": "805 Beach Volleyball Club",
+    "image_url": "https://static.wixstatic.com/media/25333f_cc823d5e8e834cfa90e15dfde9d28128%7Emv2.jpeg/v1/fit/w_2500,h_1330,al_c/25333f_cc823d5e8e834cfa90e15dfde9d28128%7Emv2.jpeg"
+  },
+  {
+    "id": "aha-summer-program",
+    "camp_name": "AHA! Summer Program",
+    "image_url": "https://ahasb.org/wp-content/uploads/2020/04/April13_PopUp-1.jpg"
+  },
+  {
+    "id": "art-studio-4-kids",
+    "camp_name": "Art Studio 4 Kids",
+    "image_url": "https://www.artstudio4kids.com/uploads/1/0/0/9/100955598/background-images/1404200096.jpeg"
+  },
+  {
+    "id": "bizzy-girls-entrepreneur-program",
+    "camp_name": "Bizzy Girls Entrepreneur Program",
+    "image_url": "https://www.bizzygirls.com/cropped_banner.jpg"
+  },
+  {
+    "id": "camp-millionaire",
+    "camp_name": "Camp Millionaire",
+    "image_url": "https://www.creativewealthintl.org/wp-content/uploads/2023/05/Fotos-Hero_00.webp"
+  },
+  {
+    "id": "camp-new-heights",
+    "camp_name": "Camp New Heights",
+    "image_url": "https://static.wixstatic.com/media/165e40_9cb15041b6c74fc0913bc476bb6722ff~mv2.png/v1/fill/w_1366,h_768,al_c/165e40_9cb15041b6c74fc0913bc476bb6722ff~mv2.png"
+  },
+  {
+    "id": "camp-wheez-sansum-clinic-",
+    "camp_name": "Camp Wheez (Sansum Clinic)",
+    "image_url": "https://sansumclinic.org/images/default-source/camp-wheez/campwheez2023-croppede8232b54afda612aacc1ff000021a2ca.jpg"
+  },
+  {
+    "id": "camp-wild-things",
+    "camp_name": "Camp Wild Things",
+    "image_url": "https://lh3.googleusercontent.com/sitesv/APaQ0SRpzsxErxot3fc-Zqlsb6c2_YRUheiPyCvfykt0zFDJ2TWVedIMcrZ14G6_QNjitmaVQtkWXVg8SdImKW8Tyn35LeX8mQcoy8AIqqj61hZpikWv4pPBP84o14r7RzlwKd4KOongR72DLw0J_stk_j7cfmK93GaUc6tjPkkAr64hlWtRXTJM7egJGohh8mBBheOaDY4Nt4zVdKBPOCasWHNHCxH98mIjt1oLBUk=w1280"
+  },
+  {
+    "id": "chocolate-art-camp",
+    "camp_name": "Chocolate Art Camp",
+    "image_url": "https://menchacachocolates.com/cdn/shop/files/IMG_1711_1200x1200.jpg"
+  },
+  {
+    "id": "county-of-santa-barbara-junior-lifeguards",
+    "camp_name": "County of Santa Barbara Junior Lifeguards",
+    "image_url": "https://cpnotify.blob.core.windows.net/8606d056-ffd8-46de-b048-a51d8a3741be/475x475-standard_0a2be386-4d7b-40fd-90e3-ea8dc7a5a011.png"
+  },
+  {
+    "id": "crafters-library-summer-camp",
+    "camp_name": "Crafters Library Summer Camp",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/60f5f50f5175dc19f0add02a/0ffe6b88-3fe7-45c0-a5e9-1197667d96e3/110CDFAF-E924-4CF5-A88A-DA5A0C0068DC.JPG"
+  },
+  {
+    "id": "dos-pueblos-media-camp",
+    "camp_name": "Dos Pueblos Media Camp",
+    "image_url": "https://dpmediacamp.com/wp-content/uploads/2020/01/Water-Balloon-Header.jpg"
+  },
+  {
+    "id": "fusion-academy-summer",
+    "camp_name": "Fusion Academy Summer",
+    "image_url": "https://www.fusionacademy.com/wp-content/uploads/2024/06/One-student-and-one-teacher-in-Fusion-Academy-Classroom.jpg"
+  },
+  {
+    "id": "girls-inc-gymnastics-camp",
+    "camp_name": "Girls Inc Gymnastics Camp",
+    "image_url": "https://girlsincsb.org/wp-content/uploads/2024/06/gym-bar-1.jpg"
+  },
+  {
+    "id": "gold-coast-surf-school",
+    "camp_name": "Gold Coast Surf School",
+    "image_url": "https://static.wixstatic.com/media/b83ef5_8adc2b2b1e8e4365811c34043f4c753b~mv2.png/v1/fill/w_2500,h_1666,al_c/b83ef5_8adc2b2b1e8e4365811c34043f4c753b~mv2.png"
+  },
+  {
+    "id": "goleta-school-of-ballet-summer",
+    "camp_name": "Goleta School of Ballet Summer",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/65bd29f3e3ee735b3dd33ae9/5f0f9093-cf80-4bf0-b477-280ba9c869f5/GSB-Giselle-6448.jpg"
+  },
+  {
+    "id": "mr-rob-s-place",
+    "camp_name": "Mr. Rob's Place",
+    "image_url": "https://static.wixstatic.com/media/ab33e0_de5eba494a40465c9f247d7e082fd60b~mv2.jpg/v1/fill/w_640,h_500,al_c/ab33e0_de5eba494a40465c9f247d7e082fd60b~mv2.jpg"
+  },
+  {
+    "id": "mygym-santa-barbara",
+    "camp_name": "MyGym Santa Barbara",
+    "image_url": "https://mygymcontent.blob.core.windows.net/mygymcontent/images/mg-website-social-thumb.jpg"
+  },
+  {
+    "id": "ocean-explorers-summer-camp",
+    "camp_name": "Ocean Explorers Summer Camp",
+    "image_url": "https://oceanexplorerscamp.com/wp-content/uploads/2023/12/OEC-Banner-snorkeling.jpg"
   }
 ]
