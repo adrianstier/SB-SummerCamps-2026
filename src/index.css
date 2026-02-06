@@ -8497,10 +8497,9 @@ section.filter-bar-section {
 }
 
 section.filter-bar-section .filter-bar-inner {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   padding: 14px 0;
   min-height: 64px;
 }
@@ -8510,6 +8509,8 @@ section.filter-bar-section .filter-presets {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1 1 0;
+  min-width: 0;
   overflow-x: auto;
   overflow-y: visible;
   scrollbar-width: none;
@@ -8584,6 +8585,7 @@ section.filter-bar-section .filter-controls {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 section.filter-bar-section .filter-control-btn {
