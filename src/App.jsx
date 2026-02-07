@@ -13,6 +13,7 @@ import { SwipeableCampCard, SwipeHint } from './components/SwipeableCampCard';
 import { supabase, getRegistrationStatus, checkWorkScheduleCoverage } from './lib/supabase';
 import { formatPrice } from './lib/formatters';
 import BrandIcon from './components/BrandIcon';
+import { z } from 'zod';
 
 // Lazy load heavy modal components for better initial load performance
 const SchedulePlanner = lazy(() => import('./components/SchedulePlanner').then(m => ({ default: m.SchedulePlanner })));
@@ -27,6 +28,26 @@ const CostDashboard = lazy(() => import('./components/CostDashboard').then(m => 
 const Wishlist = lazy(() => import('./components/Wishlist').then(m => ({ default: m.Wishlist })));
 const CampInsights = lazy(() => import('./components/CampInsights').then(m => ({ default: m.CampInsights })));
 const FamilyWorkspace = lazy(() => import('./components/FamilyWorkspace'));
+
+// SECURITY: Validation schema for shared schedule data from URL parameters
+// Prevents XSS and malformed data injection via Base64-encoded URL params
+const SharedScheduleSchema = z.object({
+  childName: z.string().min(1).max(100),
+  totalCost: z.number().nonnegative().finite(),
+  weeks: z.array(
+    z.object({
+      weekNum: z.number().int().positive().max(52),
+      display: z.string().max(200),
+      camps: z.array(
+        z.object({
+          name: z.string().min(1).max(200),
+          status: z.string().max(50).optional(),
+          price: z.number().nonnegative().finite().optional()
+        })
+      ).max(10)
+    })
+  ).max(20)
+});
 
 // Loading fallback for lazy-loaded modals
 const ModalLoadingFallback = memo(function ModalLoadingFallback() {
@@ -98,15 +119,15 @@ async function fetchCamps(filters = {}) {
     }
 
     if (filters.minAge) {
-      query = query.gte('max_age', parseInt(filters.minAge));
+      query = query.gte('max_age', parseInt(filters.minAge, 10));
     }
 
     if (filters.maxAge) {
-      query = query.lte('min_age', parseInt(filters.maxAge));
+      query = query.lte('min_age', parseInt(filters.maxAge, 10));
     }
 
     if (filters.maxPrice) {
-      query = query.lte('min_price', parseInt(filters.maxPrice));
+      query = query.lte('min_price', parseInt(filters.maxPrice, 10));
     }
 
     if (!filters.includeClosed) {
@@ -120,10 +141,8 @@ async function fetchCamps(filters = {}) {
     }
 
     return { camps: data || [], total: data?.length || 0 };
-  }).catch(error => {
-    console.error('Error fetching camps after retries:', error);
-    return { camps: [], total: 0 };
   });
+  // Errors will propagate to caller for proper error handling
 }
 
 async function fetchCategories() {
@@ -146,10 +165,8 @@ async function fetchCategories() {
     const categories = [...new Set(data.map(c => c.category))]
       .filter(cat => cat && !invalidCategories.includes(cat.toUpperCase()));
     return categories.sort();
-  }).catch(error => {
-    console.error('Error fetching categories after retries:', error);
-    return [];
   });
+  // Errors will propagate to caller for proper error handling
 }
 
 // Helper to check if a camp is effectively closed (either is_closed flag or CLOSED/NO CAMP category)
@@ -200,10 +217,8 @@ async function fetchStats() {
         max: maxAges.length ? maxAges.reduce((a, b) => Math.max(a, b), -Infinity) : null
       }
     };
-  }).catch(error => {
-    console.error('Error fetching stats after retries:', error);
-    return { total: 0, active: 0, closed: 0, categories: {}, priceRange: {}, ageRange: {} };
   });
+  // Errors will propagate to caller for proper error handling
 }
 
 // Get registration urgency status
@@ -228,7 +243,7 @@ function getRegUrgency(regDate) {
     const months = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
     const monthIdx = months[monthMatch[1].toLowerCase()];
     const dayMatch = regDate.match(/\d+/);
-    const day = dayMatch ? parseInt(dayMatch[0]) : 1;
+    const day = dayMatch ? parseInt(dayMatch[0], 10) : 1;
 
     const now = new Date();
     const regDateObj = new Date(now.getFullYear(), monthIdx, day);
@@ -551,7 +566,7 @@ export default function App() {
     return match ? match[1] : null;
   });
 
-  // BUG-E-005: Handle shared schedule links
+  // SECURITY: Handle shared schedule links with Zod validation
   const [sharedSchedule, setSharedSchedule] = useState(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -561,10 +576,19 @@ export default function App() {
         const base64 = sharedParam.replace(/-/g, '+').replace(/_/g, '/');
         const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
         const jsonStr = atob(base64 + padding);
-        return JSON.parse(jsonStr);
+        const parsed = JSON.parse(jsonStr);
+
+        // SECURITY: Validate parsed data against schema before using it
+        // This prevents XSS attacks via malformed data in URL parameters
+        const validated = SharedScheduleSchema.parse(parsed);
+        return validated;
       }
     } catch (error) {
-      console.error('Failed to parse shared schedule:', error);
+      console.error('Failed to parse or validate shared schedule:', error);
+      // Clear the invalid shared param from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('shared');
+      window.history.replaceState({}, '', url.toString());
     }
     return null;
   });
@@ -850,14 +874,28 @@ export default function App() {
             </svg>
           </div>
           <h1 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>
-            Something went wrong
+            Could not load camps
           </h1>
-          <p className="text-base mb-6" style={{ color: 'var(--earth-700)' }}>Refresh to try again.</p>
+          <p className="text-base mb-2" style={{ color: 'var(--earth-700)' }}>
+            {error.includes('network') || error.includes('fetch')
+              ? 'Check your internet connection and try again.'
+              : 'Something went wrong loading camp data.'}
+          </p>
+          {process.env.NODE_ENV === 'development' && (
+            <details className="mt-4 text-left">
+              <summary className="text-sm cursor-pointer" style={{ color: 'var(--earth-600)' }}>
+                Error details
+              </summary>
+              <p className="mt-2 text-xs font-mono p-3 rounded" style={{ background: 'var(--sand-100)', color: 'var(--earth-700)' }}>
+                {error}
+              </p>
+            </details>
+          )}
           <button
             onClick={() => window.location.reload()}
-            className="btn-primary"
+            className="btn-primary mt-6"
           >
-            Refresh
+            Refresh Page
           </button>
         </div>
       </div>
@@ -1685,21 +1723,43 @@ export default function App() {
             </div>
           </div>
         ) : filteredCamps.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-20 px-4">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sand-100)' }}>
               <svg className="w-12 h-12" style={{ color: 'var(--sand-400)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <h2 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>
-              No camps match these filters
+              No camps found
             </h2>
-            <p className="text-base mb-6" style={{ color: 'var(--earth-700)' }}>
-              Try adjusting age or price range.
+            <p className="text-base mb-6 max-w-md mx-auto" style={{ color: 'var(--earth-700)' }}>
+              {filters.minAge && filters.maxAge ? (
+                <>Try a wider age range or check <strong>all categories</strong>.</>
+              ) : filters.maxPrice ? (
+                <>Try increasing your price budget or browse <strong>all camps</strong>.</>
+              ) : filters.categories?.length > 0 ? (
+                <>Try selecting <strong>more categories</strong> or clear filters to see all camps.</>
+              ) : searchInput ? (
+                <>No camps match "<strong>{searchInput}</strong>". Try a different search term.</>
+              ) : (
+                <>Try adjusting your filters or clear them to see all camps.</>
+              )}
             </p>
-            <button onClick={clearFilters} className="btn-primary">
-              Clear Filters
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <button onClick={clearFilters} className="btn-primary">
+                Clear All Filters
+              </button>
+              {(filters.minAge || filters.maxAge || filters.maxPrice) && (
+                <button
+                  onClick={() => {
+                    updateFilters({ minAge: null, maxAge: null, maxPrice: null });
+                  }}
+                  className="btn-secondary"
+                >
+                  Reset Age & Price
+                </button>
+              )}
+            </div>
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

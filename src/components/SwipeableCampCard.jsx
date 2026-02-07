@@ -162,6 +162,51 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
     }
   }, [state, swipeThreshold, animationDuration, haptic, onSwipeRight, onSwipeLeft, onTap]);
 
+  // Keyboard support for accessibility
+  const handleKeyDown = useCallback((e) => {
+    if (disabled || state.isAnimating) return;
+
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        // Tap action
+        e.preventDefault();
+        onTap?.();
+        haptic.light();
+        break;
+      case 'ArrowRight':
+        // Swipe right (Save/Favorite)
+        e.preventDefault();
+        if (onSwipeRight) {
+          setState(s => ({ ...s, isAnimating: true }));
+          haptic.medium();
+          if (cardRef.current) {
+            cardRef.current.style.transition = `transform ${animationDuration}ms ease-out, opacity ${animationDuration}ms ease-out`;
+            cardRef.current.style.transform = `translateX(${window.innerWidth}px) rotate(10deg)`;
+            cardRef.current.style.opacity = '0';
+          }
+          setTimeout(() => onSwipeRight(), animationDuration);
+        }
+        break;
+      case 'ArrowLeft':
+        // Swipe left (Hide/Dismiss)
+        e.preventDefault();
+        if (onSwipeLeft) {
+          setState(s => ({ ...s, isAnimating: true }));
+          haptic.medium();
+          if (cardRef.current) {
+            cardRef.current.style.transition = `transform ${animationDuration}ms ease-out, opacity ${animationDuration}ms ease-out`;
+            cardRef.current.style.transform = `translateX(-${window.innerWidth}px) rotate(-10deg)`;
+            cardRef.current.style.opacity = '0';
+          }
+          setTimeout(() => onSwipeLeft(), animationDuration);
+        }
+        break;
+      default:
+        break;
+    }
+  }, [disabled, state.isAnimating, onTap, onSwipeRight, onSwipeLeft, haptic, animationDuration]);
+
   const { currentX, direction, isDragging } = state;
   const progress = Math.min(Math.abs(currentX) / swipeThreshold, 1);
   // BUG-B-007: Guard against division by zero if window width is 0
@@ -214,6 +259,10 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onKeyDown={handleKeyDown}
+        tabIndex={disabled ? -1 : 0}
+        role="button"
+        aria-label={`Camp card. Press Enter to view details, Arrow Right to ${rightLabel}, Arrow Left to ${leftLabel}`}
       >
         {children}
       </div>
