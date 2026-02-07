@@ -221,6 +221,11 @@
   --focus-ring-offset: white;
   --focus-ring: 0 0 0 3px var(--focus-ring-offset), 0 0 0 5px var(--focus-ring-color);
 
+  /* Interactive Element Sizing - 3-tier system */
+  --size-compact: 40px;      /* Icon buttons, compact actions */
+  --size-default: 48px;      /* Standard buttons, inputs */
+  --size-prominent: 56px;    /* Primary CTAs, important actions */
+
   /* ═══════════════════════════════════════════════════════════════════════════
      TIER 3: COMPONENT TOKENS
      Scoped tokens for specific components
@@ -1805,7 +1810,8 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: 15px 30px;
+  min-height: var(--size-prominent);
+  padding: 0 var(--space-6);
   border-radius: var(--radius-full);
   font-weight: var(--font-semibold);
   font-size: 0.95rem;
@@ -1858,7 +1864,8 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: 12px 24px;
+  min-height: var(--size-default);
+  padding: 0 var(--space-5);
   border-radius: var(--radius-full);
   font-weight: var(--font-medium);
   font-size: 0.9rem;
