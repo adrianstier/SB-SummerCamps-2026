@@ -249,6 +249,8 @@ let mockFiltersOverride = null;
 const mockUpdateFilters = vi.fn();
 const mockClearFilters = vi.fn();
 
+const mockSetSearchInput = vi.fn();
+
 vi.mock('./hooks/useFilters', () => ({
   useFilters: () => {
     if (mockFiltersOverride) return mockFiltersOverride;
@@ -259,6 +261,8 @@ vi.mock('./hooks/useFilters', () => ({
       applyPreset: vi.fn(),
       filterAndSortCamps: vi.fn((camps) => camps || []),
       activeFilterCount: 0,
+      searchInput: '',
+      setSearchInput: mockSetSearchInput,
       userLocation: null,
       locationError: null,
       requestLocation: vi.fn(),
@@ -475,7 +479,7 @@ describe('App', () => {
       });
     });
 
-    it('updates search value on input', async () => {
+    it('calls setSearchInput on input', async () => {
       const user = userEvent.setup();
       render(<MemoryRouter><App /></MemoryRouter>);
 
@@ -486,7 +490,8 @@ describe('App', () => {
       const searchInput = screen.getByPlaceholderText(/Search camps/);
       await user.type(searchInput, 'surf');
 
-      expect(searchInput).toHaveValue('surf');
+      // Search input state is managed by useFilters hook; typing calls setSearchInput
+      expect(mockSetSearchInput).toHaveBeenCalled();
     });
 
     it('triggers filter update on search', async () => {
@@ -500,9 +505,9 @@ describe('App', () => {
       const searchInput = screen.getByPlaceholderText(/Search camps/);
       await user.type(searchInput, 'surf');
 
-      // Debounced search triggers updateFilters with search term
+      // Search now calls setSearchInput from the useFilters hook (debounce is internal)
       await waitFor(() => {
-        expect(mockUpdateFilters).toHaveBeenCalled();
+        expect(mockSetSearchInput).toHaveBeenCalled();
       }, { timeout: 500 });
     });
   });
@@ -643,7 +648,7 @@ describe('App', () => {
   });
 
   describe('filter panel', () => {
-    it('opens filter panel on All Filters click', async () => {
+    it('opens filter panel on Filters click', async () => {
       const user = userEvent.setup();
       render(<MemoryRouter><App /></MemoryRouter>);
 
@@ -655,11 +660,14 @@ describe('App', () => {
       await user.click(filtersButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Filter')).toBeInTheDocument();
+        // The panel heading is an h3 with text "Filters"
+        const headings = screen.getAllByText('Filters');
+        const panelHeading = headings.find(el => el.tagName === 'H3');
+        expect(panelHeading).toBeInTheDocument();
       });
     });
 
-    it('shows age filter dropdown', async () => {
+    it('shows categories section', async () => {
       const user = userEvent.setup();
       render(<MemoryRouter><App /></MemoryRouter>);
 
@@ -671,11 +679,11 @@ describe('App', () => {
       await user.click(filtersButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Age')).toBeInTheDocument();
+        expect(screen.getByText('Categories')).toBeInTheDocument();
       });
     });
 
-    it('shows price filter dropdown', async () => {
+    it('shows price filter section', async () => {
       const user = userEvent.setup();
       render(<MemoryRouter><App /></MemoryRouter>);
 
@@ -687,8 +695,7 @@ describe('App', () => {
       await user.click(filtersButton);
 
       await waitFor(() => {
-        // The filter panel has price options like "Under $200"
-        expect(screen.getByText('Under $200')).toBeInTheDocument();
+        expect(screen.getByText('Price per Week')).toBeInTheDocument();
       });
     });
 
@@ -725,6 +732,8 @@ describe('App', () => {
         deleteSavedSearch: vi.fn(),
         applySavedSearch: vi.fn(),
         shareableURL: '',
+        searchInput: '',
+        setSearchInput: vi.fn(),
         FILTER_PRESETS: {},
       };
 
@@ -773,6 +782,8 @@ describe('App', () => {
         applyPreset: vi.fn(),
         filterAndSortCamps: vi.fn(() => []),
         activeFilterCount: 1,
+        searchInput: '',
+        setSearchInput: vi.fn(),
         userLocation: null,
         locationError: null,
         requestLocation: vi.fn(),
@@ -800,6 +811,8 @@ describe('App', () => {
         applyPreset: vi.fn(),
         filterAndSortCamps: vi.fn(() => []),
         activeFilterCount: 1,
+        searchInput: '',
+        setSearchInput: vi.fn(),
         userLocation: null,
         locationError: null,
         requestLocation: vi.fn(),

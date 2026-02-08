@@ -370,38 +370,22 @@ export default function App() {
             <div className="filter-presets">
               <span className="filter-presets-label">Quick filters</span>
               <div className="filter-presets-divider" />
-              <button onClick={() => { clearFilters(); setExtendedCare(true); }} className={`filter-preset-link priority ${extendedCare && !foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`} data-filter="extended-care">Extended Care</button>
-              <button onClick={() => { clearFilters(); setMaxPrice('300'); }} className={`filter-preset-link priority ${maxPrice === '300' && !extendedCare && selectedCategory === 'All' ? 'active' : ''}`} data-filter="under-300">Under $300</button>
-              <button onClick={() => { clearFilters(); setSelectedCategory('Sports'); }} className={`filter-preset-link priority ${selectedCategory === 'Sports' ? 'active' : ''}`} data-filter="sports">Sports</button>
-              <button onClick={() => { clearFilters(); setSelectedCategory('Art'); }} className={`filter-preset-link overflow ${selectedCategory === 'Art' ? 'active' : ''}`} data-filter="art">Art & Creative</button>
-              <button onClick={() => { clearFilters(); setSelectedCategory('Science/STEM'); }} className={`filter-preset-link overflow ${selectedCategory === 'Science/STEM' ? 'active' : ''}`} data-filter="stem">STEM</button>
-              <button onClick={() => { clearFilters(); setSelectedCategory('Nature/Outdoor'); }} className={`filter-preset-link overflow ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`} data-filter="outdoors">Outdoors</button>
-              <div className="filter-more-wrapper">
-                <button onClick={() => setShowMoreFilters(!showMoreFilters)} className={`filter-more-btn ${['Art', 'Science/STEM', 'Nature/Outdoor'].includes(selectedCategory) ? 'has-selection' : ''}`} aria-expanded={showMoreFilters} aria-haspopup="true">
-                  More<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                {showMoreFilters && (
-                  <div className="filter-more-dropdown open">
-                    <button onClick={() => { clearFilters(); setSelectedCategory('Art'); setShowMoreFilters(false); }} className={`filter-preset-link ${selectedCategory === 'Art' ? 'active' : ''}`}>Art & Creative</button>
-                    <button onClick={() => { clearFilters(); setSelectedCategory('Science/STEM'); setShowMoreFilters(false); }} className={`filter-preset-link ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}>STEM</button>
-                    <button onClick={() => { clearFilters(); setSelectedCategory('Nature/Outdoor'); setShowMoreFilters(false); }} className={`filter-preset-link ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}>Outdoors</button>
-                  </div>
-                )}
-              </div>
+              <button onClick={() => updateFilters({ ...filters, extendedCare: !filters.extendedCare })} className={`filter-preset-link priority ${filters.extendedCare ? 'active' : ''}`} data-filter="extended-care">Extended Care</button>
+              <button onClick={() => { const isActive = Number.isFinite(filters.priceMax) && filters.priceMax === 300; updateFilters({ ...filters, priceMax: isActive ? Infinity : 300 }); }} className={`filter-preset-link priority ${Number.isFinite(filters.priceMax) && filters.priceMax === 300 ? 'active' : ''}`} data-filter="under-300">Under $300</button>
+              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Sports') ? cats.filter(c => c !== 'Sports') : [...cats, 'Sports'] }); }} className={`filter-preset-link priority ${filters.categories?.includes('Sports') ? 'active' : ''}`} data-filter="sports">Sports</button>
+              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Art') ? cats.filter(c => c !== 'Art') : [...cats, 'Art'] }); }} className={`filter-preset-link overflow ${filters.categories?.includes('Art') ? 'active' : ''}`} data-filter="art">Art & Creative</button>
+              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Science/STEM') ? cats.filter(c => c !== 'Science/STEM') : [...cats, 'Science/STEM'] }); }} className={`filter-preset-link overflow ${filters.categories?.includes('Science/STEM') ? 'active' : ''}`} data-filter="stem">STEM</button>
+              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Nature/Outdoor') ? cats.filter(c => c !== 'Nature/Outdoor') : [...cats, 'Nature/Outdoor'] }); }} className={`filter-preset-link overflow ${filters.categories?.includes('Nature/Outdoor') ? 'active' : ''}`} data-filter="outdoors">Outdoors</button>
             </div>
             <div className="filter-controls">
-              <button onClick={() => setShowFilters(!showFilters)} className={`filter-control-btn ${showFilters ? 'active' : ''}`} aria-label={activeFilterCount > 0 ? `Filters, ${activeFilterCount} active` : 'Filters'} aria-expanded={showFilters}>
+              <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className={`filter-control-btn ${showAdvancedFilters ? 'active' : ''}`} aria-label={activeFilterCount > 0 ? `Filters, ${activeFilterCount} active` : 'Filters'} aria-expanded={showAdvancedFilters}>
                 <FilterIcon /><span>Filters</span>{activeFilterCount > 0 && (<span className="filter-count" aria-hidden="true">{activeFilterCount}</span>)}
-              </button>
-              <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className={`filter-control-btn ${showAdvancedFilters ? 'active' : ''}`} title="Advanced filters with presets, date ranges, and more">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                <span className="hidden sm:inline">Advanced</span>
               </button>
               <button onClick={() => navigate('/insights')} className="filter-control-btn" title="View camp data insights and visualizations">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                 <span className="hidden sm:inline">Insights</span>
               </button>
-              <select value={filters.sortByDistance ? 'distance-asc' : `${sortBy}-${sortDir}`} onChange={(e) => { const [field, dir] = e.target.value.split('-'); if (field === 'distance') { updateFilters({ ...filters, sortByDistance: true }); if (!userLocation) requestLocation(); } else { updateFilters({ ...filters, sortByDistance: false, sortBy: field, sortDir: dir }); } }} className="filter-sort-select" aria-label="Sort camps by">
+              <select value={filters.sortByDistance ? 'distance-asc' : `${filters.sortBy || 'camp_name'}-${filters.sortDir || 'asc'}`} onChange={(e) => { const [field, dir] = e.target.value.split('-'); if (field === 'distance') { updateFilters({ ...filters, sortByDistance: true }); if (!userLocation) requestLocation(); } else { updateFilters({ ...filters, sortByDistance: false, sortBy: field, sortDir: dir }); } }} className="filter-sort-select" aria-label="Sort camps by">
                 <option value="camp_name-asc">A-Z</option>
                 <option value="camp_name-desc">Z-A</option>
                 <option value="min_price-asc">Price: Low</option>
@@ -424,97 +408,32 @@ export default function App() {
           <div className="active-filters-bar">
             <span className="active-filters-label">Active:</span>
             <div className="active-filters-chips">
-              {selectedCategory !== 'All' && (<button onClick={() => setSelectedCategory('All')} className="active-filter-chip">{selectedCategory}<span className="active-filter-remove">x</span></button>)}
-              {childAge && (<button onClick={() => setChildAge('')} className="active-filter-chip">Age {childAge}<span className="active-filter-remove">x</span></button>)}
-              {maxPrice && (<button onClick={() => setMaxPrice('')} className="active-filter-chip">Under ${maxPrice}<span className="active-filter-remove">x</span></button>)}
-              {extendedCare && (<button onClick={() => setExtendedCare(false)} className="active-filter-chip">Extended Care<span className="active-filter-remove">x</span></button>)}
-              {foodIncluded && (<button onClick={() => setFoodIncluded(false)} className="active-filter-chip">Food Included<span className="active-filter-remove">x</span></button>)}
-              {hasTransport && (<button onClick={() => setHasTransport(false)} className="active-filter-chip">Transportation<span className="active-filter-remove">x</span></button>)}
-              {siblingDiscount && (<button onClick={() => setSiblingDiscount(false)} className="active-filter-chip">Sibling Discount<span className="active-filter-remove">x</span></button>)}
+              {filters.categories?.length > 0 && filters.categories.map(cat => (<button key={cat} onClick={() => updateFilters({ ...filters, categories: filters.categories.filter(c => c !== cat) })} className="active-filter-chip">{cat}<span className="active-filter-remove">x</span></button>))}
+              {filters.childAge && (<button onClick={() => updateFilters({ ...filters, childAge: '' })} className="active-filter-chip">Age {filters.childAge}<span className="active-filter-remove">x</span></button>)}
+              {Number.isFinite(filters.priceMax) && (<button onClick={() => updateFilters({ ...filters, priceMax: Infinity })} className="active-filter-chip">Under ${filters.priceMax}<span className="active-filter-remove">x</span></button>)}
+              {filters.priceMin > 0 && (<button onClick={() => updateFilters({ ...filters, priceMin: 0 })} className="active-filter-chip">Min ${filters.priceMin}<span className="active-filter-remove">x</span></button>)}
+              {filters.extendedCare && (<button onClick={() => updateFilters({ ...filters, extendedCare: false })} className="active-filter-chip">Extended Care<span className="active-filter-remove">x</span></button>)}
+              {filters.foodIncluded && (<button onClick={() => updateFilters({ ...filters, foodIncluded: false })} className="active-filter-chip">Food Included<span className="active-filter-remove">x</span></button>)}
+              {filters.hasTransport && (<button onClick={() => updateFilters({ ...filters, hasTransport: false })} className="active-filter-chip">Transportation<span className="active-filter-remove">x</span></button>)}
+              {filters.siblingDiscount && (<button onClick={() => updateFilters({ ...filters, siblingDiscount: false })} className="active-filter-chip">Sibling Discount<span className="active-filter-remove">x</span></button>)}
+              {filters.matchWorkSchedule && (<button onClick={() => updateFilters({ ...filters, matchWorkSchedule: false })} className="active-filter-chip">Fits My Hours<span className="active-filter-remove">x</span></button>)}
               {filters.hasOpenings && (<button onClick={() => updateFilters({ ...filters, hasOpenings: false })} className="active-filter-chip">Has Openings<span className="active-filter-remove">x</span></button>)}
               {filters.sortByDistance && (<button onClick={() => updateFilters({ ...filters, sortByDistance: false })} className="active-filter-chip">Nearest First<span className="active-filter-remove">x</span></button>)}
               {filters.selectedWeeks?.length > 0 && (<button onClick={() => updateFilters({ ...filters, selectedWeeks: [] })} className="active-filter-chip">{filters.selectedWeeks.length} Week{filters.selectedWeeks.length > 1 ? 's' : ''}<span className="active-filter-remove">x</span></button>)}
-              {filters.categories?.length > 1 && (<button onClick={() => updateFilters({ ...filters, categories: [] })} className="active-filter-chip">{filters.categories.length} Categories<span className="active-filter-remove">x</span></button>)}
-              {search && (<button onClick={() => setSearch('')} className="active-filter-chip">"{search}"<span className="active-filter-remove">x</span></button>)}
+              {filters.search && (<button onClick={() => setSearchInput('')} className="active-filter-chip">"{filters.search}"<span className="active-filter-remove">x</span></button>)}
             </div>
             <button onClick={clearFilters} className="active-filters-clear">Clear all</button>
           </div>
         )}
       </section>
 
-      {/* Expanded Filters Panel */}
-      {showFilters && (
-        <section className="filter-panel-animated" style={{ background: 'white', borderBottom: '1px solid var(--sand-200)' }}>
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>Filter</h3>
-              {activeFilterCount > 0 && (<button onClick={clearFilters} className="text-sm font-medium hover:underline" style={{ color: 'var(--terra-500)' }}>Clear all</button>)}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>Category</label>
-                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all" style={{ borderColor: 'var(--sand-200)', background: 'white' }}>
-                  <option value="All">All Categories</option>
-                  {categories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>Age</label>
-                <select value={childAge} onChange={(e) => setChildAge(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all" style={{ borderColor: 'var(--sand-200)', background: 'white' }}>
-                  <option value="">Any Age</option>
-                  {[...Array(16)].map((_, i) => (<option key={i + 3} value={i + 3}>{i + 3} years old</option>))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>Price</label>
-                <select value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all" style={{ borderColor: 'var(--sand-200)', background: 'white' }}>
-                  <option value="">Any Price</option>
-                  <option value="200">Under $200</option>
-                  <option value="300">Under $300</option>
-                  <option value="400">Under $400</option>
-                  <option value="500">Under $500</option>
-                  <option value="750">Under $750</option>
-                </select>
-              </div>
-              <div className="md:hidden">
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>Sort</label>
-                <select value={`${sortBy}-${sortDir}`} onChange={(e) => { const [field, dir] = e.target.value.split('-'); setSortBy(field); setSortDir(dir); }} className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all" style={{ borderColor: 'var(--sand-200)', background: 'white' }}>
-                  <option value="camp_name-asc">Name A-Z</option>
-                  <option value="camp_name-desc">Name Z-A</option>
-                  <option value="min_price-asc">Price: Low to High</option>
-                  <option value="min_price-desc">Price: High to Low</option>
-                  <option value="min_age-asc">Age: Youngest</option>
-                </select>
-              </div>
-            </div>
-            <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--sand-100)' }}>
-              <p className="text-sm font-medium mb-4" style={{ color: 'var(--earth-700)' }}>Features</p>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { key: 'extendedCare', label: 'Extended Care', state: extendedCare, setter: setExtendedCare },
-                  { key: 'foodIncluded', label: 'Food Included', state: foodIncluded, setter: setFoodIncluded },
-                  { key: 'hasTransport', label: 'Transportation', state: hasTransport, setter: setHasTransport },
-                  { key: 'siblingDiscount', label: 'Sibling Discount', state: siblingDiscount, setter: setSiblingDiscount },
-                  ...(user ? [{ key: 'matchWorkSchedule', label: 'Fits My Hours', state: matchWorkSchedule, setter: setMatchWorkSchedule }] : []),
-                ].map(({ key, label, state, setter }) => (
-                  <button key={key} onClick={() => setter(!state)} className={`filter-pill ${state ? 'active' : ''}`} aria-pressed={state}>
-                    {state && (<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>)}
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Advanced Filters Panel */}
       {showAdvancedFilters && (
         <section className="filter-panel-animated" style={{ background: 'white', borderBottom: '1px solid var(--sand-200)' }}>
           <div className="max-w-6xl mx-auto">
             <div className="flex justify-between items-center px-4 sm:px-6 py-4" style={{ borderBottom: '1px solid var(--sand-100)' }}>
-              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>Advanced Filters</h3>
-              <button onClick={() => setShowAdvancedFilters(false)} className="p-2 rounded-full hover:bg-sand-100 transition-colors" style={{ color: 'var(--sand-400)' }} aria-label="Close advanced filters">
+              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>Filters</h3>
+              <button onClick={() => setShowAdvancedFilters(false)} className="p-2 rounded-full hover:bg-sand-100 transition-colors" style={{ color: 'var(--sand-400)' }} aria-label="Close filters">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -533,7 +452,7 @@ export default function App() {
                 const count = stats?.categories?.[name] || 0;
                 if (count === 0) return null;
                 return (
-                  <button key={name} onClick={() => { clearFilters(); setSelectedCategory(name); }} className={`category-browse-card ${categoryClasses[name] || ''} ${selectedCategory === name ? 'active' : ''}`} data-category={name}>
+                  <button key={name} onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes(name) ? cats.filter(c => c !== name) : [...cats, name] }); }} className={`category-browse-card ${categoryClasses[name] || ''} ${filters.categories?.includes(name) ? 'active' : ''}`} data-category={name}>
                     <span className="category-browse-icon"><BrandIcon name={icon} size={28} /></span>
                     <span className="category-browse-name">{name}</span>
                     <span className="category-browse-count">{count} {count === 1 ? 'camp' : 'camps'}</span>
@@ -559,10 +478,10 @@ export default function App() {
           {!loading && filteredCamps.length > 0 && (
             <p className="results-count">
               Showing <strong>{filteredCamps.length}</strong> {filteredCamps.length === 1 ? 'camp' : 'camps'}
-              {selectedCategory !== 'All' && <> in <strong>{selectedCategory}</strong></>}
-              {childAge && <> for age <strong>{childAge}</strong></>}
-              {maxPrice && <> under <strong>${maxPrice}</strong></>}
-              {matchWorkSchedule && <> that fit your schedule</>}
+              {filters.categories?.length > 0 && <> in <strong>{filters.categories.join(', ')}</strong></>}
+              {filters.childAge && <> for age <strong>{filters.childAge}</strong></>}
+              {Number.isFinite(filters.priceMax) && <> under <strong>${filters.priceMax}</strong></>}
+              {filters.matchWorkSchedule && <> that fit your schedule</>}
             </p>
           )}
         </div>
@@ -592,7 +511,7 @@ export default function App() {
               </div>
               <h2 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>No camps match these filters</h2>
               <p className="text-base mb-6 max-w-sm mx-auto" style={{ color: 'var(--earth-600)' }}>
-                {filters.minAge && filters.maxAge ? (<>Try a wider age range or check <strong>all categories</strong>.</>) : filters.maxPrice ? (<>Try increasing your price budget or browse <strong>all camps</strong>.</>) : filters.categories?.length > 0 ? (<>Try selecting <strong>more categories</strong> or clear filters to see all camps.</>) : searchInput ? (<>No camps match "<strong>{searchInput}</strong>". Try a different search term.</>) : (<>Try adjusting your filters or clear them to see all camps.</>)}
+                {filters.childAge ? (<>Try a wider age range or check <strong>all categories</strong>.</>) : Number.isFinite(filters.priceMax) ? (<>Try increasing your price budget or browse <strong>all camps</strong>.</>) : filters.categories?.length > 0 ? (<>Try selecting <strong>more categories</strong> or clear filters to see all camps.</>) : searchInput ? (<>No camps match "<strong>{searchInput}</strong>". Try a different search term.</>) : (<>Try adjusting your filters or clear them to see all camps.</>)}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
                 <button onClick={clearFilters} className="btn-primary">Clear Filters</button>
@@ -623,7 +542,7 @@ export default function App() {
           </div>
         ) : (
           <div ref={tableRef}>
-            <CampTable camps={filteredCamps} sortBy={sortBy} sortDir={sortDir} onSort={(field) => { if (sortBy === field) { setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); } else { setSortBy(field); setSortDir('asc'); } }} expandedCamp={expandedCamp} onToggle={(id) => setExpandedCamp(expandedCamp === id ? null : id)} />
+            <CampTable camps={filteredCamps} sortBy={filters.sortBy || 'camp_name'} sortDir={filters.sortDir || 'asc'} onSort={(field) => { if ((filters.sortBy || 'camp_name') === field) { updateFilters({ ...filters, sortDir: (filters.sortDir || 'asc') === 'asc' ? 'desc' : 'asc' }); } else { updateFilters({ ...filters, sortBy: field, sortDir: 'asc' }); } }} expandedCamp={expandedCamp} onToggle={(id) => setExpandedCamp(expandedCamp === id ? null : id)} />
           </div>
         )}
       </main>

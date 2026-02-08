@@ -61,7 +61,7 @@ test.describe('Filter Bar Rebuild', () => {
   }
 
   test('filter icons display correctly', async ({ page }) => {
-    await page.setViewportSize({ width: 1200, height: 800 });
+    await page.setViewportSize({ width: 1400, height: 800 });
     await page.goto('/');
     await page.waitForSelector('.filter-bar-section', { timeout: 15000 });
 
@@ -69,10 +69,16 @@ test.describe('Filter Bar Rebuild', () => {
     const filterBar = page.locator('.filter-bar-section');
     await filterBar.screenshot({ path: 'filter-bar-rebuilt.png' });
 
-    // Check all quick filter buttons are present
-    const quickFilters = ['extended-care', 'under-300', 'sports', 'art', 'stem', 'outdoors'];
+    // Check priority quick filter buttons are visible
+    const priorityFilters = ['extended-care', 'under-300', 'sports'];
+    for (const filter of priorityFilters) {
+      const btn = page.locator(`.filter-preset-link[data-filter="${filter}"]`);
+      await expect(btn).toBeVisible();
+    }
 
-    for (const filter of quickFilters) {
+    // At wide viewport, overflow filters should also be visible
+    const overflowFilters = ['art', 'stem', 'outdoors'];
+    for (const filter of overflowFilters) {
       const btn = page.locator(`.filter-preset-link[data-filter="${filter}"]`);
       await expect(btn).toBeVisible();
     }

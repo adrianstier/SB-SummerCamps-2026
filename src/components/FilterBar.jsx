@@ -1,4 +1,4 @@
-import React, { useState, memo, useRef, useEffect } from 'react';
+import React, { memo, useRef } from 'react';
 import { useHaptic } from '../hooks/usePWA';
 
 /**
@@ -13,12 +13,12 @@ import { useHaptic } from '../hooks/usePWA';
 
 // Quick filter chips - the most common filters
 const QUICK_FILTERS = [
-  { id: 'extended-care', label: 'Extended Care', icon: '⏰' },
-  { id: 'under-350', label: 'Under $350', icon: '💰' },
-  { id: 'sports', label: 'Sports', category: 'Sports', icon: '⚽' },
-  { id: 'stem', label: 'STEM', category: 'Science/STEM', icon: '🔬' },
-  { id: 'art', label: 'Arts', category: 'Art', icon: '🎨' },
-  { id: 'openings', label: 'Has Openings', icon: '✓' },
+  { id: 'extended-care', label: 'Extended Care', icon: '\u23F0' },
+  { id: 'under-350', label: 'Under $350', icon: '\uD83D\uDCB0' },
+  { id: 'sports', label: 'Sports', category: 'Sports', icon: '\u26BD' },
+  { id: 'stem', label: 'STEM', category: 'Science/STEM', icon: '\uD83D\uDD2C' },
+  { id: 'art', label: 'Arts', category: 'Art', icon: '\uD83C\uDFA8' },
+  { id: 'openings', label: 'Has Openings', icon: '\u2713' },
 ];
 
 /**
@@ -155,228 +155,6 @@ const ActiveFilters = memo(function ActiveFilters({ filters, onRemove, onClearAl
 });
 
 /**
- * More Filters Panel - Slide-out drawer for advanced options
- */
-const MoreFiltersPanel = memo(function MoreFiltersPanel({
-  isOpen,
-  onClose,
-  filters,
-  onFiltersChange,
-  categories = [],
-  priceRange = { min: 0, max: 1000 }
-}) {
-  const haptic = useHaptic();
-  const panelRef = useRef(null);
-
-  // Focus trap and keyboard handling for the panel
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
-    const handleClickOutside = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target) && isOpen) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  // Focus trap: keep focus within the panel when open
-  useEffect(() => {
-    if (!isOpen || !panelRef.current) return;
-    const panel = panelRef.current;
-    const focusable = panel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    first?.focus();
-
-    const handleTab = (e) => {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last?.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first?.focus();
-      }
-    };
-    panel.addEventListener('keydown', handleTab);
-    return () => panel.removeEventListener('keydown', handleTab);
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  const handleClose = () => {
-    haptic.light();
-    onClose();
-  };
-
-  return (
-    <>
-      <div className="filter-overlay" onClick={handleClose} aria-hidden="true" />
-      <aside ref={panelRef} className="filter-panel" role="dialog" aria-modal="true" aria-label="More filters">
-        <header className="filter-panel-header">
-          <h2 className="filter-panel-title">More Filters</h2>
-          <button
-            onClick={handleClose}
-            className="filter-panel-close"
-            aria-label="Close"
-            type="button"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </header>
-
-        <div className="filter-panel-body">
-          {/* Age Range */}
-          <section className="filter-group">
-            <h3 className="filter-group-title">Age</h3>
-            <div className="filter-age-inputs">
-              <input
-                type="number"
-                min="3"
-                max="18"
-                placeholder="Min"
-                aria-label="Minimum age"
-                value={filters.minAge || ''}
-                onChange={(e) => onFiltersChange({ ...filters, minAge: e.target.value ? parseInt(e.target.value, 10) : null })}
-                className="filter-age-input"
-              />
-              <span className="filter-age-separator">to</span>
-              <input
-                type="number"
-                min="3"
-                max="18"
-                placeholder="Max"
-                aria-label="Maximum age"
-                value={filters.maxAge || ''}
-                onChange={(e) => onFiltersChange({ ...filters, maxAge: e.target.value ? parseInt(e.target.value, 10) : null })}
-                className="filter-age-input"
-              />
-            </div>
-          </section>
-
-          {/* Price Range */}
-          <section className="filter-group">
-            <h3 className="filter-group-title">Price per Week</h3>
-            <div className="filter-price-range">
-              <div className="filter-price-labels">
-                <span>${filters.priceMin || priceRange.min}</span>
-                <span>${filters.priceMax || priceRange.max}</span>
-              </div>
-              <input
-                type="range"
-                min={priceRange.min}
-                max={priceRange.max}
-                step="25"
-                aria-label={`Minimum price per week: $${filters.priceMin || priceRange.min}`}
-                value={filters.priceMin || priceRange.min}
-                onChange={(e) => onFiltersChange({ ...filters, priceMin: parseInt(e.target.value, 10) })}
-                className="filter-price-slider"
-              />
-              <input
-                type="range"
-                min={priceRange.min}
-                max={priceRange.max}
-                step="25"
-                aria-label={`Maximum price per week: $${filters.priceMax || priceRange.max}`}
-                value={filters.priceMax || priceRange.max}
-                onChange={(e) => onFiltersChange({ ...filters, priceMax: parseInt(e.target.value, 10) })}
-                className="filter-price-slider"
-              />
-            </div>
-          </section>
-
-          {/* Categories */}
-          <section className="filter-group">
-            <h3 className="filter-group-title">Categories</h3>
-            <div className="filter-category-grid">
-              {categories.map(category => (
-                <label key={category} className="filter-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={filters.categories?.includes(category) || false}
-                    onChange={(e) => {
-                      const current = filters.categories || [];
-                      const updated = e.target.checked
-                        ? [...current, category]
-                        : current.filter(c => c !== category);
-                      onFiltersChange({ ...filters, categories: updated });
-                    }}
-                  />
-                  <span>{category}</span>
-                </label>
-              ))}
-            </div>
-          </section>
-
-          {/* Features */}
-          <section className="filter-group">
-            <h3 className="filter-group-title">Features</h3>
-            <div className="filter-features">
-              <label className="filter-toggle">
-                <input
-                  type="checkbox"
-                  checked={filters.extendedCare || false}
-                  onChange={(e) => onFiltersChange({ ...filters, extendedCare: e.target.checked })}
-                />
-                <span>Extended Care</span>
-              </label>
-              <label className="filter-toggle">
-                <input
-                  type="checkbox"
-                  checked={filters.foodIncluded || false}
-                  onChange={(e) => onFiltersChange({ ...filters, foodIncluded: e.target.checked })}
-                />
-                <span>Food Included</span>
-              </label>
-              <label className="filter-toggle">
-                <input
-                  type="checkbox"
-                  checked={filters.hasTransport || false}
-                  onChange={(e) => onFiltersChange({ ...filters, hasTransport: e.target.checked })}
-                />
-                <span>Transportation</span>
-              </label>
-              <label className="filter-toggle">
-                <input
-                  type="checkbox"
-                  checked={filters.siblingDiscount || false}
-                  onChange={(e) => onFiltersChange({ ...filters, siblingDiscount: e.target.checked })}
-                />
-                <span>Sibling Discount</span>
-              </label>
-            </div>
-          </section>
-        </div>
-
-        <footer className="filter-panel-footer">
-          <button
-            onClick={handleClose}
-            className="filter-panel-apply"
-            type="button"
-          >
-            Show Results
-          </button>
-        </footer>
-      </aside>
-    </>
-  );
-});
-
-/**
  * Main FilterBar Component
  */
 export const FilterBar = memo(function FilterBar({
@@ -385,12 +163,11 @@ export const FilterBar = memo(function FilterBar({
   filters = {},
   onFiltersChange,
   onClearFilters,
+  onOpenAdvancedFilters,
   categories = [],
   categoryCounts = {},
-  priceRange,
   resultsCount = 0
 }) {
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const haptic = useHaptic();
 
   const handleQuickFilter = (filter) => {
@@ -434,7 +211,7 @@ export const FilterBar = memo(function FilterBar({
 
   const handleMoreFilters = () => {
     haptic.medium();
-    setShowMoreFilters(true);
+    onOpenAdvancedFilters?.();
   };
 
   const activeFiltersCount = Object.keys(filters).filter(key => {
@@ -489,16 +266,6 @@ export const FilterBar = memo(function FilterBar({
           <span className="filter-results-label">camps</span>
         </div>
       )}
-
-      {/* More Filters Panel */}
-      <MoreFiltersPanel
-        isOpen={showMoreFilters}
-        onClose={() => setShowMoreFilters(false)}
-        filters={filters}
-        onFiltersChange={onFiltersChange}
-        categories={categories}
-        priceRange={priceRange}
-      />
     </div>
   );
 });
