@@ -422,30 +422,30 @@ export default function App() {
               {activeFilterCount > 0 && (<button onClick={clearFilters} className="filter-clear-btn">Clear</button>)}
             </div>
           </div>
-        </div>
 
-        {/* Active Filters Display */}
-        {activeFilterCount > 0 && (
-          <div className="active-filters-bar">
-            <span className="active-filters-label">Active:</span>
-            <div className="active-filters-chips">
-              {filters.categories?.length > 0 && filters.categories.map(cat => (<button key={cat} onClick={() => updateFilters({ ...filters, categories: filters.categories.filter(c => c !== cat) })} className="active-filter-chip">{cat}<span className="active-filter-remove">x</span></button>))}
-              {filters.childAge && (<button onClick={() => updateFilters({ ...filters, childAge: '' })} className="active-filter-chip">Age {filters.childAge}<span className="active-filter-remove">x</span></button>)}
-              {Number.isFinite(filters.priceMax) && (<button onClick={() => updateFilters({ ...filters, priceMax: Infinity })} className="active-filter-chip">Under ${filters.priceMax}<span className="active-filter-remove">x</span></button>)}
-              {filters.priceMin > 0 && (<button onClick={() => updateFilters({ ...filters, priceMin: 0 })} className="active-filter-chip">Min ${filters.priceMin}<span className="active-filter-remove">x</span></button>)}
-              {filters.extendedCare && (<button onClick={() => updateFilters({ ...filters, extendedCare: false })} className="active-filter-chip">Extended Care<span className="active-filter-remove">x</span></button>)}
-              {filters.foodIncluded && (<button onClick={() => updateFilters({ ...filters, foodIncluded: false })} className="active-filter-chip">Food Included<span className="active-filter-remove">x</span></button>)}
-              {filters.hasTransport && (<button onClick={() => updateFilters({ ...filters, hasTransport: false })} className="active-filter-chip">Transportation<span className="active-filter-remove">x</span></button>)}
-              {filters.siblingDiscount && (<button onClick={() => updateFilters({ ...filters, siblingDiscount: false })} className="active-filter-chip">Sibling Discount<span className="active-filter-remove">x</span></button>)}
-              {filters.matchWorkSchedule && (<button onClick={() => updateFilters({ ...filters, matchWorkSchedule: false })} className="active-filter-chip">Fits My Hours<span className="active-filter-remove">x</span></button>)}
-              {filters.hasOpenings && (<button onClick={() => updateFilters({ ...filters, hasOpenings: false })} className="active-filter-chip">Has Openings<span className="active-filter-remove">x</span></button>)}
-              {filters.sortByDistance && (<button onClick={() => updateFilters({ ...filters, sortByDistance: false })} className="active-filter-chip">Nearest First<span className="active-filter-remove">x</span></button>)}
-              {filters.selectedWeeks?.length > 0 && (<button onClick={() => updateFilters({ ...filters, selectedWeeks: [] })} className="active-filter-chip">{filters.selectedWeeks.length} Week{filters.selectedWeeks.length > 1 ? 's' : ''}<span className="active-filter-remove">x</span></button>)}
-              {filters.search && (<button onClick={() => setSearchInput('')} className="active-filter-chip">"{filters.search}"<span className="active-filter-remove">x</span></button>)}
+          {/* Active Filters Display */}
+          {activeFilterCount > 0 && (
+            <div className="active-filters-bar">
+              <span className="active-filters-label">Active:</span>
+              <div className="active-filters-chips">
+                {filters.categories?.length > 0 && filters.categories.map(cat => (<button key={cat} onClick={() => updateFilters({ ...filters, categories: filters.categories.filter(c => c !== cat) })} className="active-filter-chip">{cat}<span className="active-filter-remove">x</span></button>))}
+                {filters.childAge && (<button onClick={() => updateFilters({ ...filters, childAge: '' })} className="active-filter-chip">Age {filters.childAge}<span className="active-filter-remove">x</span></button>)}
+                {Number.isFinite(filters.priceMax) && (<button onClick={() => updateFilters({ ...filters, priceMax: Infinity })} className="active-filter-chip">Under ${filters.priceMax}<span className="active-filter-remove">x</span></button>)}
+                {filters.priceMin > 0 && (<button onClick={() => updateFilters({ ...filters, priceMin: 0 })} className="active-filter-chip">Min ${filters.priceMin}<span className="active-filter-remove">x</span></button>)}
+                {filters.extendedCare && (<button onClick={() => updateFilters({ ...filters, extendedCare: false })} className="active-filter-chip">Extended Care<span className="active-filter-remove">x</span></button>)}
+                {filters.foodIncluded && (<button onClick={() => updateFilters({ ...filters, foodIncluded: false })} className="active-filter-chip">Food Included<span className="active-filter-remove">x</span></button>)}
+                {filters.hasTransport && (<button onClick={() => updateFilters({ ...filters, hasTransport: false })} className="active-filter-chip">Transportation<span className="active-filter-remove">x</span></button>)}
+                {filters.siblingDiscount && (<button onClick={() => updateFilters({ ...filters, siblingDiscount: false })} className="active-filter-chip">Sibling Discount<span className="active-filter-remove">x</span></button>)}
+                {filters.matchWorkSchedule && (<button onClick={() => updateFilters({ ...filters, matchWorkSchedule: false })} className="active-filter-chip">Fits My Hours<span className="active-filter-remove">x</span></button>)}
+                {filters.hasOpenings && (<button onClick={() => updateFilters({ ...filters, hasOpenings: false })} className="active-filter-chip">Has Openings<span className="active-filter-remove">x</span></button>)}
+                {filters.sortByDistance && (<button onClick={() => updateFilters({ ...filters, sortByDistance: false })} className="active-filter-chip">Nearest First<span className="active-filter-remove">x</span></button>)}
+                {filters.selectedWeeks?.length > 0 && (<button onClick={() => updateFilters({ ...filters, selectedWeeks: [] })} className="active-filter-chip">{filters.selectedWeeks.length} Week{filters.selectedWeeks.length > 1 ? 's' : ''}<span className="active-filter-remove">x</span></button>)}
+                {filters.search && (<button onClick={() => setSearchInput('')} className="active-filter-chip">"{filters.search}"<span className="active-filter-remove">x</span></button>)}
+              </div>
+              <button onClick={clearFilters} className="active-filters-clear">Clear all</button>
             </div>
-            <button onClick={clearFilters} className="active-filters-clear">Clear all</button>
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       {/* Advanced Filters Panel */}

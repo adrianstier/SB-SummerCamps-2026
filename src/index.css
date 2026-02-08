@@ -1061,7 +1061,9 @@ body::before {
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 6px 0;
+  padding: 6px 24px 6px 0;
+  mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
 }
 
 .filter-presets::-webkit-scrollbar {
