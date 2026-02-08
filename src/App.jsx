@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useFavorites } from './contexts/FavoritesContext';
 import { useSquads } from './contexts/SquadsContext';
@@ -192,6 +192,7 @@ const VerifiedIcon = memo(function VerifiedIcon() {
 // ── Main App Component (Browse Page Content) ──
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { camps, categories, stats, loading, error } = useCamps();
   const { compareList, toggleCompare, removeFromCompare, clearCompare } = useCompare();
   const { profile, user } = useAuth();
@@ -218,6 +219,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState('grid');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const tableRef = useRef(null);
 
   // Filtered camps
@@ -229,6 +231,13 @@ export default function App() {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Shadow on sticky filter bar when scrolled
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 100);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Copy share URL
@@ -364,26 +373,38 @@ export default function App() {
       </header>
 
       {/* Filter Bar */}
-      <section className="filter-bar-section sticky top-0 z-40" role="search" aria-label="Camp filters">
+      <section className={`filter-bar-section sticky top-0 z-40 ${isScrolled ? 'scrolled' : ''}`} role="search" aria-label="Camp filters">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="filter-bar-inner">
             <div className="filter-presets">
-              <span className="filter-presets-label">Quick filters</span>
-              <div className="filter-presets-divider" />
-              <button onClick={() => updateFilters({ ...filters, extendedCare: !filters.extendedCare })} className={`filter-preset-link priority ${filters.extendedCare ? 'active' : ''}`} data-filter="extended-care">Extended Care</button>
-              <button onClick={() => { const isActive = Number.isFinite(filters.priceMax) && filters.priceMax === 300; updateFilters({ ...filters, priceMax: isActive ? Infinity : 300 }); }} className={`filter-preset-link priority ${Number.isFinite(filters.priceMax) && filters.priceMax === 300 ? 'active' : ''}`} data-filter="under-300">Under $300</button>
-              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Sports') ? cats.filter(c => c !== 'Sports') : [...cats, 'Sports'] }); }} className={`filter-preset-link priority ${filters.categories?.includes('Sports') ? 'active' : ''}`} data-filter="sports">Sports</button>
-              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Art') ? cats.filter(c => c !== 'Art') : [...cats, 'Art'] }); }} className={`filter-preset-link overflow ${filters.categories?.includes('Art') ? 'active' : ''}`} data-filter="art">Art & Creative</button>
-              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Science/STEM') ? cats.filter(c => c !== 'Science/STEM') : [...cats, 'Science/STEM'] }); }} className={`filter-preset-link overflow ${filters.categories?.includes('Science/STEM') ? 'active' : ''}`} data-filter="stem">STEM</button>
-              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Nature/Outdoor') ? cats.filter(c => c !== 'Nature/Outdoor') : [...cats, 'Nature/Outdoor'] }); }} className={`filter-preset-link overflow ${filters.categories?.includes('Nature/Outdoor') ? 'active' : ''}`} data-filter="outdoors">Outdoors</button>
+              <button onClick={() => updateFilters({ ...filters, extendedCare: !filters.extendedCare })} className={`filter-preset-link ${filters.extendedCare ? 'active' : ''}`} data-filter="extended-care">
+                <svg className="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Extended Care
+              </button>
+              <button onClick={() => { const isActive = Number.isFinite(filters.priceMax) && filters.priceMax === 300; updateFilters({ ...filters, priceMax: isActive ? Infinity : 300 }); }} className={`filter-preset-link ${Number.isFinite(filters.priceMax) && filters.priceMax === 300 ? 'active' : ''}`} data-filter="under-300">
+                <svg className="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Under $300
+              </button>
+              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Sports') ? cats.filter(c => c !== 'Sports') : [...cats, 'Sports'] }); }} className={`filter-preset-link ${filters.categories?.includes('Sports') ? 'active' : ''}`} data-filter="sports">
+                <svg className="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9"/><path strokeLinecap="round" d="M12 3c2.5 3 2.5 9 0 12s-2.5 9 0 6M3 12h18"/></svg>
+                Sports
+              </button>
+              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Art') ? cats.filter(c => c !== 'Art') : [...cats, 'Art'] }); }} className={`filter-preset-link ${filters.categories?.includes('Art') ? 'active' : ''}`} data-filter="art">
+                <svg className="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"/></svg>
+                Art & Creative
+              </button>
+              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Science/STEM') ? cats.filter(c => c !== 'Science/STEM') : [...cats, 'Science/STEM'] }); }} className={`filter-preset-link ${filters.categories?.includes('Science/STEM') ? 'active' : ''}`} data-filter="stem">
+                <svg className="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5m4.75-11.396c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
+                STEM
+              </button>
+              <button onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes('Nature/Outdoor') ? cats.filter(c => c !== 'Nature/Outdoor') : [...cats, 'Nature/Outdoor'] }); }} className={`filter-preset-link ${filters.categories?.includes('Nature/Outdoor') ? 'active' : ''}`} data-filter="outdoors">
+                <svg className="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z"/></svg>
+                Outdoors
+              </button>
             </div>
             <div className="filter-controls">
               <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className={`filter-control-btn ${showAdvancedFilters ? 'active' : ''}`} aria-label={activeFilterCount > 0 ? `Filters, ${activeFilterCount} active` : 'Filters'} aria-expanded={showAdvancedFilters}>
                 <FilterIcon /><span>Filters</span>{activeFilterCount > 0 && (<span className="filter-count" aria-hidden="true">{activeFilterCount}</span>)}
-              </button>
-              <button onClick={() => navigate('/insights')} className="filter-control-btn" title="View camp data insights and visualizations">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                <span className="hidden sm:inline">Insights</span>
               </button>
               <select value={filters.sortByDistance ? 'distance-asc' : `${filters.sortBy || 'camp_name'}-${filters.sortDir || 'asc'}`} onChange={(e) => { const [field, dir] = e.target.value.split('-'); if (field === 'distance') { updateFilters({ ...filters, sortByDistance: true }); if (!userLocation) requestLocation(); } else { updateFilters({ ...filters, sortByDistance: false, sortBy: field, sortDir: dir }); } }} className="filter-sort-select" aria-label="Sort camps by">
                 <option value="camp_name-asc">A-Z</option>
