@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useFamily } from '../contexts/FamilyContext';
 import { useAuth } from '../contexts/AuthContext';
 import FamilyActivityFeed from './FamilyActivityFeed';
@@ -253,6 +253,7 @@ export default function FamilyWorkspace({ onClose }) {
                   setCurrentFamily(family);
                 }}
                 className="px-3 py-1.5 text-sm border border-sand-300 rounded-lg bg-white focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
+                aria-label="Select family"
               >
                 {families.map(family => (
                   <option key={family.id} value={family.id}>{family.name}</option>
@@ -345,8 +346,8 @@ export default function FamilyWorkspace({ onClose }) {
       {families.length > 0 && currentFamily && (
         <>
           {/* Tab navigation */}
-          <nav className="bg-white border-b border-sand-200 px-4">
-            <div className="flex gap-1 -mb-px overflow-x-auto">
+          <nav className="bg-white border-b border-sand-200 px-4" aria-label="Family workspace tabs">
+            <div className="flex gap-1 -mb-px overflow-x-auto" role="tablist">
               <TabButton
                 active={activeTab === 'activity'}
                 onClick={() => setActiveTab('activity')}
@@ -671,13 +672,15 @@ function TabButton({ active, onClick, icon, label, badge = 0 }) {
   return (
     <button
       onClick={onClick}
+      role="tab"
+      aria-selected={active}
       className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
         active
           ? 'border-ocean-500 text-ocean-700'
           : 'border-transparent text-earth-600 hover:text-earth-900 hover:border-sand-300'
       }`}
     >
-      <span className="w-4 h-4">{icon}</span>
+      <span className="w-4 h-4" aria-hidden="true">{icon}</span>
       {label}
       {badge > 0 && (
         <span className="px-1.5 py-0.5 text-xs font-medium text-white bg-coral-500 rounded-full">
@@ -690,9 +693,21 @@ function TabButton({ active, onClick, icon, label, badge = 0 }) {
 
 // Modal component
 function Modal({ onClose, title, children }) {
+  const modalRef = useRef(null);
+
+  // Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
       <div
+        ref={modalRef}
         className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
@@ -701,6 +716,7 @@ function Modal({ onClose, title, children }) {
           <button
             onClick={onClose}
             className="p-1 text-earth-400 hover:text-earth-600 transition-colors"
+            aria-label="Close"
           >
             <XIcon />
           </button>

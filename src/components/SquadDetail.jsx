@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSquads } from '../contexts/SquadsContext';
 import BrandIcon from './BrandIcon';
 import {
   getSquadCampInterests,
@@ -14,7 +15,8 @@ import {
 } from '../lib/supabase';
 
 export default function SquadDetail({ squad, onBack, onClose }) {
-  const { user, refreshSquads, refreshSquadNotifications } = useAuth();
+  const { user } = useAuth();
+  const { refreshSquads, refreshSquadNotifications } = useSquads();
   const [squadInterests, setSquadInterests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -480,7 +482,7 @@ function InviteModal({ inviteUrl, squadName, onCopy, onShare, copied, onClose })
 }
 
 function SquadSettings({ squad, membership, isOwner, onBack, onLeave, onDelete }) {
-  const { refreshSquads } = useAuth();
+  const { refreshSquads } = useSquads();
   const [revealIdentity, setRevealIdentity] = useState(membership?.reveal_identity || false);
   const [shareSchedule, setShareSchedule] = useState(membership?.share_schedule ?? true);
   const [saving, setSaving] = useState(false);

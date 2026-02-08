@@ -449,7 +449,7 @@
    RESPONSIVE - BUG-F-019: Fixed badge grid overflow on mobile
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .achievement-badges {
     padding: var(--space-4);
   }
@@ -501,7 +501,7 @@
 }
 
 /* Extra small screens */
-@media (max-width: 480px) {
+@media (max-width: 639px) {
   .achievement-badges {
     padding: var(--space-3);
     border-radius: var(--radius-lg);
@@ -551,7 +551,7 @@
 }
 
 /* Horizontal scroll variant for badge grid on mobile */
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .achievement-badges.scrollable-mobile .achievement-grid {
     display: flex;
     overflow-x: auto;

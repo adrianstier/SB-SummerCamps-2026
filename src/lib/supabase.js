@@ -112,7 +112,7 @@ export async function updateProfile(updates) {
     'work_hours_start',
     'work_hours_end',
     'summer_budget',
-    'blocked_weeks'  // BUG-D-001: Persist blocked weeks to profile for cross-device sync
+    'blocked_weeks'
   ];
 
   const safeUpdates = {};
@@ -710,7 +710,6 @@ export async function getSharedComparisonList(shareToken) {
 
   // SECURITY: Check if share token has expired
   if (data.share_expires_at && new Date(data.share_expires_at) < new Date()) {
-    console.warn('Share token has expired');
     return null;
   }
 

@@ -4,17 +4,25 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { FavoriteButton } from './FavoriteButton';
 
-// Mock the AuthContext
+// Mock the AuthContext (core auth fields only)
 const mockAuthContext = {
   user: null,
   isConfigured: true,
-  isFavorited: vi.fn(() => false),
-  refreshFavorites: vi.fn(),
   signIn: vi.fn()
 };
 
 vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext
+}));
+
+// Mock the FavoritesContext (split from AuthContext)
+const mockFavoritesContext = {
+  isFavorited: vi.fn(() => false),
+  refreshFavorites: vi.fn()
+};
+
+vi.mock('../contexts/FavoritesContext', () => ({
+  useFavorites: () => mockFavoritesContext
 }));
 
 // Mock the supabase functions
@@ -29,8 +37,9 @@ describe('FavoriteButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAuthContext.user = null;
-    mockAuthContext.isFavorited = vi.fn(() => false);
     mockAuthContext.isConfigured = true;
+    mockFavoritesContext.isFavorited = vi.fn(() => false);
+    mockFavoritesContext.refreshFavorites = vi.fn();
   });
 
   describe('rendering', () => {
@@ -42,7 +51,7 @@ describe('FavoriteButton', () => {
     });
 
     it('has correct title when not favorited', () => {
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
       render(<FavoriteButton campId="camp-1" />);
 
       const button = screen.getByRole('button');
@@ -51,7 +60,7 @@ describe('FavoriteButton', () => {
 
     it('has correct title when favorited', () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
       render(<FavoriteButton campId="camp-1" />);
 
       const button = screen.getByRole('button');
@@ -102,7 +111,7 @@ describe('FavoriteButton', () => {
     });
 
     it('shows Save label when not favorited', () => {
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
       render(<FavoriteButton campId="camp-1" showLabel />);
 
       expect(screen.getByText('Save')).toBeInTheDocument();
@@ -110,7 +119,7 @@ describe('FavoriteButton', () => {
 
     it('shows Saved label when favorited', () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
       render(<FavoriteButton campId="camp-1" showLabel />);
 
       expect(screen.getByText('Saved')).toBeInTheDocument();
@@ -119,7 +128,7 @@ describe('FavoriteButton', () => {
 
   describe('visual states', () => {
     it('has outline heart when not favorited', () => {
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
       render(<FavoriteButton campId="camp-1" />);
 
       const svg = document.querySelector('svg');
@@ -129,7 +138,7 @@ describe('FavoriteButton', () => {
 
     it('has filled heart when favorited', () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
       render(<FavoriteButton campId="camp-1" />);
 
       const svg = document.querySelector('svg');
@@ -139,7 +148,7 @@ describe('FavoriteButton', () => {
 
     it('applies terra color style when favorited', () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
       render(<FavoriteButton campId="camp-1" />);
 
       const button = screen.getByRole('button');
@@ -189,7 +198,7 @@ describe('FavoriteButton', () => {
 
     it('calls addFavorite when clicking unfavorited', async () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
 
       render(<FavoriteButton campId="camp-123" />);
 
@@ -201,7 +210,7 @@ describe('FavoriteButton', () => {
 
     it('calls removeFavorite when clicking favorited', async () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
 
       render(<FavoriteButton campId="camp-456" />);
 
@@ -213,7 +222,7 @@ describe('FavoriteButton', () => {
 
     it('refreshes favorites after adding', async () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
 
       render(<FavoriteButton campId="camp-1" />);
 
@@ -221,13 +230,13 @@ describe('FavoriteButton', () => {
       await userEvent.click(button);
 
       await waitFor(() => {
-        expect(mockAuthContext.refreshFavorites).toHaveBeenCalled();
+        expect(mockFavoritesContext.refreshFavorites).toHaveBeenCalled();
       });
     });
 
     it('refreshes favorites after removing', async () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
 
       render(<FavoriteButton campId="camp-1" />);
 
@@ -235,7 +244,7 @@ describe('FavoriteButton', () => {
       await userEvent.click(button);
 
       await waitFor(() => {
-        expect(mockAuthContext.refreshFavorites).toHaveBeenCalled();
+        expect(mockFavoritesContext.refreshFavorites).toHaveBeenCalled();
       });
     });
   });
@@ -282,7 +291,7 @@ describe('FavoriteButton', () => {
   describe('animation', () => {
     it('applies animation class on toggle', async () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
 
       render(<FavoriteButton campId="camp-1" />);
 
@@ -292,7 +301,7 @@ describe('FavoriteButton', () => {
       expect(button.className).not.toContain('is-favorited');
 
       // After click with isFav true, animating class is applied
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
       await userEvent.click(button);
 
       // The component applies 'is-favorited' class during animation when isFav is true
@@ -303,7 +312,7 @@ describe('FavoriteButton', () => {
   describe('error handling', () => {
     it('handles addFavorite error gracefully', async () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
       addFavorite.mockRejectedValue(new Error('Network error'));
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -322,7 +331,7 @@ describe('FavoriteButton', () => {
 
     it('handles removeFavorite error gracefully', async () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
       removeFavorite.mockRejectedValue(new Error('Network error'));
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -341,7 +350,7 @@ describe('FavoriteButton', () => {
 
     it('re-enables button after error', async () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
       addFavorite.mockRejectedValue(new Error('Network error'));
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -362,7 +371,7 @@ describe('FavoriteButton', () => {
   describe('hover styles', () => {
     it('changes color on hover when not favorited', () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
 
       render(<FavoriteButton campId="camp-1" />);
 
@@ -377,7 +386,7 @@ describe('FavoriteButton', () => {
 
     it('resets color on mouse leave when not favorited', () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(false);
+      mockFavoritesContext.isFavorited.mockReturnValue(false);
 
       render(<FavoriteButton campId="camp-1" />);
 
@@ -391,7 +400,7 @@ describe('FavoriteButton', () => {
 
     it('does not change color on hover when favorited', () => {
       mockAuthContext.user = { id: 'user-1' };
-      mockAuthContext.isFavorited.mockReturnValue(true);
+      mockFavoritesContext.isFavorited.mockReturnValue(true);
 
       render(<FavoriteButton campId="camp-1" />);
 

@@ -9,9 +9,14 @@ const mockOnScheduleCamp = vi.fn();
 const mockOnCompareCamps = vi.fn();
 
 let mockAuthContext = {};
+let mockFavoritesCtx = {};
 
 vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
+}));
+
+vi.mock('../contexts/FavoritesContext', () => ({
+  useFavorites: () => mockFavoritesCtx,
 }));
 
 vi.mock('../lib/supabase', () => ({
@@ -35,12 +40,14 @@ const mockCamps = [
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockAuthContext = {
+  mockFavoritesCtx = {
     favorites: [
       { id: 'fav-1', camp_id: 'camp-1', child_id: null, notes: null },
       { id: 'fav-2', camp_id: 'camp-2', child_id: 'child-1', notes: 'Great for Emma', children: { name: 'Emma', color: '#ec4899' } },
     ],
     refreshFavorites: mockRefreshFavorites,
+  };
+  mockAuthContext = {
     children: [
       { id: 'child-1', name: 'Emma' },
       { id: 'child-2', name: 'Jake' },
@@ -61,7 +68,7 @@ describe('Wishlist', () => {
     });
 
     it('shows singular when 1 camp', () => {
-      mockAuthContext.favorites = [{ id: 'fav-1', camp_id: 'camp-1', child_id: null }];
+      mockFavoritesCtx.favorites = [{ id: 'fav-1', camp_id: 'camp-1', child_id: null }];
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
       expect(screen.getByText('1 camp saved')).toBeInTheDocument();
     });
@@ -74,7 +81,10 @@ describe('Wishlist', () => {
 
     it('displays camp details (category, ages, price)', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText(/Beach.*8-14.*\$400-500/)).toBeInTheDocument();
+      // Category, ages, and price are rendered in separate span elements
+      expect(screen.getByText('Beach')).toBeInTheDocument();
+      expect(screen.getByText('Ages 8-14')).toBeInTheDocument();
+      expect(screen.getByText('$400-500/wk')).toBeInTheDocument();
     });
 
     it('shows child assignment dropdown for favorites with child', () => {
@@ -110,27 +120,33 @@ describe('Wishlist', () => {
 
   describe('empty state', () => {
     it('shows empty message when no favorites', () => {
-      mockAuthContext.favorites = [];
+      mockFavoritesCtx.favorites = [];
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('No camps saved yet')).toBeInTheDocument();
+      expect(screen.getByText('No favorites yet')).toBeInTheDocument();
     });
 
     it('shows helper text in empty state', () => {
-      mockAuthContext.favorites = [];
+      mockFavoritesCtx.favorites = [];
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('Tap the heart on any camp to save it here')).toBeInTheDocument();
+      expect(screen.getByText('Save camps you are considering and organize them here.')).toBeInTheDocument();
     });
   });
 
   describe('filtering by child', () => {
     it('shows child filter when children exist', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('All children')).toBeInTheDocument();
+      // Child filter is now pill-shaped buttons instead of a dropdown
+      expect(screen.getByText('All')).toBeInTheDocument();
     });
 
     it('filters favorites by selected child', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      fireEvent.change(screen.getByDisplayValue('All children'), { target: { value: 'child-1' } });
+      // Child filter is now pill buttons; click the child name pill to filter
+      // "Emma" appears in both the pill button and child assignment dropdowns,
+      // so target the button specifically via the filter group
+      const filterGroup = screen.getByRole('group', { name: 'Filter by child' });
+      const emmaPill = filterGroup.querySelector('button[aria-pressed="false"]');
+      fireEvent.click(emmaPill);
       // Should only show camp-2 (assigned to child-1)
       expect(screen.queryByText('Surf Camp')).not.toBeInTheDocument();
       expect(screen.getByText('Art Camp')).toBeInTheDocument();
@@ -146,12 +162,16 @@ describe('Wishlist', () => {
   describe('sorting', () => {
     it('defaults to registration sort', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByDisplayValue('Registration Date')).toBeInTheDocument();
+      // Sort is now pill-shaped segmented controls instead of a dropdown
+      const registrationPill = screen.getByText('Registration');
+      expect(registrationPill).toBeInTheDocument();
+      expect(registrationPill).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('can sort by name', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      fireEvent.change(screen.getByDisplayValue('Registration Date'), { target: { value: 'name' } });
+      // Sort is now pill buttons; click "Name" to sort
+      fireEvent.click(screen.getByText('Name'));
       const campNames = screen.getAllByText(/Camp/);
       // Art Camp should be before Surf Camp alphabetically
       expect(campNames[0].textContent).toContain('Art');
@@ -159,7 +179,8 @@ describe('Wishlist', () => {
 
     it('can sort by price', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      fireEvent.change(screen.getByDisplayValue('Registration Date'), { target: { value: 'price' } });
+      // Sort is now pill buttons; click "Price" to sort
+      fireEvent.click(screen.getByText('Price'));
       const campElements = screen.getAllByText(/Camp/);
       // Art Camp ($250) should be before Surf Camp ($400)
       expect(campElements[0].textContent).toContain('Art');
@@ -200,9 +221,9 @@ describe('Wishlist', () => {
   });
 
   describe('notes editing', () => {
-    it('shows "+ Add note" for items without notes', () => {
+    it('shows "Add note" for items without notes', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      expect(screen.getByText('+ Add note')).toBeInTheDocument();
+      expect(screen.getByText('Add note')).toBeInTheDocument();
     });
 
     it('shows "Edit note" for items with notes', () => {
@@ -210,9 +231,9 @@ describe('Wishlist', () => {
       expect(screen.getByText('Edit note')).toBeInTheDocument();
     });
 
-    it('shows textarea when "+ Add note" clicked', () => {
+    it('shows textarea when "Add note" clicked', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      fireEvent.click(screen.getByText('+ Add note'));
+      fireEvent.click(screen.getByText('Add note'));
       expect(screen.getByPlaceholderText('Add notes about this camp...')).toBeInTheDocument();
     });
 
@@ -224,7 +245,7 @@ describe('Wishlist', () => {
 
     it('calls updateFavorite on Save', async () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      fireEvent.click(screen.getByText('+ Add note'));
+      fireEvent.click(screen.getByText('Add note'));
       fireEvent.change(screen.getByPlaceholderText('Add notes about this camp...'), { target: { value: 'New note' } });
       fireEvent.click(screen.getByText('Save'));
 
@@ -236,7 +257,7 @@ describe('Wishlist', () => {
 
     it('hides textarea on Cancel', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} />);
-      fireEvent.click(screen.getByText('+ Add note'));
+      fireEvent.click(screen.getByText('Add note'));
       fireEvent.click(screen.getAllByText('Cancel')[0]);
       expect(screen.queryByPlaceholderText('Add notes about this camp...')).not.toBeInTheDocument();
     });
@@ -254,14 +275,14 @@ describe('Wishlist', () => {
       const checkboxes = screen.getAllByRole('checkbox');
       fireEvent.click(checkboxes[0]);
       fireEvent.click(checkboxes[1]);
-      expect(screen.getByText('Compare 2 Camps')).toBeInTheDocument();
+      expect(screen.getByText(/Compare\s*2/)).toBeInTheDocument();
     });
 
     it('does not show Compare button with fewer than 2 selected', () => {
       render(<Wishlist camps={mockCamps} onClose={mockOnClose} onCompareCamps={mockOnCompareCamps} />);
       const checkboxes = screen.getAllByRole('checkbox');
       fireEvent.click(checkboxes[0]);
-      expect(screen.queryByText(/Compare \d+ Camps/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Compare\s*\d+/)).not.toBeInTheDocument();
     });
 
     it('calls onCompareCamps with selected camp IDs', () => {
@@ -269,7 +290,7 @@ describe('Wishlist', () => {
       const checkboxes = screen.getAllByRole('checkbox');
       fireEvent.click(checkboxes[0]);
       fireEvent.click(checkboxes[1]);
-      fireEvent.click(screen.getByText('Compare 2 Camps'));
+      fireEvent.click(screen.getByText(/Compare\s*2/));
       expect(mockOnCompareCamps).toHaveBeenCalledWith(['camp-1', 'camp-2']);
     });
 
@@ -279,11 +300,11 @@ describe('Wishlist', () => {
       fireEvent.click(checkboxes[0]);
       fireEvent.click(checkboxes[1]);
       fireEvent.click(checkboxes[0]); // deselect
-      expect(screen.queryByText(/Compare \d+ Camps/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Compare\s*\d+/)).not.toBeInTheDocument();
     });
 
     it('limits selection to 4 camps max', () => {
-      mockAuthContext.favorites = [
+      mockFavoritesCtx.favorites = [
         { id: 'fav-1', camp_id: 'camp-1' },
         { id: 'fav-2', camp_id: 'camp-2' },
         { id: 'fav-3', camp_id: 'camp-3' },
@@ -299,7 +320,7 @@ describe('Wishlist', () => {
       const checkboxes = screen.getAllByRole('checkbox');
       checkboxes.forEach(cb => fireEvent.click(cb));
       // Should only have 4 selected
-      expect(screen.getByText('Compare 4 Camps')).toBeInTheDocument();
+      expect(screen.getByText(/Compare\s*4/)).toBeInTheDocument();
     });
   });
 
@@ -315,7 +336,7 @@ describe('Wishlist', () => {
     });
 
     it('shows TBD when no prices', () => {
-      mockAuthContext.favorites = [{ id: 'fav-1', camp_id: 'camp-x' }];
+      mockFavoritesCtx.favorites = [{ id: 'fav-1', camp_id: 'camp-x' }];
       const campsNoPrice = [{ id: 'camp-x', camp_name: 'Free Camp', category: 'Other', ages: '5-12' }];
       render(<Wishlist camps={campsNoPrice} onClose={mockOnClose} />);
       expect(screen.getByText(/TBD/)).toBeInTheDocument();

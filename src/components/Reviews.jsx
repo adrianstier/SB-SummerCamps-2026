@@ -1,56 +1,72 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getReviews, getCampRatings, addReview, voteReviewHelpful, removeReviewVote } from '../lib/supabase';
 import BrandIcon from './BrandIcon';
+import './Reviews.css';
+
+// Helper to pick an avatar color class based on the first letter of the name
+function getAvatarClass(name) {
+  if (!name) return 'review-avatar-default';
+  const letter = name.charAt(0).toUpperCase();
+  if (letter <= 'F') return 'review-avatar-a';
+  if (letter <= 'L') return 'review-avatar-b';
+  if (letter <= 'R') return 'review-avatar-c';
+  if (letter <= 'V') return 'review-avatar-d';
+  return 'review-avatar-default';
+}
 
 // Star Rating Component
 function StarRating({ rating, onChange, readonly = false, size = 'md' }) {
   const [hover, setHover] = useState(0);
-  const sizeClass = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-8 h-8' : 'w-6 h-6';
+  const sizeMap = { sm: 16, md: 22, lg: 32 };
+  const px = sizeMap[size] || sizeMap.md;
 
   return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          disabled={readonly}
-          onClick={() => !readonly && onChange?.(star)}
-          onMouseEnter={() => !readonly && setHover(star)}
-          onMouseLeave={() => !readonly && setHover(0)}
-          className={`${readonly ? 'cursor-default' : 'cursor-pointer'} transition-transform hover:scale-110`}
-          aria-label={`Rate ${star} out of 5 stars`}
-        >
-          <svg
-            className={sizeClass}
-            fill={(hover || rating) >= star ? 'currentColor' : 'none'}
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            style={{ color: (hover || rating) >= star ? 'var(--sun-400)' : 'var(--sand-300)' }}
+    <div className="star-rating">
+      {[1, 2, 3, 4, 5].map((star) => {
+        const isFilled = (hover || rating) >= star;
+        return (
+          <button
+            key={star}
+            type="button"
+            disabled={readonly}
+            onClick={() => !readonly && onChange?.(star)}
+            onMouseEnter={() => !readonly && setHover(star)}
+            onMouseLeave={() => !readonly && setHover(0)}
+            className={`star-rating-btn ${isFilled ? 'star-filled' : 'star-empty'}`}
+            aria-label={`Rate ${star} out of 5 stars`}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-          </svg>
-        </button>
-      ))}
+            <svg
+              width={px}
+              height={px}
+              fill={isFilled ? 'currentColor' : 'none'}
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={isFilled ? 0 : 1.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+            </svg>
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-// Rating Bar Component
+// Rating Bar Component (Amazon-style)
 function RatingBar({ label, rating, maxRating = 5 }) {
   const percentage = (rating / maxRating) * 100;
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm w-20" style={{ color: 'var(--earth-700)' }}>{label}</span>
-      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--sand-100)' }}>
+    <div className="reviews-rating-bar">
+      <span className="reviews-rating-bar-label">{label}</span>
+      <div className="reviews-rating-bar-track">
         <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${percentage}%`, background: 'var(--sun-400)' }}
+          className="reviews-rating-bar-fill"
+          style={{ width: `${percentage}%` }}
         />
       </div>
-      <span className="text-sm font-medium w-8" style={{ color: 'var(--earth-800)' }}>{rating?.toFixed(1) || '—'}</span>
+      <span className="reviews-rating-bar-value">{rating?.toFixed(1) || '\u2014'}</span>
     </div>
   );
 }
@@ -74,18 +90,18 @@ export function ReviewsSummary({ campId }) {
   }
 
   return (
-    <div className="p-4 rounded-xl" style={{ background: 'var(--sun-50)', border: '1px solid var(--sun-200)' }}>
-      <div className="flex items-center gap-4 mb-4">
-        <div className="text-center">
-          <div className="text-4xl font-bold" style={{ color: 'var(--earth-800)' }}>
+    <div className="reviews-summary">
+      <div className="reviews-summary-header">
+        <div className="reviews-summary-score">
+          <div className="reviews-summary-score-number">
             {ratings.avg_rating}
           </div>
           <StarRating rating={parseFloat(ratings.avg_rating)} readonly size="sm" />
-          <div className="text-sm mt-1" style={{ color: 'var(--sand-400)' }}>
+          <div className="reviews-summary-score-label">
             {ratings.review_count} review{ratings.review_count !== 1 ? 's' : ''}
           </div>
         </div>
-        <div className="flex-1 space-y-2">
+        <div className="reviews-summary-bars">
           <RatingBar label="Overall" rating={ratings.avg_rating} />
           <RatingBar label="Value" rating={ratings.avg_value} />
           <RatingBar label="Staff" rating={ratings.avg_staff} />
@@ -93,9 +109,11 @@ export function ReviewsSummary({ campId }) {
           <RatingBar label="Safety" rating={ratings.avg_safety} />
         </div>
       </div>
-      <div className="flex items-center justify-center gap-2 pt-3" style={{ borderTop: '1px solid var(--sun-200)' }}>
-        <span className="text-2xl"><BrandIcon name="thumbs-up" size={16} /></span>
-        <span className="font-medium" style={{ color: 'var(--sage-600)' }}>
+      <div className="reviews-recommend">
+        <span className="reviews-recommend-badge">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+          </svg>
           {ratings.recommend_percent}% would recommend
         </span>
       </div>
@@ -121,32 +139,35 @@ function ReviewCard({ review, onHelpful }) {
 
   const reviewDate = new Date(review.created_at);
   const dateStr = reviewDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const reviewerName = review.profiles?.full_name || 'Anonymous';
+  const avatarClass = getAvatarClass(reviewerName);
 
   return (
-    <div className="p-5 rounded-xl" style={{ background: 'var(--sand-50)', border: '1px solid var(--sand-200)' }}>
+    <div className="review-card">
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          {review.profiles?.avatar_url ? (
-            <img
-              src={review.profiles.avatar_url}
-              alt=""
-              className="w-10 h-10 rounded-full"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--ocean-100)' }}>
-              <span className="text-lg">👤</span>
-            </div>
-          )}
-          <div>
-            <p className="font-medium" style={{ color: 'var(--earth-800)' }}>
-              {review.profiles?.full_name || 'Anonymous'}
-            </p>
-            <p className="text-xs" style={{ color: 'var(--sand-400)' }}>
+      <div className="review-card-header">
+        <div className="review-card-author">
+          <div className={`review-card-avatar ${avatarClass}`}>
+            {review.profiles?.avatar_url ? (
+              <img
+                src={review.profiles.avatar_url}
+                alt=""
+              />
+            ) : (
+              <div className="review-card-avatar-initial">
+                {reviewerName.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div className="review-card-author-info">
+            <span className="review-card-author-name">
+              {reviewerName}
+            </span>
+            <span className="review-card-author-meta">
               {dateStr}
-              {review.year_attended && ` • Attended ${review.year_attended}`}
-              {review.child_age_at_time && ` • Child age ${review.child_age_at_time}`}
-            </p>
+              {review.year_attended && ` \u00B7 Attended ${review.year_attended}`}
+              {review.child_age_at_time && ` \u00B7 Child age ${review.child_age_at_time}`}
+            </span>
           </div>
         </div>
         <StarRating rating={review.overall_rating} readonly size="sm" />
@@ -154,36 +175,34 @@ function ReviewCard({ review, onHelpful }) {
 
       {/* Title */}
       {review.title && (
-        <h4 className="font-semibold mb-2" style={{ color: 'var(--earth-800)' }}>
+        <h4 className="review-card-title">
           {review.title}
         </h4>
       )}
 
       {/* Review text */}
-      <p className="text-sm mb-4" style={{ color: 'var(--earth-700)', lineHeight: 1.6 }}>
+      <p className="review-card-body">
         {review.review_text}
       </p>
 
       {/* Would recommend */}
       {review.would_recommend && (
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-sm px-3 py-1 rounded-full" style={{ background: 'var(--sage-100)', color: 'var(--sage-600)' }}>
-            <BrandIcon name="check" size={14} /> Would recommend
-          </span>
-        </div>
+        <span className="review-recommend-pill">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          Would recommend
+        </span>
       )}
 
       {/* Helpful button */}
-      <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--sand-200)' }}>
+      <div className="review-card-footer">
         <button
           onClick={handleHelpful}
           disabled={!user || voted}
-          className={`flex items-center gap-2 text-sm transition-colors ${
-            voted ? 'text-sage-600' : 'text-sand-400 hover:text-ocean-600'
-          }`}
-          style={{ color: voted ? 'var(--sage-600)' : undefined }}
+          className={`review-helpful-btn ${voted ? 'voted' : ''}`}
         >
-          <svg className="w-4 h-4" fill={voted ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg fill={voted ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
           </svg>
           Helpful ({review.helpful_count})
@@ -247,30 +266,28 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
 
   if (!user) {
     return (
-      <div className="text-center py-8">
-        <span className="text-4xl block mb-3"><BrandIcon name="writing" size={36} /></span>
-        <h3 className="font-semibold mb-2" style={{ color: 'var(--earth-800)' }}>
-          Sign in to write a review
-        </h3>
-        <p className="text-sm" style={{ color: 'var(--sand-400)' }}>
-          Help other families make decisions
-        </p>
+      <div className="reviews-signin">
+        <div className="reviews-signin-icon">
+          <BrandIcon name="writing" size={28} />
+        </div>
+        <h3>Sign in to write a review</h3>
+        <p>Help other families make decisions</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center mb-6">
-        <h3 className="heading-md">Review {campName}</h3>
-        <p className="body-sm text-muted mt-1">Help other families make decisions</p>
+    <form onSubmit={handleSubmit} className="review-form">
+      <div className="review-form-header">
+        <h3>Review {campName}</h3>
+        <p>Help other families make decisions</p>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
 
       {/* Overall Rating */}
-      <div>
-        <label className="label">Overall Rating *</label>
+      <div className="review-form-rating-group">
+        <label>Overall Rating *</label>
         <StarRating
           rating={form.overall_rating}
           onChange={(rating) => setForm({ ...form, overall_rating: rating })}
@@ -279,15 +296,15 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
       </div>
 
       {/* Detailed Ratings */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="review-form-ratings-grid">
         {[
           { key: 'value_rating', label: 'Value for Money' },
           { key: 'staff_rating', label: 'Staff Quality' },
           { key: 'activities_rating', label: 'Activities' },
           { key: 'safety_rating', label: 'Safety' }
         ].map(({ key, label }) => (
-          <div key={key}>
-            <label className="label">{label}</label>
+          <div key={key} className="review-form-rating-group">
+            <label>{label}</label>
             <StarRating
               rating={form[key]}
               onChange={(rating) => setForm({ ...form, [key]: rating })}
@@ -298,37 +315,37 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
       </div>
 
       {/* Title */}
-      <div>
-        <label className="label">Review Title</label>
+      <div className="review-form-field">
+        <label>Review Title</label>
         <input
           type="text"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           placeholder="Sum up your experience in a few words"
-          className="input"
+          className="review-form-input"
         />
       </div>
 
       {/* Review Text */}
-      <div>
-        <label className="label">Your Review *</label>
+      <div className="review-form-field">
+        <label>Your Review *</label>
         <textarea
           value={form.review_text}
           onChange={(e) => setForm({ ...form, review_text: e.target.value })}
           placeholder="What did you like? What could be improved? Would you recommend this camp?"
           rows={5}
-          className="textarea"
+          className="review-form-input review-form-textarea"
         />
       </div>
 
       {/* Context */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="label">Year Attended</label>
+      <div className="review-form-context-grid">
+        <div className="review-form-field">
+          <label>Year Attended</label>
           <select
             value={form.year_attended}
             onChange={(e) => setForm({ ...form, year_attended: parseInt(e.target.value) })}
-            className="select"
+            className="review-form-input"
           >
             {[...Array(5)].map((_, i) => {
               const year = new Date().getFullYear() - i;
@@ -336,12 +353,12 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
             })}
           </select>
         </div>
-        <div>
-          <label className="label">Child's Age at Time</label>
+        <div className="review-form-field">
+          <label>Child's Age at Time</label>
           <select
             value={form.child_age_at_time}
             onChange={(e) => setForm({ ...form, child_age_at_time: e.target.value })}
-            className="select"
+            className="review-form-input"
           >
             <option value="">Select age</option>
             {[...Array(16)].map((_, i) => (
@@ -352,21 +369,20 @@ export function WriteReviewForm({ campId, campName, onClose, onSuccess }) {
       </div>
 
       {/* Would Recommend */}
-      <div className="card flex items-center gap-3 p-4">
+      <div className="review-form-recommend">
         <input
           type="checkbox"
           id="would_recommend"
           checked={form.would_recommend}
           onChange={(e) => setForm({ ...form, would_recommend: e.target.checked })}
-          className="w-5 h-5 rounded"
         />
-        <label htmlFor="would_recommend" className="heading-sm">
+        <label htmlFor="would_recommend">
           I would recommend this camp to other families
         </label>
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-3 pt-4">
+      <div className="review-form-actions">
         <button type="button" onClick={onClose} className="btn-secondary">
           Cancel
         </button>
@@ -385,7 +401,6 @@ export function ReviewsList({ campId, campName }) {
   const [loading, setLoading] = useState(true);
   const [showWriteForm, setShowWriteForm] = useState(false);
 
-  // BUG-B-011: Wrap loadReviews in useCallback to prevent unnecessary re-renders
   const loadReviews = useCallback(async () => {
     setLoading(true);
     const data = await getReviews(campId);
@@ -397,11 +412,21 @@ export function ReviewsList({ campId, campName }) {
     loadReviews();
   }, [loadReviews]);
 
+  // Escape key closes write review modal
+  useEffect(() => {
+    if (!showWriteForm) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShowWriteForm(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showWriteForm]);
+
   const userHasReviewed = reviews.some(r => r.user_id === user?.id);
 
   if (loading) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8" aria-busy="true" aria-live="polite">
         <div className="loader mx-auto mb-4"></div>
         <p style={{ color: 'var(--sand-400)' }}>Loading reviews...</p>
       </div>
@@ -411,7 +436,7 @@ export function ReviewsList({ campId, campName }) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="reviews-list-header">
         <h3 className="heading-md">Reviews ({reviews.length})</h3>
         {user && !userHasReviewed && (
           <button
@@ -428,7 +453,7 @@ export function ReviewsList({ campId, campName }) {
 
       {/* Write Review Modal */}
       {showWriteForm && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Write a review">
           <div className="modal modal-md" style={{ padding: 'var(--space-6)' }}>
             <WriteReviewForm
               campId={campId}
@@ -448,14 +473,14 @@ export function ReviewsList({ campId, campName }) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 rounded-xl" style={{ background: 'var(--sand-50)' }}>
-          <span className="text-4xl block mb-3"><BrandIcon name="pencil" size={20} /></span>
-          <h4 className="font-medium mb-2" style={{ color: 'var(--earth-800)' }}>
-            No reviews yet
-          </h4>
-          <p className="text-sm mb-4" style={{ color: 'var(--sand-400)' }}>
-            Be the first to share your experience!
-          </p>
+        <div className="reviews-empty">
+          <div className="reviews-empty-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <h4>No reviews yet</h4>
+          <p>Be the first to share your experience.</p>
           {user && (
             <button
               onClick={() => setShowWriteForm(true)}

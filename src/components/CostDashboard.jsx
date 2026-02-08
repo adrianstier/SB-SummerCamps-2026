@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSchedule } from '../contexts/ScheduleContext';
 
 export function CostDashboard({ camps, onClose }) {
-  const { profile, children, scheduledCamps } = useAuth();
+  const { profile, children } = useAuth();
+  const { scheduledCamps } = useSchedule();
 
   const budget = profile?.summer_budget || 0;
 

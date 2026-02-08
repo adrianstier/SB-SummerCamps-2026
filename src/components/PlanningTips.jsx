@@ -96,7 +96,7 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
     );
   }, [relevantTips, dismissedTips, excludeTips]);
 
-  // BUG-F-007: Reset currentIndex when it's out of bounds after filtering
+  // Reset currentIndex when it's out of bounds after filtering
   useEffect(() => {
     if (visibleTips.length > 0 && currentIndex >= visibleTips.length) {
       setCurrentIndex(0);
@@ -110,7 +110,6 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
 
   const handleDismiss = useCallback((tipId) => {
     setDismissedTips(prev => {
-      // BUG-F-007: Prevent duplicate dismissals
       if (prev.includes(tipId)) return prev;
       return [...prev, tipId];
     });
@@ -119,7 +118,6 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
   }, []);
 
   const handleNext = useCallback(() => {
-    // BUG-F-007: Only cycle through visible (non-dismissed) tips
     if (visibleTips.length > 1) {
       setCurrentIndex(prev => (prev + 1) % visibleTips.length);
     }
@@ -129,7 +127,6 @@ export const PlanningTipsContainer = memo(function PlanningTipsContainer({
   if (visibleTips.length === 0) return null;
 
   const tipsToShow = visibleTips.slice(0, maxTips);
-  // BUG-F-007: Ensure we get a valid index within bounds
   const safeIndex = visibleTips.length > 0 ? currentIndex % visibleTips.length : 0;
   const tip = tipsToShow[safeIndex % tipsToShow.length];
 

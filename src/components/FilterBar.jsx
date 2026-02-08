@@ -36,7 +36,7 @@ const SearchBar = memo(function SearchBar({ value, onChange, onClear, placeholde
 
   return (
     <div className="filter-search">
-      <svg className="filter-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className="filter-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <circle cx="11" cy="11" r="8" />
         <path d="m21 21-4.35-4.35" />
       </svg>
@@ -168,6 +168,7 @@ const MoreFiltersPanel = memo(function MoreFiltersPanel({
   const haptic = useHaptic();
   const panelRef = useRef(null);
 
+  // Focus trap and keyboard handling for the panel
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -190,6 +191,29 @@ const MoreFiltersPanel = memo(function MoreFiltersPanel({
     };
   }, [isOpen, onClose]);
 
+  // Focus trap: keep focus within the panel when open
+  useEffect(() => {
+    if (!isOpen || !panelRef.current) return;
+    const panel = panelRef.current;
+    const focusable = panel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first?.focus();
+
+    const handleTab = (e) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+    panel.addEventListener('keydown', handleTab);
+    return () => panel.removeEventListener('keydown', handleTab);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleClose = () => {
@@ -199,8 +223,8 @@ const MoreFiltersPanel = memo(function MoreFiltersPanel({
 
   return (
     <>
-      <div className="filter-overlay" onClick={handleClose} />
-      <aside ref={panelRef} className="filter-panel" role="dialog" aria-label="More filters">
+      <div className="filter-overlay" onClick={handleClose} aria-hidden="true" />
+      <aside ref={panelRef} className="filter-panel" role="dialog" aria-modal="true" aria-label="More filters">
         <header className="filter-panel-header">
           <h2 className="filter-panel-title">More Filters</h2>
           <button
@@ -442,6 +466,7 @@ export const FilterBar = memo(function FilterBar({
           onClick={handleMoreFilters}
           className="filter-more-btn"
           type="button"
+          aria-label={`More filters${activeFiltersCount > 0 ? ` (${activeFiltersCount} active)` : ''}`}
         >
           <span>More</span>
           {activeFiltersCount > 0 && (
@@ -459,7 +484,7 @@ export const FilterBar = memo(function FilterBar({
 
       {/* Results Count */}
       {resultsCount !== undefined && (
-        <div className="filter-results">
+        <div className="filter-results" aria-live="polite" aria-atomic="true">
           <span className="filter-results-count">{resultsCount}</span>
           <span className="filter-results-label">camps</span>
         </div>

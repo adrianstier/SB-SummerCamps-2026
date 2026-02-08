@@ -2,6 +2,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
+import { MemoryRouter } from 'react-router-dom';
+
+// Mock navigate function to capture route navigation calls
+const mockNavigate = vi.fn();
+
+// Mock useNavigate from react-router-dom while keeping MemoryRouter and other exports
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 // Mock camp data
 const mockCamps = [
@@ -117,6 +130,148 @@ vi.mock('./contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext
 }));
 
+vi.mock('./contexts/FavoritesContext', () => ({
+  FavoritesProvider: ({ children }) => children,
+  useFavorites: () => ({
+    favorites: mockAuthContext.favorites || [],
+    campPopularity: {},
+    refreshFavorites: mockAuthContext.refreshFavorites || vi.fn(),
+    refreshCampPopularity: vi.fn(),
+    isFavorited: mockAuthContext.isFavorited || vi.fn(() => false),
+  }),
+}));
+
+vi.mock('./contexts/ScheduleContext', () => ({
+  ScheduleProvider: ({ children }) => children,
+  useSchedule: () => ({
+    scheduledCamps: mockAuthContext.scheduledCamps || [],
+    refreshSchedule: mockAuthContext.refreshSchedule || vi.fn(),
+    getScheduleForWeek: vi.fn(() => []),
+    getTotalCost: vi.fn(() => 0),
+    getCoverageGaps: vi.fn(() => []),
+  }),
+}));
+
+vi.mock('./contexts/SquadsContext', () => ({
+  SquadsProvider: ({ children }) => children,
+  useSquads: () => ({
+    squads: [],
+    squadNotifications: [],
+    squadUnreadCount: 0,
+    campInterests: [],
+    friendInterestCounts: {},
+    refreshSquads: vi.fn(),
+    refreshSquadNotifications: vi.fn(),
+    refreshCampInterests: vi.fn(),
+    refreshFriendInterests: vi.fn(),
+  }),
+}));
+
+vi.mock('./contexts/NotificationsContext', () => ({
+  NotificationsProvider: ({ children }) => children,
+  useNotifications: () => ({
+    notifications: [],
+    unreadCount: 0,
+    refreshNotifications: vi.fn(),
+  }),
+}));
+
+// Mutable camps context override for per-test customization
+let mockCampsContextOverride = null;
+
+vi.mock('./contexts/CampsContext', () => ({
+  CampsProvider: ({ children }) => children,
+  useCamps: () => {
+    if (mockCampsContextOverride) return mockCampsContextOverride;
+    return {
+      camps: mockCamps,
+      categories: ['Beach/Surf', 'Art', 'Sports', 'Science/STEM', 'Music', 'Nature'],
+      stats: { active: mockCamps.length, total: mockCamps.length, closed: 0, categories: {}, priceRange: { min: 250, max: 500 }, ageRange: { min: 6, max: 14 } },
+      loading: false,
+      error: null,
+      refreshCamps: vi.fn(),
+    };
+  },
+}));
+
+vi.mock('./contexts/CompareContext', () => ({
+  CompareProvider: ({ children }) => children,
+  useCompare: () => ({
+    compareList: [],
+    setCompareList: vi.fn(),
+    toggleCompare: vi.fn(),
+    addToCompare: vi.fn(),
+    removeFromCompare: vi.fn(),
+    clearCompare: vi.fn(),
+    isComparing: false,
+  }),
+}));
+
+vi.mock('./contexts/AchievementsContext', () => ({
+  AchievementsProvider: ({ children }) => children,
+  useAchievements: () => ({
+    achievements: [],
+    userProgress: {},
+    checkAndUnlock: vi.fn(),
+    planningStats: { coveragePercent: 0, coveredWeeks: 0, totalWeeks: 11 },
+    streak: { current: 0, longest: 0 },
+    achievementProgress: {},
+    earnedAchievements: [],
+    celebration: null,
+    dismissCelebration: vi.fn(),
+    relevantTips: [],
+    nextTip: null,
+  }),
+}));
+
+vi.mock('./contexts/FamilyContext', () => ({
+  FamilyProvider: ({ children }) => children,
+  useFamily: () => ({
+    families: [],
+    currentFamily: null,
+    loading: false,
+  }),
+}));
+
+vi.mock('./hooks/useRecommendations', () => ({
+  useRecommendations: () => ({
+    getRecommendationScores: vi.fn(() => []),
+    getDashboardStats: vi.fn(() => ({ totalScheduled: 0, totalCost: 0, weeksWithCamps: 0, favoritesCount: 0, childrenCount: 0 })),
+    findSimilarCamps: vi.fn(() => []),
+    getGapFillingSuggestions: vi.fn(() => ({})),
+    getPopularInArea: vi.fn(() => []),
+    getHomepageContent: vi.fn(() => ({ greeting: 'Find the right camp', sections: [] })),
+  }),
+}));
+
+// Mutable filters override for per-test customization
+let mockFiltersOverride = null;
+const mockUpdateFilters = vi.fn();
+const mockClearFilters = vi.fn();
+
+vi.mock('./hooks/useFilters', () => ({
+  useFilters: () => {
+    if (mockFiltersOverride) return mockFiltersOverride;
+    return {
+      filters: {},
+      updateFilters: mockUpdateFilters,
+      clearFilters: mockClearFilters,
+      applyPreset: vi.fn(),
+      filterAndSortCamps: vi.fn((camps) => camps || []),
+      activeFilterCount: 0,
+      userLocation: null,
+      locationError: null,
+      requestLocation: vi.fn(),
+      savedSearches: [],
+      saveSearch: vi.fn(),
+      deleteSavedSearch: vi.fn(),
+      applySavedSearch: vi.fn(),
+      shareableURL: '',
+      FILTER_PRESETS: {},
+    };
+  },
+}));
+
 // Mock components that have complex dependencies
 vi.mock('./components/SchedulePlanner', () => ({
   SchedulePlanner: ({ onClose }) => (
@@ -220,6 +375,9 @@ describe('App', () => {
     vi.clearAllMocks();
     mockAuthContext.user = null;
     mockAuthContext.showOnboarding = false;
+    mockCampsContextOverride = null;
+    mockFiltersOverride = null;
+    mockNavigate.mockClear();
     // Reset Supabase mock to return mockCamps by default
     mockFrom.mockImplementation((table) => {
       if (table === 'camps') {
@@ -230,39 +388,48 @@ describe('App', () => {
   });
 
   describe('initial render', () => {
-    it('shows loading state initially', () => {
-      const { container } = render(<App />);
+    it('shows loading state when camps are loading', () => {
+      mockCampsContextOverride = {
+        camps: [],
+        categories: [],
+        stats: null,
+        loading: true,
+        error: null,
+        refreshCamps: vi.fn(),
+      };
+      const { container } = render(<MemoryRouter><App /></MemoryRouter>);
       expect(container.querySelector('.skeleton-card')).toBeInTheDocument();
     });
 
-    it('fetches camps on mount via Supabase', async () => {
-      render(<App />);
+    it('gets camps from CampsContext', async () => {
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(mockFrom).toHaveBeenCalledWith('camps');
+        // App no longer queries Supabase directly; camps come from CampsContext
+        expect(screen.getByText('Adventure Surf Camp')).toBeInTheDocument();
       });
     });
 
-    it('fetches categories on mount via Supabase', async () => {
-      render(<App />);
+    it('gets categories from CampsContext', async () => {
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        // Categories are fetched from the camps table with a select on 'category'
-        expect(mockFrom).toHaveBeenCalledWith('camps');
+        // Categories come from CampsContext, rendered in filter presets
+        expect(screen.getByText('Sports')).toBeInTheDocument();
       });
     });
 
-    it('fetches stats on mount via Supabase', async () => {
-      render(<App />);
+    it('gets stats from CampsContext', async () => {
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        // Stats are computed by querying the camps table
-        expect(mockFrom).toHaveBeenCalledWith('camps');
+        // Stats come from CampsContext, shown in hero section
+        expect(screen.getByText(/local camps/)).toBeInTheDocument();
       });
     });
 
     it('displays camps after loading', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('Adventure Surf Camp')).toBeInTheDocument();
@@ -273,7 +440,7 @@ describe('App', () => {
 
   describe('hero section', () => {
     it('displays main title', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText(/Your summer,/)).toBeInTheDocument();
@@ -281,7 +448,7 @@ describe('App', () => {
     });
 
     it('displays Santa Barbara branding', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('Santa Barbara Summer Camps')).toBeInTheDocument();
@@ -289,7 +456,7 @@ describe('App', () => {
     });
 
     it('shows camp count in hero stats', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         // The hero stats show "{camps.length} local camps"
@@ -300,7 +467,7 @@ describe('App', () => {
 
   describe('search functionality', () => {
     it('renders search input', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         const searchInput = screen.getByPlaceholderText(/Search camps/);
@@ -310,7 +477,7 @@ describe('App', () => {
 
     it('updates search value on input', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -322,9 +489,9 @@ describe('App', () => {
       expect(searchInput).toHaveValue('surf');
     });
 
-    it('triggers new Supabase query on search', async () => {
+    it('triggers filter update on search', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -333,18 +500,16 @@ describe('App', () => {
       const searchInput = screen.getByPlaceholderText(/Search camps/);
       await user.type(searchInput, 'surf');
 
-      // Debounced, so wait for the Supabase query to be triggered again
+      // Debounced search triggers updateFilters with search term
       await waitFor(() => {
-        // The search triggers a new supabase.from('camps') call
-        const campsCalls = mockFrom.mock.calls.filter(c => c[0] === 'camps');
-        expect(campsCalls.length).toBeGreaterThan(1);
+        expect(mockUpdateFilters).toHaveBeenCalled();
       }, { timeout: 500 });
     });
   });
 
   describe('filter presets', () => {
     it('renders quick find presets', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('Quick filters')).toBeInTheDocument();
@@ -352,7 +517,7 @@ describe('App', () => {
     });
 
     it('renders category preset buttons', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('Sports')).toBeInTheDocument();
@@ -361,7 +526,7 @@ describe('App', () => {
 
     it('activates preset on click', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -370,13 +535,16 @@ describe('App', () => {
       const sportsFilter = screen.getByRole('button', { name: 'Sports' });
       await user.click(sportsFilter);
 
-      expect(sportsFilter.className).toContain('active');
+      // Clicking a preset calls updateFilters with the selected category
+      expect(mockUpdateFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ categories: ['Sports'] })
+      );
     });
   });
 
   describe('view modes', () => {
     it('defaults to grid view', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         // Grid view shows camp cards
@@ -386,7 +554,7 @@ describe('App', () => {
 
     it('toggles to table view', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -403,7 +571,7 @@ describe('App', () => {
 
   describe('camp cards', () => {
     it('displays camp name', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('Adventure Surf Camp')).toBeInTheDocument();
@@ -411,7 +579,7 @@ describe('App', () => {
     });
 
     it('displays camp category badge', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         const badges = screen.getAllByText('Beach/Surf');
@@ -420,7 +588,7 @@ describe('App', () => {
     });
 
     it('displays camp description', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText(/Learn to surf/)).toBeInTheDocument();
@@ -428,7 +596,7 @@ describe('App', () => {
     });
 
     it('displays age range', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('8-14')).toBeInTheDocument();
@@ -436,7 +604,7 @@ describe('App', () => {
     });
 
     it('displays price', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('$400–500')).toBeInTheDocument();
@@ -444,35 +612,40 @@ describe('App', () => {
     });
 
     it('displays feature badges', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(screen.getByText('Extended Care')).toBeInTheDocument();
+        // There are multiple "Extended Care" elements (filter preset + feature badge)
+        const badges = screen.getAllByText('Extended Care');
+        // At least one should be a feature badge in a camp card
+        const featureBadge = badges.find(el => el.classList.contains('feature-badge'));
+        expect(featureBadge).toBeTruthy();
       });
     });
 
-    it('opens camp modal on click (desktop)', async () => {
+    it('navigates to camp detail on click (desktop)', async () => {
       const user = userEvent.setup();
-      const { container } = render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(container.querySelector('.skeleton-card')).not.toBeInTheDocument();
+        expect(screen.getByText('Adventure Surf Camp')).toBeInTheDocument();
       });
 
       const campButton = screen.getByLabelText('View details for Adventure Surf Camp');
       await user.click(campButton);
 
-      await waitFor(() => {
-        // On desktop (default), clicking opens a modal overlay
-        expect(document.querySelector('.modal-overlay')).toBeInTheDocument();
-      });
+      // On desktop (default), clicking navigates to the camp detail route
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/camp/camp-1',
+        expect.objectContaining({ state: expect.anything() })
+      );
     });
   });
 
   describe('filter panel', () => {
     it('opens filter panel on All Filters click', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -488,7 +661,7 @@ describe('App', () => {
 
     it('shows age filter dropdown', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -504,7 +677,7 @@ describe('App', () => {
 
     it('shows price filter dropdown', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -521,7 +694,7 @@ describe('App', () => {
 
     it('shows feature toggles', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -536,16 +709,26 @@ describe('App', () => {
     });
 
     it('shows clear all button when filters active', async () => {
-      const user = userEvent.setup();
-      render(<App />);
+      // Override useFilters to simulate active filters
+      mockFiltersOverride = {
+        filters: { categories: ['Sports'] },
+        updateFilters: vi.fn(),
+        clearFilters: vi.fn(),
+        applyPreset: vi.fn(),
+        filterAndSortCamps: vi.fn((camps) => camps || []),
+        activeFilterCount: 1,
+        userLocation: null,
+        locationError: null,
+        requestLocation: vi.fn(),
+        savedSearches: [],
+        saveSearch: vi.fn(),
+        deleteSavedSearch: vi.fn(),
+        applySavedSearch: vi.fn(),
+        shareableURL: '',
+        FILTER_PRESETS: {},
+      };
 
-      await waitFor(() => {
-        expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
-      });
-
-      // Apply a filter by clicking a preset
-      const sportsFilter = screen.getByRole('button', { name: 'Sports' });
-      await user.click(sportsFilter);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         // The active filters bar should appear with a "Clear all" button
@@ -557,16 +740,16 @@ describe('App', () => {
 
   describe('Plan My Summer button', () => {
     it('renders Plan My Summer button', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('Plan My Summer')).toBeInTheDocument();
       });
     });
 
-    it('opens schedule planner on click', async () => {
+    it('navigates to schedule on click', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
@@ -575,18 +758,33 @@ describe('App', () => {
       const planButton = screen.getByText('Plan My Summer');
       await user.click(planButton);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('schedule-planner')).toBeInTheDocument();
-      });
+      // Plan My Summer now navigates to /schedule route
+      expect(mockNavigate).toHaveBeenCalledWith('/schedule');
     });
   });
 
   describe('no results state', () => {
     it('shows empty state when no camps found', async () => {
-      // Override mock to return empty camps
-      mockFrom.mockImplementation((table) => createQueryMock([]));
+      // Override CampsContext to return camps (data exists) but useFilters returns empty filtered results
+      mockFiltersOverride = {
+        filters: { categories: ['NonExistent'] },
+        updateFilters: vi.fn(),
+        clearFilters: vi.fn(),
+        applyPreset: vi.fn(),
+        filterAndSortCamps: vi.fn(() => []),
+        activeFilterCount: 1,
+        userLocation: null,
+        locationError: null,
+        requestLocation: vi.fn(),
+        savedSearches: [],
+        saveSearch: vi.fn(),
+        deleteSavedSearch: vi.fn(),
+        applySavedSearch: vi.fn(),
+        shareableURL: '',
+        FILTER_PRESETS: {},
+      };
 
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('No camps match these filters')).toBeInTheDocument();
@@ -594,10 +792,26 @@ describe('App', () => {
     });
 
     it('shows clear filters button in empty state', async () => {
-      // Override mock to return empty camps
-      mockFrom.mockImplementation((table) => createQueryMock([]));
+      // Override useFilters to return empty filtered results
+      mockFiltersOverride = {
+        filters: { categories: ['NonExistent'] },
+        updateFilters: vi.fn(),
+        clearFilters: vi.fn(),
+        applyPreset: vi.fn(),
+        filterAndSortCamps: vi.fn(() => []),
+        activeFilterCount: 1,
+        userLocation: null,
+        locationError: null,
+        requestLocation: vi.fn(),
+        savedSearches: [],
+        saveSearch: vi.fn(),
+        deleteSavedSearch: vi.fn(),
+        applySavedSearch: vi.fn(),
+        shareableURL: '',
+        FILTER_PRESETS: {},
+      };
 
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('Clear Filters')).toBeInTheDocument();
@@ -606,60 +820,46 @@ describe('App', () => {
   });
 
   describe('error state', () => {
-    it('shows error message on Supabase error', async () => {
-      // Override mock to reject with an error
-      mockFrom.mockImplementation((table) => {
-        const errorResult = Promise.reject(new Error('Network error'));
-        const chainable = {
-          select: vi.fn(() => chainable),
-          eq: vi.fn(() => chainable),
-          gte: vi.fn(() => chainable),
-          lte: vi.fn(() => chainable),
-          or: vi.fn(() => chainable),
-          not: vi.fn(() => chainable),
-          is: vi.fn(() => chainable),
-          order: vi.fn(() => chainable),
-          then: vi.fn((resolve, reject) => errorResult.then(resolve, reject)),
-        };
-        return chainable;
-      });
+    it('shows error message on error', async () => {
+      // Override CampsContext to return an error state
+      mockCampsContextOverride = {
+        camps: [],
+        categories: [],
+        stats: null,
+        loading: false,
+        error: 'Something went wrong loading camp data.',
+        refreshCamps: vi.fn(),
+      };
 
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+        expect(screen.getByText('Could not load camps')).toBeInTheDocument();
       });
     });
 
     it('shows refresh button on error', async () => {
-      // Override mock to reject with an error
-      mockFrom.mockImplementation((table) => {
-        const errorResult = Promise.reject(new Error('Network error'));
-        const chainable = {
-          select: vi.fn(() => chainable),
-          eq: vi.fn(() => chainable),
-          gte: vi.fn(() => chainable),
-          lte: vi.fn(() => chainable),
-          or: vi.fn(() => chainable),
-          not: vi.fn(() => chainable),
-          is: vi.fn(() => chainable),
-          order: vi.fn(() => chainable),
-          then: vi.fn((resolve, reject) => errorResult.then(resolve, reject)),
-        };
-        return chainable;
-      });
+      // Override CampsContext to return an error state
+      mockCampsContextOverride = {
+        camps: [],
+        categories: [],
+        stats: null,
+        loading: false,
+        error: 'Something went wrong loading camp data.',
+        refreshCamps: vi.fn(),
+      };
 
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(screen.getByText('Refresh')).toBeInTheDocument();
+        expect(screen.getByText('Refresh Page')).toBeInTheDocument();
       });
     });
   });
 
   describe('sorting', () => {
     it('renders sort dropdown', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByRole('combobox')).toBeInTheDocument();
@@ -667,21 +867,21 @@ describe('App', () => {
     });
 
     it('includes sort options', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         const selects = screen.getAllByRole('combobox');
-        // The filter bar sort dropdown has abbreviated options
+        // The filter bar sort dropdown uses hyphen not en-dash
         const filterSort = selects[0];
-        expect(within(filterSort).getByText('A\u2013Z')).toBeInTheDocument();
-        expect(within(filterSort).getByText('Z\u2013A')).toBeInTheDocument();
+        expect(within(filterSort).getByText('A-Z')).toBeInTheDocument();
+        expect(within(filterSort).getByText('Z-A')).toBeInTheDocument();
       });
     });
   });
 
   describe('footer', () => {
     it('displays footer branding', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText('Santa Barbara Summer Camps')).toBeInTheDocument();
@@ -689,7 +889,7 @@ describe('App', () => {
     });
 
     it('displays disclaimer text', async () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.getByText(/Data from camp websites/)).toBeInTheDocument();
@@ -697,61 +897,55 @@ describe('App', () => {
     });
   });
 
-  describe('modals', () => {
-    it('closes schedule planner modal', async () => {
+  describe('navigation', () => {
+    it('navigates to schedule route when Plan My Summer is clicked', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      // Open planner
       const planButton = screen.getByText('Plan My Summer');
       await user.click(planButton);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('schedule-planner')).toBeInTheDocument();
-      });
-
-      // Close planner
-      const closeButton = screen.getByText('Close Planner');
-      await user.click(closeButton);
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('schedule-planner')).not.toBeInTheDocument();
-      });
+      // Planner is now a route, not a modal
+      expect(mockNavigate).toHaveBeenCalledWith('/schedule');
     });
   });
 
-  describe('navigation events', () => {
-    it('opens planner on navigate event', async () => {
-      render(<App />);
+  describe('route-based navigation', () => {
+    it('Plan My Summer button navigates to schedule route', async () => {
+      const user = userEvent.setup();
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
       });
 
-      // Dispatch navigate event
-      window.dispatchEvent(new CustomEvent('navigate', { detail: 'planner' }));
+      // Navigation is now via useNavigate, not custom events
+      const planButton = screen.getByText('Plan My Summer');
+      await user.click(planButton);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('schedule-planner')).toBeInTheDocument();
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('/schedule');
     });
 
-    it('opens children manager on navigate event', async () => {
-      render(<App />);
+    it('camp card click navigates to camp detail route', async () => {
+      const user = userEvent.setup();
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(screen.queryByText('Loading camps...')).not.toBeInTheDocument();
+        expect(screen.getByText('Adventure Surf Camp')).toBeInTheDocument();
       });
 
-      window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }));
+      // Navigation is now via useNavigate, not custom events
+      const campButton = screen.getByLabelText('View details for Adventure Surf Camp');
+      await user.click(campButton);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('children-manager')).toBeInTheDocument();
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/camp/camp-1',
+        expect.objectContaining({ state: expect.anything() })
+      );
     });
   });
 });

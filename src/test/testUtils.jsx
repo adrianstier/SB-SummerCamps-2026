@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { AuthProvider } from '../contexts/AuthContext';
+import { MemoryRouter } from 'react-router-dom';
 
-// Mock auth context value for testing
+// Mock auth context value for testing (core auth only)
 export const mockAuthContext = {
   user: null,
   profile: null,
@@ -15,18 +15,155 @@ export const mockAuthContext = {
   refreshProfile: vi.fn(),
   children: [],
   refreshChildren: vi.fn(),
+  authError: null,
+  clearAuthError: vi.fn()
+};
+
+// Mock camps context value for testing
+export const mockCampsContext = {
+  camps: [],
+  categories: ['Beach/Surf', 'Art', 'Sports', 'Science/STEM'],
+  stats: { active: 46, total: 46, closed: 0, categories: {}, priceRange: {}, ageRange: {} },
+  loading: false,
+  error: null,
+  refreshCamps: vi.fn()
+};
+
+// Mock compare context value for testing
+export const mockCompareContext = {
+  compareList: [],
+  setCompareList: vi.fn(),
+  toggleCompare: vi.fn(),
+  addToCompare: vi.fn(),
+  removeFromCompare: vi.fn(),
+  clearCompare: vi.fn(),
+  isComparing: false
+};
+
+// Mock favorites context value for testing
+export const mockFavoritesContext = {
   favorites: [],
+  campPopularity: {},
   refreshFavorites: vi.fn(),
-  isFavorited: vi.fn(() => false),
+  refreshCampPopularity: vi.fn(),
+  isFavorited: vi.fn(() => false)
+};
+
+// Mock schedule context value for testing
+export const mockScheduleContext = {
   scheduledCamps: [],
   refreshSchedule: vi.fn(),
   getScheduleForWeek: vi.fn(() => []),
   getTotalCost: vi.fn(() => 0),
-  getCoverageGaps: vi.fn(() => []),
+  getCoverageGaps: vi.fn(() => [])
+};
+
+// Mock squads context value for testing
+export const mockSquadsContext = {
+  squads: [],
+  squadNotifications: [],
+  squadUnreadCount: 0,
+  campInterests: [],
+  friendInterestCounts: {},
+  refreshSquads: vi.fn(),
+  refreshSquadNotifications: vi.fn(),
+  refreshCampInterests: vi.fn(),
+  refreshFriendInterests: vi.fn()
+};
+
+// Mock notifications context value for testing
+export const mockNotificationsContext = {
   notifications: [],
   unreadCount: 0,
-  refreshNotifications: vi.fn(),
+  refreshNotifications: vi.fn()
+};
+
+// Mock achievements context value for testing
+export const mockAchievementsContext = {
+  achievements: [],
+  userProgress: {},
+  checkAndUnlock: vi.fn(),
+  getNextMilestone: vi.fn(() => null),
+  recentUnlock: null,
+  dismissRecentUnlock: vi.fn(),
+  getProgressForAchievement: vi.fn(() => 0),
+  trackComparison: vi.fn(),
+  celebration: null,
+  recentAchievement: null,
+  dismissCelebration: vi.fn(),
+  earnedAchievements: [],
+  achievementProgress: {},
+  planningStats: {
+    coveragePercent: 0,
+    coveredWeeks: 0,
+    totalWeeks: 11,
+    gapCount: 0,
+    totalCost: 0,
+    budget: 0
+  },
+  streak: { current: 0, longest: 0 },
+  relevantTips: [],
+  nextTip: null,
+  getRandomFact: vi.fn(() => null)
+};
+
+// Mock family context value for testing
+export const mockFamilyContext = {
+  families: [],
+  currentFamily: null,
+  pendingInvitations: [],
+  loading: false,
+  comments: [],
+  suggestions: [],
+  approvalRequests: [],
+  activityFeed: [],
+  familyNotifications: [],
+  unreadFamilyCount: 0,
+  currentFamilyMembers: [],
+  isCurrentFamilyAdmin: false,
+  canEditSchedule: true,
+  canApproveCamps: false,
+  requiresApproval: false,
+  pendingSuggestions: [],
+  pendingApprovals: [],
+  setCurrentFamily: vi.fn(),
+  createFamily: vi.fn(),
+  updateFamily: vi.fn(),
+  deleteFamily: vi.fn(),
+  joinFamily: vi.fn(),
+  leaveFamily: vi.fn(),
+  inviteToFamily: vi.fn(),
+  respondToInvitation: vi.fn(),
+  updateFamilyMember: vi.fn(),
+  removeFamilyMember: vi.fn(),
+  getFamilyByInviteCode: vi.fn(),
+  regenerateFamilyInviteCode: vi.fn(),
+  addComment: vi.fn(),
+  updateComment: vi.fn(),
+  deleteComment: vi.fn(),
+  pinComment: vi.fn(),
+  suggestCamp: vi.fn(),
+  respondToSuggestion: vi.fn(),
+  requestApproval: vi.fn(),
+  respondToApproval: vi.fn(),
+  markNotificationRead: vi.fn(),
+  markAllNotificationsRead: vi.fn(),
+  refreshFamilies: vi.fn(),
+  refreshInvitations: vi.fn(),
+  refreshComments: vi.fn(),
+  refreshSuggestions: vi.fn(),
+  refreshApprovalRequests: vi.fn(),
+  refreshActivityFeed: vi.fn(),
+  refreshFamilyNotifications: vi.fn()
+};
+
+// Mock recommendations hook value for testing
+export const mockRecommendations = {
   getRecommendationScores: vi.fn(() => []),
+  findSimilarCamps: vi.fn(() => []),
+  getGapFillingSuggestions: vi.fn(() => ({})),
+  getPopularInArea: vi.fn(() => []),
+  getHomepageContent: vi.fn(() => ({ greeting: 'Find the right camp', sections: [] })),
   getDashboardStats: vi.fn(() => ({
     totalScheduled: 0,
     totalCost: 0,
@@ -47,13 +184,45 @@ export function MockAuthProvider({ children, value = mockAuthContext }) {
   );
 }
 
-// Custom render with providers
-export function renderWithProviders(ui, { authValue = mockAuthContext, ...options } = {}) {
+/**
+ * Custom render with providers.
+ * Wraps components in MemoryRouter and MockAuthProvider.
+ *
+ * @param {React.ReactElement} ui - The component to render
+ * @param {Object} options
+ * @param {string} options.route - Initial route for MemoryRouter (default: '/')
+ * @param {Object} options.authValue - Auth context override
+ * @param {Object} rest - Additional options passed to @testing-library/react render
+ */
+export function renderWithProviders(ui, { route = '/', authValue = mockAuthContext, ...options } = {}) {
   function Wrapper({ children }) {
     return (
-      <MockAuthProvider value={authValue}>
+      <MemoryRouter initialEntries={[route]}>
+        <MockAuthProvider value={authValue}>
+          {children}
+        </MockAuthProvider>
+      </MemoryRouter>
+    );
+  }
+
+  return render(ui, { wrapper: Wrapper, ...options });
+}
+
+/**
+ * Render a component wrapped only in MemoryRouter.
+ * Useful when tests mock context hooks via vi.mock() and just need the router.
+ *
+ * @param {React.ReactElement} ui - The component to render
+ * @param {Object} options
+ * @param {string} options.route - Initial route for MemoryRouter (default: '/')
+ * @param {Object} rest - Additional options passed to @testing-library/react render
+ */
+export function renderWithRouter(ui, { route = '/', ...options } = {}) {
+  function Wrapper({ children }) {
+    return (
+      <MemoryRouter initialEntries={[route]}>
         {children}
-      </MockAuthProvider>
+      </MemoryRouter>
     );
   }
 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useSquads } from '../contexts/SquadsContext';
 import { createSquad } from '../lib/supabase';
 
 export default function CreateSquadModal({ onClose }) {
-  const { refreshSquads } = useAuth();
+  const { refreshSquads } = useSquads();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [shareSchedule, setShareSchedule] = useState(true);

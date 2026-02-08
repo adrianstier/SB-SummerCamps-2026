@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSquads } from '../contexts/SquadsContext';
 import { getSquadByInviteCode, joinSquad } from '../lib/supabase';
 
 export default function JoinSquad({ inviteCode, onComplete, onCancel }) {
-  const { user, refreshSquads, signIn } = useAuth();
+  const { user, signIn } = useAuth();
+  const { refreshSquads } = useSquads();
   const [squad, setSquad] = useState(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -11,19 +13,15 @@ export default function JoinSquad({ inviteCode, onComplete, onCancel }) {
   const [shareSchedule, setShareSchedule] = useState(true);
   const [revealIdentity, setRevealIdentity] = useState(false);
 
-  // BUG-F-009: useEffect dependencies are correct - inviteCode is the only external dependency
-  // loadSquad is defined inline and getSquadByInviteCode is a stable import
   useEffect(() => {
     async function loadSquad() {
       setLoading(true);
-      // BUG-F-010: Clear error state before loading to prevent stale errors
       setError(null);
       setSquad(null);
 
       const data = await getSquadByInviteCode(inviteCode);
       if (data) {
         setSquad(data);
-        // BUG-F-010: Ensure error is cleared on successful load
         setError(null);
       } else {
         setError('Invalid or expired invite link');

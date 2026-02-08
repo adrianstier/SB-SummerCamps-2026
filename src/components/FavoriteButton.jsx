@@ -1,5 +1,6 @@
 import React, { useState, useCallback, memo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useFavorites } from '../contexts/FavoritesContext';
 import { addFavorite, removeFavorite } from '../lib/supabase';
 
 // Size configuration - min 44px for touch targets (WCAG 2.5.5)
@@ -28,7 +29,8 @@ const HeartIcon = memo(function HeartIcon({ filled, className }) {
 
 // Memoized FavoriteButton to prevent unnecessary re-renders when parent updates
 export const FavoriteButton = memo(function FavoriteButton({ campId, size = 'md', showLabel = false }) {
-  const { user, isConfigured, isFavorited, refreshFavorites, signIn } = useAuth();
+  const { user, isConfigured, signIn } = useAuth();
+  const { isFavorited, refreshFavorites } = useFavorites();
   const [loading, setLoading] = useState(false);
   const [animating, setAnimating] = useState(false);
 

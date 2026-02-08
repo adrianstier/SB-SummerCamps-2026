@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { addChild, updateProfile, completeOnboarding, addScheduledCamp, supabase } from '../lib/supabase';
 import { generateSampleChildren, generateSampleSchedule } from '../lib/sampleData';
 import { PLANNING_YEAR_LABEL } from '../lib/config';
 import BrandIcon from './BrandIcon';
+import { CelebrationBurst } from './Confetti';
+import './OnboardingWizard.css';
 
 const STEPS = [
   { id: 'welcome', title: 'Welcome' },
@@ -44,10 +47,15 @@ const CHILD_COLORS = [
 ];
 
 export function OnboardingWizard({ onComplete }) {
+  const navigate = useNavigate();
   const { profile, refreshChildren } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [slideDirection, setSlideDirection] = useState('forward');
+  const [animationKey, setAnimationKey] = useState(0);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const handleCelebrationComplete = useCallback(() => setShowCelebration(false), []);
 
   // Children state
   const [children, setChildren] = useState([]);
@@ -82,13 +90,21 @@ export function OnboardingWizard({ onComplete }) {
 
   const goNext = () => {
     if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      setSlideDirection('forward');
+      setAnimationKey(prev => prev + 1);
+      setCurrentStep(nextStep);
       setError(null);
+      if (STEPS[nextStep].id === 'complete') {
+        setShowCelebration(true);
+      }
     }
   };
 
   const goBack = () => {
     if (currentStep > 0) {
+      setSlideDirection('backward');
+      setAnimationKey(prev => prev + 1);
       setCurrentStep(currentStep - 1);
       setError(null);
     }
@@ -196,7 +212,7 @@ export function OnboardingWizard({ onComplete }) {
       // Open planner if tour was chosen
       if (tourChoice === 'tour') {
         setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('navigate', { detail: 'planner' }));
+          navigate('/schedule');
         }, 500);
       }
 
@@ -324,14 +340,19 @@ export function OnboardingWizard({ onComplete }) {
         </div>
       )}
 
+      {/* Celebration burst on completion step */}
+      <CelebrationBurst
+        active={showCelebration}
+        onComplete={handleCelebrationComplete}
+      />
+
       <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Progress bar */}
-        <div className="h-2" style={{ background: 'var(--sand-100)' }}>
+        <div className="onboarding-progress-track">
           <div
-            className="h-full transition-all duration-500 ease-out"
+            className="onboarding-progress-fill"
             style={{
-              width: `${((currentStep + 1) / STEPS.length) * 100}%`,
-              background: 'linear-gradient(90deg, var(--ocean-400), var(--ocean-500))'
+              width: `${((currentStep + 1) / STEPS.length) * 100}%`
             }}
           />
         </div>
@@ -363,7 +384,12 @@ export function OnboardingWizard({ onComplete }) {
 
         {/* Content */}
         <div className="p-8 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
-          {renderStep()}
+          <div
+            key={animationKey}
+            className={slideDirection === 'forward' ? 'onboarding-step-forward' : 'onboarding-step-backward'}
+          >
+            {renderStep()}
+          </div>
         </div>
 
         {/* Footer */}
@@ -371,8 +397,7 @@ export function OnboardingWizard({ onComplete }) {
           {currentStep > 0 ? (
             <button
               onClick={goBack}
-              className="px-6 py-2.5 rounded-xl font-medium transition-colors"
-              style={{ color: 'var(--earth-700)' }}
+              className="onboarding-btn-back"
             >
               Back
             </button>
@@ -384,7 +409,7 @@ export function OnboardingWizard({ onComplete }) {
             <button
               onClick={handleComplete}
               disabled={loading}
-              className="btn-primary"
+              className="onboarding-btn-primary"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -403,8 +428,7 @@ export function OnboardingWizard({ onComplete }) {
               {STEPS[currentStep].id === 'children' && children.length === 0 && (
                 <button
                   onClick={handleSkipChildren}
-                  className="px-6 py-2.5 rounded-xl font-medium transition-colors"
-                  style={{ color: 'var(--earth-600)' }}
+                  className="onboarding-btn-skip"
                 >
                   Skip
                 </button>
@@ -412,7 +436,7 @@ export function OnboardingWizard({ onComplete }) {
               <button
                 onClick={goNext}
                 disabled={STEPS[currentStep].id === 'children' && children.length === 0}
-                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="onboarding-btn-primary"
               >
                 Continue
               </button>
@@ -483,17 +507,17 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
           {children.map(child => (
             <div
               key={child.id}
-              className="flex items-center gap-4 p-4 rounded-xl"
-              style={{ background: 'var(--sand-50)', border: '1px solid var(--sand-200)' }}
+              className="onboarding-child-card"
+              style={{ borderColor: child.color + '40' }}
             >
               <div
-                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
-                style={{ background: child.color + '20', border: `2px solid ${child.color}` }}
+                className="onboarding-child-avatar"
+                style={{ background: child.color + '15', borderColor: child.color }}
               >
                 {child.avatar_emoji}
               </div>
-              <div className="flex-1">
-                <p className="font-medium" style={{ color: 'var(--earth-800)' }}>{child.name}</p>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold" style={{ color: 'var(--earth-800)' }}>{child.name}</p>
                 <p className="text-sm" style={{ color: 'var(--earth-600)' }}>
                   {child.age_as_of_summer} years old
                   {child.interests.length > 0 && ` • Likes ${child.interests.join(', ')}`}
@@ -502,8 +526,7 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
               <button
                 onClick={() => removeChild(child.id)}
                 aria-label={`Remove ${child.name}`}
-                className="p-2 rounded-lg hover:bg-red-50 transition-colors"
-                style={{ color: 'var(--terra-500)' }}
+                className="onboarding-child-remove"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -538,8 +561,7 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
               value={currentChild.name}
               onChange={(e) => setCurrentChild({ ...currentChild, name: e.target.value })}
               placeholder="Child's name"
-              className="w-full px-4 py-2.5 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all"
-              style={{ borderColor: 'var(--sand-200)' }}
+              className="onboarding-input"
             />
           </div>
 
@@ -552,8 +574,7 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
               id="child-age"
               value={currentChild.age_as_of_summer}
               onChange={(e) => setCurrentChild({ ...currentChild, age_as_of_summer: parseInt(e.target.value) })}
-              className="w-full px-4 py-2.5 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all"
-              style={{ borderColor: 'var(--sand-200)' }}
+              className="onboarding-input"
             >
               <option value="">Select age</option>
               {[...Array(16)].map((_, i) => (
@@ -610,13 +631,9 @@ function ChildrenStep({ children, currentChild, setCurrentChild, addChild, remov
 
         <button
           onClick={addChild}
-          className="w-full py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-          style={{
-            background: 'var(--ocean-500)',
-            color: 'white'
-          }}
+          className="onboarding-add-child-btn"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
           Add Child
@@ -688,8 +705,8 @@ function PreferencesStep({ preferences, setPreferences, toggleCategory }) {
             onChange={(e) => setPreferences({ ...preferences, zip_code: e.target.value })}
             placeholder="e.g., 93101"
             maxLength={5}
-            className="w-full max-w-xs px-4 py-2.5 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all"
-            style={{ borderColor: 'var(--sand-200)' }}
+            className="onboarding-input"
+            style={{ maxWidth: '16rem' }}
           />
           <p className="text-sm mt-1" style={{ color: 'var(--sand-400)' }}>
             For sorting by distance
@@ -838,8 +855,18 @@ function NotificationsStep({ notificationPrefs, setNotificationPrefs }) {
 function CompleteStep({ children, preferences, tourChoice, setTourChoice }) {
   return (
     <div className="text-center">
-      <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sage-100)', color: 'var(--ocean-500)' }}>
-        <BrandIcon name="confetti" size={48} />
+      <div className="onboarding-complete-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <path
+            className="onboarding-checkmark"
+            d="M14 24l8 8 12-16"
+            stroke="var(--ocean-500)"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </svg>
       </div>
       <h2 className="font-serif text-3xl font-semibold mb-4" style={{ color: 'var(--earth-800)' }}>
         You're all set!

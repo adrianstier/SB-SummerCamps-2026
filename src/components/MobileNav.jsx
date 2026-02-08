@@ -1,38 +1,30 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, useRef, useCallback } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useHaptic } from '../hooks/usePWA';
 
-/**
- * Bottom Navigation for mobile devices
- * Fixed at bottom with safe area support
- */
+// Map routes to tab IDs for determining active state from URL
+const ROUTE_TO_TAB = {
+  '/': 'browse',
+  '/schedule': 'schedule',
+  '/dashboard': 'dashboard',
+  '/wishlist': 'wishlist',
+  '/settings': 'more',
+};
+
 export const MobileNav = memo(function MobileNav({
-  activeTab = 'browse',
-  onTabChange,
   favoritesCount = 0,
   hasNotifications = false
 }) {
   const haptic = useHaptic();
+  const location = useLocation();
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
+  const [poppingTab, setPoppingTab] = useState(null);
+  const navInnerRef = useRef(null);
+  const [indicatorLeft, setIndicatorLeft] = useState(0);
 
-  // Hide on scroll down, show on scroll up
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollingDown = currentScrollY > lastScrollY && currentScrollY > 100;
-
-      setIsVisible(!scrollingDown);
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
-  const handleTabClick = (tab) => {
-    haptic.light();
-    onTabChange?.(tab);
-  };
+  // Determine active tab from current URL path
+  const activeTab = ROUTE_TO_TAB[location.pathname] || 'browse';
 
   // Tab configuration for mobile navigation
   // Note: Tab IDs match internal app views, not original spec terminology.
@@ -45,6 +37,7 @@ export const MobileNav = memo(function MobileNav({
     {
       id: 'browse',
       label: 'Browse',
+      to: '/',
       icon: (active) => (
         <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -54,6 +47,7 @@ export const MobileNav = memo(function MobileNav({
     {
       id: 'schedule',
       label: 'Schedule',
+      to: '/schedule',
       icon: (active) => (
         <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -63,6 +57,7 @@ export const MobileNav = memo(function MobileNav({
     {
       id: 'dashboard',
       label: 'My Plan',
+      to: '/dashboard',
       icon: (active) => (
         <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -72,6 +67,7 @@ export const MobileNav = memo(function MobileNav({
     {
       id: 'wishlist',
       label: 'Wishlist',
+      to: '/wishlist',
       badge: favoritesCount,
       icon: (active) => (
         <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}>
@@ -82,6 +78,7 @@ export const MobileNav = memo(function MobileNav({
     {
       id: 'more',
       label: 'More',
+      to: '/settings',
       dot: hasNotifications,
       icon: (active) => (
         <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}>
@@ -91,206 +88,116 @@ export const MobileNav = memo(function MobileNav({
     }
   ];
 
+  // Calculate indicator position based on active tab index
+  const tabIds = tabs.map(t => t.id);
+  const updateIndicatorPosition = useCallback(() => {
+    if (!navInnerRef.current) return;
+    const activeIndex = tabIds.indexOf(activeTab);
+    if (activeIndex === -1) return;
+    const buttons = navInnerRef.current.querySelectorAll('.mobile-nav-tab');
+    const activeButton = buttons[activeIndex];
+    if (activeButton) {
+      const containerRect = navInnerRef.current.getBoundingClientRect();
+      const buttonRect = activeButton.getBoundingClientRect();
+      const left = buttonRect.left - containerRect.left + (buttonRect.width - 32) / 2;
+      setIndicatorLeft(left);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  useEffect(() => {
+    updateIndicatorPosition();
+  }, [updateIndicatorPosition]);
+
+  // Recalculate on resize
+  useEffect(() => {
+    const handleResize = () => updateIndicatorPosition();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [updateIndicatorPosition]);
+
+  // Smooth auto-hide: scroll down hides, scroll up shows
+  useEffect(() => {
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const delta = currentScrollY - lastScrollY.current;
+
+          if (delta > 5 && currentScrollY > 100) {
+            setIsVisible(false);
+          } else if (delta < -5) {
+            setIsVisible(true);
+          }
+
+          lastScrollY.current = currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleNavClick = (tabId) => {
+    haptic.light();
+
+    // Trigger icon pop animation
+    setPoppingTab(tabId);
+    setTimeout(() => setPoppingTab(null), 200);
+
+    setIsVisible(true);
+  };
+
   return (
     <nav
       className={`mobile-nav ${isVisible ? 'mobile-nav--visible' : 'mobile-nav--hidden'}`}
       role="navigation"
       aria-label="Main navigation"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
     >
-      <div className="mobile-nav-inner">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => handleTabClick(tab.id)}
-            className={`mobile-nav-tab ${activeTab === tab.id ? 'mobile-nav-tab--active' : ''}`}
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-            aria-label={tab.label}
-          >
-            <span className="mobile-nav-icon">
-              {tab.icon(activeTab === tab.id)}
-              {tab.badge > 0 && (
-                <span className="mobile-nav-badge">{tab.badge > 9 ? '9+' : tab.badge}</span>
-              )}
-              {tab.dot && !tab.badge && (
-                <span className="mobile-nav-dot" />
-              )}
-            </span>
-            <span className="mobile-nav-label">{tab.label}</span>
-          </button>
-        ))}
+      <div className="mobile-nav-inner" ref={navInnerRef} style={{ position: 'relative' }}>
+        {/* Sliding active tab indicator */}
+        <span
+          className="mobile-nav-indicator"
+          style={{ left: `${indicatorLeft}px` }}
+          aria-hidden="true"
+        />
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const isPopping = poppingTab === tab.id;
+
+          return (
+            <NavLink
+              key={tab.id}
+              to={tab.to}
+              end={tab.to === '/'}
+              onClick={() => handleNavClick(tab.id)}
+              className={`mobile-nav-tab ${isActive ? 'mobile-nav-tab--active' : ''}`}
+              aria-label={tab.label}
+            >
+              <span
+                className={`mobile-nav-icon ${isPopping ? 'mobile-nav-icon--pop' : ''}`}
+              >
+                {tab.icon(isActive)}
+                {tab.badge > 0 && (
+                  <span className="mobile-nav-badge">{tab.badge > 9 ? '9+' : tab.badge}</span>
+                )}
+                {tab.dot && !tab.badge && (
+                  <span className="mobile-nav-dot" />
+                )}
+              </span>
+              <span className="mobile-nav-label">{tab.label}</span>
+            </NavLink>
+          );
+        })}
       </div>
     </nav>
   );
 });
 
-/**
- * PWA Install Banner
- * Shows when app can be installed
- */
-export const InstallBanner = memo(function InstallBanner({
-  onInstall,
-  onDismiss,
-  visible = true
-}) {
-  const haptic = useHaptic();
-
-  if (!visible) return null;
-
-  const handleInstall = () => {
-    haptic.medium();
-    onInstall?.();
-  };
-
-  const handleDismiss = () => {
-    haptic.light();
-    onDismiss?.();
-  };
-
-  return (
-    <div className="install-banner" role="banner" aria-label="Install app">
-      <div className="install-banner-content">
-        <div className="install-banner-icon">
-          <svg width="32" height="32" viewBox="0 0 512 512" fill="none">
-            <rect width="512" height="512" rx="96" fill="#1e7578"/>
-            <circle cx="256" cy="200" r="60" fill="#f9cf45"/>
-            <path d="M60 380c50-40 100-20 150 0s100 40 150 0 100-40 150 0" stroke="#5ab8bc" strokeWidth="20" strokeLinecap="round" fill="none"/>
-          </svg>
-        </div>
-        <div className="install-banner-text">
-          <p className="install-banner-title">Add to Home Screen</p>
-          <p className="install-banner-subtitle">Get the full app experience</p>
-        </div>
-      </div>
-      <div className="install-banner-actions">
-        <button
-          onClick={handleDismiss}
-          className="install-banner-dismiss"
-          aria-label="Dismiss"
-        >
-          Not now
-        </button>
-        <button
-          onClick={handleInstall}
-          className="install-banner-install"
-        >
-          Install
-        </button>
-      </div>
-    </div>
-  );
-});
-
-/**
- * Offline Indicator
- * Shows when user is offline
- */
-export const OfflineIndicator = memo(function OfflineIndicator({ isOnline, wasOffline }) {
-  if (isOnline && !wasOffline) return null;
-
-  return (
-    <div
-      className={`offline-indicator ${isOnline ? 'offline-indicator--online' : 'offline-indicator--offline'}`}
-      role="status"
-      aria-live="polite"
-    >
-      {isOnline ? (
-        <>
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>Back online</span>
-        </>
-      ) : (
-        <>
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3" />
-          </svg>
-          <span>You're offline</span>
-        </>
-      )}
-    </div>
-  );
-});
-
-/**
- * Update Available Toast
- * Shows when a new version of the app is available
- */
-export const UpdateToast = memo(function UpdateToast({ visible, onUpdate, onDismiss }) {
-  const haptic = useHaptic();
-
-  if (!visible) return null;
-
-  const handleUpdate = () => {
-    haptic.medium();
-    onUpdate?.();
-  };
-
-  const handleDismiss = () => {
-    haptic.light();
-    onDismiss?.();
-  };
-
-  return (
-    <div className="update-toast" role="alert">
-      <button
-        onClick={handleDismiss}
-        className="update-toast-close"
-        aria-label="Dismiss"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      <div className="update-toast-content">
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        <span>Update available</span>
-      </div>
-      <div className="update-toast-actions">
-        <button onClick={handleDismiss} className="update-toast-dismiss" aria-label="Dismiss update">
-          Later
-        </button>
-        <button onClick={handleUpdate} className="update-toast-btn">
-          Refresh
-        </button>
-      </div>
-    </div>
-  );
-});
-
-/**
- * Pull to Refresh Indicator
- * Visual feedback for pull-to-refresh gesture
- */
-export const PullToRefreshIndicator = memo(function PullToRefreshIndicator({
-  progress = 0,
-  isRefreshing = false
-}) {
-  if (progress === 0 && !isRefreshing) return null;
-
-  const rotation = Math.min(progress * 360, 360);
-  const scale = Math.min(0.5 + progress * 0.5, 1);
-
-  return (
-    <div
-      className="pull-refresh-indicator"
-      style={{
-        transform: `translateY(${Math.min(progress * 60, 60)}px)`,
-        opacity: progress
-      }}
-    >
-      <div
-        className={`pull-refresh-spinner ${isRefreshing ? 'pull-refresh-spinner--active' : ''}`}
-        style={{
-          transform: isRefreshing ? undefined : `rotate(${rotation}deg) scale(${scale})`
-        }}
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-      </div>
-    </div>
-  );
-});
+export default MobileNav;

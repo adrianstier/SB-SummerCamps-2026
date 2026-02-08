@@ -8,9 +8,50 @@ const mockOnOpenPlanner = vi.fn();
 const mockOnSelectCamp = vi.fn();
 
 let mockAuthContext = {};
+let mockFavoritesCtx = {};
+let mockScheduleCtx = {};
+let mockRecommendationsCtx = {};
 
 vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
+}));
+
+vi.mock('../contexts/FavoritesContext', () => ({
+  useFavorites: () => mockFavoritesCtx,
+}));
+
+vi.mock('../contexts/ScheduleContext', () => ({
+  useSchedule: () => mockScheduleCtx,
+}));
+
+vi.mock('../hooks/useRecommendations', () => ({
+  useRecommendations: () => mockRecommendationsCtx,
+}));
+
+vi.mock('../contexts/AchievementsContext', () => ({
+  useAchievements: () => ({
+    achievements: [],
+    userProgress: {},
+    checkAndUnlock: vi.fn(),
+    planningStats: { coveragePercent: 0, coveredWeeks: 0, totalWeeks: 11, gapCount: 0, totalCost: 0, budget: 0 },
+    streak: { current: 0, longest: 0 },
+    achievementProgress: {},
+    earnedAchievements: [],
+    relevantTips: [],
+    nextTip: null,
+  }),
+}));
+
+vi.mock('./ProgressTracker', () => ({
+  ProgressTracker: () => null,
+}));
+
+vi.mock('./AchievementBadges', () => ({
+  AchievementBadges: () => null,
+}));
+
+vi.mock('./RecommendationSection', () => ({
+  GapSuggestions: () => null,
 }));
 
 vi.mock('../lib/supabase', () => ({
@@ -48,8 +89,15 @@ beforeEach(() => {
       { id: 'child-1', name: 'Emma' },
       { id: 'child-2', name: 'Jake' },
     ],
+  };
+  mockFavoritesCtx = {
     favorites: [],
+  };
+  mockScheduleCtx = {
     scheduledCamps: [],
+    getCoverageGaps: vi.fn(() => []),
+  };
+  mockRecommendationsCtx = {
     getRecommendationScores: vi.fn(() => [
       { camp: mockCamps[0], score: 90 },
       { camp: mockCamps[1], score: 85 },
@@ -61,7 +109,6 @@ beforeEach(() => {
       totalScheduled: 3,
       totalCost: 1200,
     })),
-    getCoverageGaps: vi.fn(() => []),
   };
 });
 
@@ -86,33 +133,33 @@ describe('Dashboard', () => {
   });
 
   it('shows singular "child" for 1 child', () => {
-    mockAuthContext.getDashboardStats.mockReturnValue({ childrenCount: 1, totalScheduled: 0, totalCost: 0 });
+    mockRecommendationsCtx.getDashboardStats.mockReturnValue({ childrenCount: 1, totalScheduled: 0, totalCost: 0 });
     render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
-    expect(screen.getByText('child')).toBeInTheDocument();
+    expect(screen.getByText('Child')).toBeInTheDocument();
   });
 
   it('shows plural "children" for 2 children', () => {
     render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
-    expect(screen.getByText('children')).toBeInTheDocument();
+    expect(screen.getByText('Children')).toBeInTheDocument();
   });
 
   it('shows gaps count when there are coverage gaps', () => {
-    mockAuthContext.getCoverageGaps.mockReturnValue(['gap-1', 'gap-2']);
+    mockScheduleCtx.getCoverageGaps.mockReturnValue(['gap-1', 'gap-2']);
     render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
     expect(screen.getByText('4')).toBeInTheDocument(); // 2 children x 2 gaps
-    expect(screen.getByText('gaps')).toBeInTheDocument();
+    expect(screen.getByText('Gaps')).toBeInTheDocument();
   });
 
   it('does not show gaps when none exist', () => {
     render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
-    expect(screen.queryByText('gaps')).not.toBeInTheDocument();
+    expect(screen.queryByText('Gaps')).not.toBeInTheDocument();
   });
 
   it('shows singular "gap" for 1 gap', () => {
     mockAuthContext.children = [{ id: 'child-1', name: 'Emma' }];
-    mockAuthContext.getCoverageGaps.mockReturnValue(['gap-1']);
+    mockScheduleCtx.getCoverageGaps.mockReturnValue(['gap-1']);
     render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
-    expect(screen.getByText('gap')).toBeInTheDocument();
+    expect(screen.getByText('Gap')).toBeInTheDocument();
   });
 
   describe('Schedule section', () => {
@@ -123,7 +170,7 @@ describe('Dashboard', () => {
     });
 
     it('shows scheduled camps when present', () => {
-      mockAuthContext.scheduledCamps = [
+      mockScheduleCtx.scheduledCamps = [
         { id: 'sc-1', camp_id: 'camp-1', child_id: 'child-1', start_date: '2026-06-08', status: 'confirmed' },
       ];
       render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
@@ -134,7 +181,7 @@ describe('Dashboard', () => {
     });
 
     it('limits display to 3 scheduled camps', () => {
-      mockAuthContext.scheduledCamps = [
+      mockScheduleCtx.scheduledCamps = [
         { id: 'sc-1', camp_id: 'camp-1', child_id: 'child-1', start_date: '2026-06-08', status: 'confirmed' },
         { id: 'sc-2', camp_id: 'camp-2', child_id: 'child-1', start_date: '2026-06-15', status: 'registered' },
         { id: 'sc-3', camp_id: 'camp-3', child_id: 'child-2', start_date: '2026-06-22', status: 'planned' },
@@ -151,7 +198,7 @@ describe('Dashboard', () => {
     });
 
     it('excludes cancelled camps from display', () => {
-      mockAuthContext.scheduledCamps = [
+      mockScheduleCtx.scheduledCamps = [
         { id: 'sc-1', camp_id: 'camp-1', child_id: 'child-1', start_date: '2026-06-08', status: 'cancelled' },
       ];
       render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
@@ -159,7 +206,7 @@ describe('Dashboard', () => {
     });
 
     it('shows "Camp" fallback when camp not found', () => {
-      mockAuthContext.scheduledCamps = [
+      mockScheduleCtx.scheduledCamps = [
         { id: 'sc-1', camp_id: 'unknown-camp', child_id: 'child-1', start_date: '2026-06-08', status: 'confirmed' },
       ];
       render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
@@ -167,7 +214,7 @@ describe('Dashboard', () => {
     });
 
     it('shows "Child" fallback when child not found', () => {
-      mockAuthContext.scheduledCamps = [
+      mockScheduleCtx.scheduledCamps = [
         { id: 'sc-1', camp_id: 'camp-1', child_id: 'unknown-child', start_date: '2026-06-08', status: 'confirmed' },
       ];
       render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
@@ -188,7 +235,7 @@ describe('Dashboard', () => {
     });
 
     it('shows empty state when no recommendations', () => {
-      mockAuthContext.getRecommendationScores.mockReturnValue([]);
+      mockRecommendationsCtx.getRecommendationScores.mockReturnValue([]);
       render(<Dashboard camps={mockCamps} onClose={mockOnClose} onOpenPlanner={mockOnOpenPlanner} onSelectCamp={mockOnSelectCamp} />);
       expect(screen.getByText('Add preferences for personalized picks')).toBeInTheDocument();
     });

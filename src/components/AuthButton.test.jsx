@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { AuthButton } from './AuthButton';
 import * as AuthContext from '../contexts/AuthContext';
 
@@ -9,6 +10,25 @@ import * as AuthContext from '../contexts/AuthContext';
 vi.mock('../contexts/AuthContext', () => ({
   useAuth: vi.fn()
 }));
+
+// Mock useNavigate from react-router-dom
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+// Helper to render with MemoryRouter (AuthButton uses useNavigate)
+function renderAuthButton() {
+  return render(
+    <MemoryRouter>
+      <AuthButton />
+    </MemoryRouter>
+  );
+}
 
 describe('AuthButton', () => {
   const mockSignIn = vi.fn();
@@ -35,7 +55,7 @@ describe('AuthButton', () => {
         signOut: mockSignOut
       });
 
-      const { container } = render(<AuthButton />);
+      const { container } = renderAuthButton();
       expect(container.firstChild).toBeNull();
     });
   });
@@ -51,7 +71,7 @@ describe('AuthButton', () => {
         signOut: mockSignOut
       });
 
-      render(<AuthButton />);
+      renderAuthButton();
       expect(document.querySelector('.loading-skeleton')).toBeInTheDocument();
     });
   });
@@ -69,20 +89,20 @@ describe('AuthButton', () => {
     });
 
     it('renders sign in button when user is null', () => {
-      render(<AuthButton />);
+      renderAuthButton();
       expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
     });
 
     it('calls signIn when sign in button is clicked', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByRole('button', { name: /sign in/i }));
       expect(mockSignIn).toHaveBeenCalledTimes(1);
     });
 
     it('renders Google icon', () => {
-      render(<AuthButton />);
+      renderAuthButton();
       expect(document.querySelector('svg')).toBeInTheDocument();
     });
   });
@@ -112,13 +132,13 @@ describe('AuthButton', () => {
     });
 
     it('renders avatar button when user is signed in', () => {
-      render(<AuthButton />);
+      renderAuthButton();
       // Should show first letter of name
       expect(screen.getByText('T')).toBeInTheDocument();
     });
 
     it('shows user initials when no avatar_url', () => {
-      render(<AuthButton />);
+      renderAuthButton();
       expect(screen.getByText('T')).toBeInTheDocument();
     });
 
@@ -132,7 +152,7 @@ describe('AuthButton', () => {
         signOut: mockSignOut
       });
 
-      render(<AuthButton />);
+      renderAuthButton();
       const avatar = document.querySelector('img');
       expect(avatar).toBeInTheDocument();
       expect(avatar).toHaveAttribute('src', 'https://example.com/avatar.jpg');
@@ -140,7 +160,7 @@ describe('AuthButton', () => {
 
     it('opens menu when avatar is clicked', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('T'));
 
@@ -151,7 +171,7 @@ describe('AuthButton', () => {
 
     it('shows navigation options in menu', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('T'));
 
@@ -161,69 +181,49 @@ describe('AuthButton', () => {
       expect(screen.getByRole('menuitem', { name: /my children/i })).toBeInTheDocument();
     });
 
-    it('dispatches navigate event for dashboard', async () => {
+    it('navigates to dashboard route', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('T'));
       await user.click(screen.getByRole('menuitem', { name: /dashboard/i }));
 
-      expect(dispatchEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'navigate',
-          detail: 'dashboard'
-        })
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
 
-    it('dispatches navigate event for planner', async () => {
+    it('navigates to schedule route', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('T'));
       await user.click(screen.getByRole('menuitem', { name: /my schedule/i }));
 
-      expect(dispatchEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'navigate',
-          detail: 'planner'
-        })
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('/schedule');
     });
 
-    it('dispatches navigate event for favorites', async () => {
+    it('navigates to wishlist route', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('T'));
       await user.click(screen.getByRole('menuitem', { name: /favorites/i }));
 
-      expect(dispatchEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'navigate',
-          detail: 'favorites'
-        })
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('/wishlist');
     });
 
-    it('dispatches navigate event for children', async () => {
+    it('navigates to children route', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('T'));
       await user.click(screen.getByRole('menuitem', { name: /my children/i }));
 
-      expect(dispatchEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'navigate',
-          detail: 'children'
-        })
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('/children');
     });
 
     it('calls signOut when sign out button is clicked', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('T'));
       await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
@@ -233,7 +233,7 @@ describe('AuthButton', () => {
 
     it('closes menu when clicking outside', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       // Open menu
       await user.click(screen.getByText('T'));
@@ -249,7 +249,7 @@ describe('AuthButton', () => {
 
     it('closes menu after clicking a menu item', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('T'));
       await user.click(screen.getByRole('menuitem', { name: /dashboard/i }));
@@ -273,26 +273,21 @@ describe('AuthButton', () => {
 
     it('shows admin dashboard option for admin users', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('A'));
 
       expect(screen.getByRole('menuitem', { name: /admin dashboard/i })).toBeInTheDocument();
     });
 
-    it('dispatches navigate event for admin dashboard', async () => {
+    it('navigates to admin route', async () => {
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('A'));
       await user.click(screen.getByRole('menuitem', { name: /admin dashboard/i }));
 
-      expect(dispatchEventSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'navigate',
-          detail: 'admin'
-        })
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('/admin');
     });
   });
 
@@ -307,7 +302,7 @@ describe('AuthButton', () => {
         signOut: mockSignOut
       });
 
-      render(<AuthButton />);
+      renderAuthButton();
       expect(screen.getByText('J')).toBeInTheDocument();
     });
 
@@ -322,7 +317,7 @@ describe('AuthButton', () => {
       });
 
       const user = userEvent.setup();
-      render(<AuthButton />);
+      renderAuthButton();
 
       await user.click(screen.getByText('J'));
       expect(screen.getByText('User')).toBeInTheDocument();

@@ -1,0 +1,328 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ONBOARDING WIZARD - Polish & Animation Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Step Slide Transitions ─────────────────────────────────────────────── */
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.onboarding-step-forward {
+  animation: slideLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.onboarding-step-backward {
+  animation: slideRight 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ─── Input Field Polish ─────────────────────────────────────────────────── */
+
+.onboarding-input {
+  border-radius: 12px;
+  border: 2px solid var(--sand-200);
+  padding: 0.625rem 1rem;
+  width: 100%;
+  font-size: 0.9375rem;
+  color: var(--earth-800);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.onboarding-input::placeholder {
+  color: var(--sand-400);
+}
+
+.onboarding-input:focus {
+  border-color: var(--ocean-400);
+  box-shadow: 0 0 0 4px var(--ocean-100);
+}
+
+.onboarding-input:hover:not(:focus) {
+  border-color: var(--sand-300);
+}
+
+/* Select-specific adjustments */
+select.onboarding-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238f7f65' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px;
+  padding-right: 2.5rem;
+}
+
+/* ─── Button Styles ──────────────────────────────────────────────────────── */
+
+.onboarding-btn-primary {
+  background: var(--ocean-500);
+  color: white;
+  font-weight: 600;
+  padding: 0.625rem 1.75rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.onboarding-btn-primary:hover {
+  background: var(--ocean-600);
+  box-shadow: 0 2px 8px rgba(30, 117, 120, 0.3);
+}
+
+.onboarding-btn-primary:active {
+  transform: scale(0.97);
+  background: var(--ocean-700);
+}
+
+.onboarding-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.onboarding-btn-back {
+  background: transparent;
+  color: var(--earth-600);
+  font-weight: 500;
+  padding: 0.625rem 1.5rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  transition: color 0.2s ease, background 0.15s ease;
+}
+
+.onboarding-btn-back:hover {
+  color: var(--earth-800);
+  background: var(--sand-100);
+}
+
+.onboarding-btn-back:active {
+  background: var(--sand-200);
+}
+
+.onboarding-btn-skip {
+  background: transparent;
+  color: var(--sand-400);
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: color 0.2s ease, background 0.15s ease;
+}
+
+.onboarding-btn-skip:hover {
+  color: var(--earth-600);
+  background: var(--sand-50);
+}
+
+.onboarding-btn-skip:active {
+  background: var(--sand-100);
+}
+
+/* ─── Add Child Button ───────────────────────────────────────────────────── */
+
+.onboarding-add-child-btn {
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  background: var(--ocean-500);
+  color: white;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.onboarding-add-child-btn:hover {
+  background: var(--ocean-600);
+  box-shadow: 0 4px 12px rgba(30, 117, 120, 0.25);
+  transform: translateY(-1px);
+}
+
+.onboarding-add-child-btn:active {
+  transform: translateY(0) scale(0.98);
+  background: var(--ocean-700);
+}
+
+/* ─── Child Card Polish ──────────────────────────────────────────────────── */
+
+.onboarding-child-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  background: white;
+  border: 2px solid var(--sand-200);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.onboarding-child-card:hover {
+  border-color: var(--sand-300);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.onboarding-child-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.625rem;
+  flex-shrink: 0;
+  border-width: 2.5px;
+  border-style: solid;
+  transition: transform 0.2s ease;
+}
+
+.onboarding-child-card:hover .onboarding-child-avatar {
+  transform: scale(1.05);
+}
+
+.onboarding-child-remove {
+  padding: 0.375rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--sand-400);
+  transition: color 0.2s ease, background 0.15s ease;
+}
+
+.onboarding-child-remove:hover {
+  color: var(--terra-500);
+  background: var(--terra-50);
+}
+
+/* ─── Completion Celebration ─────────────────────────────────────────────── */
+
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 48;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes checkmarkCircleGrow {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkmarkPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(45, 149, 153, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 16px rgba(45, 149, 153, 0);
+  }
+}
+
+.onboarding-complete-icon {
+  width: 6rem;
+  height: 6rem;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sage-100);
+  animation: checkmarkCircleGrow 0.5s cubic-bezier(0.4, 0, 0.2, 1) both,
+             checkmarkPulse 2s ease-in-out 0.6s 2;
+}
+
+.onboarding-checkmark {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: checkmarkDraw 0.4s ease-out 0.35s forwards;
+}
+
+/* ─── Progress Bar Enhancement ───────────────────────────────────────────── */
+
+.onboarding-progress-track {
+  height: 3px;
+  background: var(--sand-100);
+  overflow: hidden;
+}
+
+.onboarding-progress-fill {
+  height: 100%;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--ocean-400);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─── Reduced Motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-step-forward,
+  .onboarding-step-backward {
+    animation: none;
+  }
+
+  .onboarding-complete-icon {
+    animation: none;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .onboarding-checkmark {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .onboarding-add-child-btn:hover {
+    transform: none;
+  }
+
+  .onboarding-btn-primary:active {
+    transform: none;
+  }
+
+  .onboarding-child-card:hover .onboarding-child-avatar {
+    transform: none;
+  }
+}

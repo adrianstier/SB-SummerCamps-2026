@@ -323,7 +323,7 @@ describe('ReviewsList', () => {
     render(<ReviewsList campId="camp-1" campName="Surf Camp" />);
     await waitFor(() => {
       expect(screen.getByText('No reviews yet')).toBeInTheDocument();
-      expect(screen.getByText('Be the first to share your experience!')).toBeInTheDocument();
+      expect(screen.getByText('Be the first to share your experience.')).toBeInTheDocument();
     });
   });
 

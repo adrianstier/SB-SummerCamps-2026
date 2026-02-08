@@ -390,7 +390,7 @@
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 480px) {
+@media (max-width: 639px) {
   .shareable-card-modal {
     padding: var(--space-4);
     max-height: 95vh;

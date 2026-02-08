@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export function AuthButton() {
+  const navigate = useNavigate();
   const { user, profile, loading, isConfigured, signIn, signOut } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
 
@@ -94,7 +96,7 @@ export function AuthButton() {
               <button
                 onClick={() => {
                   setShowMenu(false);
-                  window.dispatchEvent(new CustomEvent('navigate', { detail: 'dashboard' }));
+                  navigate('/dashboard');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)] focus:bg-[var(--sand-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--earth-700)' }}
@@ -107,8 +109,7 @@ export function AuthButton() {
               <button
                 onClick={() => {
                   setShowMenu(false);
-                  // Navigate to schedule planner
-                  window.dispatchEvent(new CustomEvent('navigate', { detail: 'planner' }));
+                  navigate('/schedule');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)] focus:bg-[var(--sand-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--earth-700)' }}
@@ -121,7 +122,7 @@ export function AuthButton() {
               <button
                 onClick={() => {
                   setShowMenu(false);
-                  window.dispatchEvent(new CustomEvent('navigate', { detail: 'favorites' }));
+                  navigate('/wishlist');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)] focus:bg-[var(--sand-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--earth-700)' }}
@@ -134,7 +135,7 @@ export function AuthButton() {
               <button
                 onClick={() => {
                   setShowMenu(false);
-                  window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }));
+                  navigate('/children');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--sand-50)] focus:bg-[var(--sand-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                 style={{ color: 'var(--earth-700)' }}
@@ -150,7 +151,7 @@ export function AuthButton() {
                 <button
                   onClick={() => {
                     setShowMenu(false);
-                    window.dispatchEvent(new CustomEvent('navigate', { detail: 'admin' }));
+                    navigate('/admin');
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors hover:bg-[var(--ocean-50)] focus:bg-[var(--ocean-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ocean-400)]"
                   style={{ color: 'var(--ocean-600)' }}

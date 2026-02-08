@@ -1,66 +1,20 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, memo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { useFavorites } from './contexts/FavoritesContext';
+import { useSquads } from './contexts/SquadsContext';
+import { useCamps } from './contexts/CampsContext';
+import { useCompare } from './contexts/CompareContext';
+import { useRecommendations } from './hooks/useRecommendations';
 import { useScrollReveal } from './hooks/useScrollReveal';
-import { useFilters, FILTER_PRESETS } from './hooks/useFilters';
-import { usePWAInstall, useOnlineStatus, useServiceWorkerUpdate, usePullToRefresh, useHaptic } from './hooks/usePWA';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { useFilters } from './hooks/useFilters';
 import { AuthButton } from './components/AuthButton';
 import { FavoriteButton } from './components/FavoriteButton';
 import NotificationBell from './components/NotificationBell';
-import { AdvancedFilters, SUMMER_WEEKS_2026 } from './components/AdvancedFilters';
-import { MobileNav, InstallBanner, OfflineIndicator, UpdateToast, PullToRefreshIndicator } from './components/MobileNav';
-import { SwipeableCampCard, SwipeHint } from './components/SwipeableCampCard';
-import { supabase, getRegistrationStatus, checkWorkScheduleCoverage } from './lib/supabase';
+import { AdvancedFilters } from './components/AdvancedFilters';
+import { getRegistrationStatus } from './lib/supabase';
 import { formatPrice } from './lib/formatters';
 import BrandIcon from './components/BrandIcon';
-import { z } from 'zod';
-
-// Lazy load heavy modal components for better initial load performance
-const SchedulePlanner = lazy(() => import('./components/SchedulePlanner').then(m => ({ default: m.SchedulePlanner })));
-const ChildrenManager = lazy(() => import('./components/ChildrenManager').then(m => ({ default: m.ChildrenManager })));
-const OnboardingWizard = lazy(() => import('./components/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
-const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
-const CampComparison = lazy(() => import('./components/CampComparison').then(m => ({ default: m.CampComparison })));
-const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
-const JoinSquad = lazy(() => import('./components/JoinSquad'));
-const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
-const CostDashboard = lazy(() => import('./components/CostDashboard').then(m => ({ default: m.CostDashboard })));
-const Wishlist = lazy(() => import('./components/Wishlist').then(m => ({ default: m.Wishlist })));
-const CampInsights = lazy(() => import('./components/CampInsights').then(m => ({ default: m.CampInsights })));
-const FamilyWorkspace = lazy(() => import('./components/FamilyWorkspace'));
-
-// SECURITY: Validation schema for shared schedule data from URL parameters
-// Prevents XSS and malformed data injection via Base64-encoded URL params
-const SharedScheduleSchema = z.object({
-  childName: z.string().min(1).max(100),
-  totalCost: z.number().nonnegative().finite(),
-  weeks: z.array(
-    z.object({
-      weekNum: z.number().int().positive().max(52),
-      display: z.string().max(200),
-      camps: z.array(
-        z.object({
-          name: z.string().min(1).max(200),
-          status: z.string().max(50).optional(),
-          price: z.number().nonnegative().finite().optional()
-        })
-      ).max(10)
-    })
-  ).max(20)
-});
-
-// Loading fallback for lazy-loaded modals
-const ModalLoadingFallback = memo(function ModalLoadingFallback() {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
-      <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4">
-        <LoadingSpinner className="w-8 h-8" />
-        <p style={{ color: 'var(--earth-700)' }}>Preparing your view...</p>
-      </div>
-    </div>
-  );
-});
-
 // SECURITY: Validate URL schemes before rendering as href
 function safeUrl(url) {
   if (!url) return null;
@@ -75,196 +29,11 @@ function safeUrl(url) {
   }
 }
 
-// BUG-B-015: Helper function for retry logic on API fetch errors
-async function withRetry(fn, maxRetries = 2, delay = 500) {
-  let lastError;
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-      console.warn(`API call failed (attempt ${attempt + 1}/${maxRetries + 1}):`, error.message);
-      if (attempt < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)));
-      }
-    }
-  }
-  throw lastError;
-}
-
-// Fetch camps from Supabase
-async function fetchCamps(filters = {}) {
-  if (!supabase) {
-    return { camps: [], total: 0 };
-  }
-
-  // BUG-B-015: Wrap in retry logic for intermittent failures
-  return withRetry(async () => {
-    let query = supabase.from('camps').select('*');
-
-    // Apply filters
-    // SECURITY: Escape characters with special meaning in PostgREST filter expressions
-    if (filters.search) {
-      const safeSearch = filters.search
-        .replace(/[%_\\]/g, c => '\\' + c)  // Escape LIKE wildcards
-        .replace(/[,.()[\]]/g, '')          // Remove PostgREST operators
-        .trim();
-      if (safeSearch) {
-        query = query.or(`camp_name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`);
-      }
-    }
-
-    if (filters.category && filters.category !== 'All') {
-      query = query.eq('category', filters.category);
-    }
-
-    if (filters.minAge) {
-      query = query.gte('max_age', parseInt(filters.minAge, 10));
-    }
-
-    if (filters.maxAge) {
-      query = query.lte('min_age', parseInt(filters.maxAge, 10));
-    }
-
-    if (filters.maxPrice) {
-      query = query.lte('min_price', parseInt(filters.maxPrice, 10));
-    }
-
-    if (!filters.includeClosed) {
-      query = query.eq('is_closed', false);
-    }
-
-    const { data, error } = await query.order('camp_name');
-
-    if (error) {
-      throw new Error(`Supabase error: ${error.message}`);
-    }
-
-    return { camps: data || [], total: data?.length || 0 };
-  });
-  // Errors will propagate to caller for proper error handling
-}
-
-async function fetchCategories() {
-  if (!supabase) return [];
-
-  // BUG-B-015: Wrap in retry logic
-  return withRetry(async () => {
-    const { data, error } = await supabase
-      .from('camps')
-      .select('category')
-      .not('category', 'is', null)
-      .eq('is_closed', false); // Only get categories from active camps
-
-    if (error) {
-      throw new Error(`Supabase error: ${error.message}`);
-    }
-
-    // Filter out status indicators that aren't real categories
-    const invalidCategories = ['CLOSED', 'NO CAMP', 'TBD', 'Unknown', 'N/A'];
-    const categories = [...new Set(data.map(c => c.category))]
-      .filter(cat => cat && !invalidCategories.includes(cat.toUpperCase()));
-    return categories.sort();
-  });
-  // Errors will propagate to caller for proper error handling
-}
-
-// Helper to check if a camp is effectively closed (either is_closed flag or CLOSED/NO CAMP category)
+// Helper to check if a camp is effectively closed
 function isCampEffectivelyClosed(camp) {
   if (camp.is_closed) return true;
   const cat = (camp.category || '').toUpperCase();
   return cat === 'CLOSED' || cat === 'NO CAMP';
-}
-
-async function fetchStats() {
-  if (!supabase) {
-    return { total: 0, active: 0, closed: 0, categories: {}, priceRange: {}, ageRange: {} };
-  }
-
-  // BUG-B-015: Wrap in retry logic
-  return withRetry(async () => {
-    const { data: camps, error } = await supabase.from('camps').select('category, min_price, max_price, min_age, max_age, is_closed');
-
-    if (error || !camps) {
-      throw new Error(`Supabase error: ${error?.message || 'No data returned'}`);
-    }
-
-    const active = camps.filter(c => !c.is_closed);
-
-    const categories = {};
-    active.forEach(c => {
-      if (c.category) {
-        categories[c.category] = (categories[c.category] || 0) + 1;
-      }
-    });
-
-    const prices = active.filter(c => c.min_price).map(c => c.min_price);
-    const ages = active.filter(c => c.min_age);
-    const maxPrices = active.filter(c => c.max_price).map(c => c.max_price);
-    const maxAges = ages.filter(c => c.max_age).map(c => c.max_age);
-
-    return {
-      total: camps.length,
-      active: active.length,
-      closed: camps.length - active.length,
-      categories,
-      priceRange: {
-        min: prices.length ? prices.reduce((a, b) => Math.min(a, b), Infinity) : null,
-        max: maxPrices.length ? maxPrices.reduce((a, b) => Math.max(a, b), -Infinity) : null
-      },
-      ageRange: {
-        min: ages.length ? ages.map(c => c.min_age).reduce((a, b) => Math.min(a, b), Infinity) : null,
-        max: maxAges.length ? maxAges.reduce((a, b) => Math.max(a, b), -Infinity) : null
-      }
-    };
-  });
-  // Errors will propagate to caller for proper error handling
-}
-
-// Get registration urgency status
-function getRegUrgency(regDate) {
-  if (!regDate || regDate === 'TBD' || regDate === 'Unknown') return null;
-
-  const lower = regDate.toLowerCase();
-
-  // Check for "open now" type messages
-  if (lower.includes('open') || lower.includes('now') || lower.includes('rolling')) {
-    return { type: 'open', label: 'Open Now', icon: 'check' };
-  }
-
-  // Check for "filled" or "closed"
-  if (lower.includes('fill') || lower.includes('full') || lower.includes('closed') || lower.includes('waitlist')) {
-    return { type: 'full', label: 'Waitlist', icon: 'hourglass' };
-  }
-
-  // Try to parse a date
-  const monthMatch = regDate.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
-  if (monthMatch) {
-    const months = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
-    const monthIdx = months[monthMatch[1].toLowerCase()];
-    const dayMatch = regDate.match(/\d+/);
-    const day = dayMatch ? parseInt(dayMatch[0], 10) : 1;
-
-    const now = new Date();
-    const regDateObj = new Date(now.getFullYear(), monthIdx, day);
-
-    // If the date has passed this year, assume next year
-    if (regDateObj < now) {
-      regDateObj.setFullYear(now.getFullYear() + 1);
-    }
-
-    const daysUntil = Math.ceil((regDateObj - now) / (1000 * 60 * 60 * 24));
-
-    if (daysUntil <= 0) {
-      return { type: 'open', label: 'Open Now', icon: 'check' };
-    } else if (daysUntil <= 7) {
-      return { type: 'soon', label: `Opens in ${daysUntil}d`, icon: 'bell' };
-    } else if (daysUntil <= 30) {
-      return { type: 'upcoming', label: `Opens ${regDate}`, icon: 'calendar' };
-    }
-  }
-
-  return null;
 }
 
 // Category class mappings
@@ -321,7 +90,7 @@ const categoryIcons = [
   { name: 'Overnight', icon: 'overnight' },
 ];
 
-// Memoized icon components to prevent unnecessary re-renders
+// Memoized icon components
 const SearchIcon = memo(function SearchIcon() {
   return (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -372,30 +141,13 @@ const ChevronIcon = memo(function ChevronIcon({ expanded }) {
 
 const LoadingSpinner = memo(function LoadingSpinner({ className = "w-5 h-5" }) {
   return (
-    <svg
-      className={`${className} animate-spin`}
-      fill="none"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
+    <svg className={`${className} animate-spin loading-spinner-branded`} fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
     </svg>
   );
 });
 
-// Brand Logo (California sun over wave)
 const AppLogo = ({ className = "w-8 h-8" }) => (
   <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="16" cy="11" r="5" fill="#f9cf45" />
@@ -405,13 +157,46 @@ const AppLogo = ({ className = "w-8 h-8" }) => (
   </svg>
 );
 
-// Main App Component
+const CalendarPlanIcon = memo(function CalendarPlanIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+});
+
+const DashboardIcon = memo(function DashboardIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+    </svg>
+  );
+});
+
+const CompareIcon = memo(function CompareIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  );
+});
+
+const VerifiedIcon = memo(function VerifiedIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--ocean-500)' }}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  );
+});
+
+// ── Main App Component (Browse Page Content) ──
 export default function App() {
-  const [camps, setCamps] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const { camps, categories, stats, loading, error } = useCamps();
+  const { compareList, toggleCompare, removeFromCompare, clearCompare } = useCompare();
+  const { profile, user } = useAuth();
+  const { favorites } = useFavorites();
+  const { friendInterestCounts, squads } = useSquads();
 
   // Advanced filters hook
   const priceRange = useMemo(() => ({
@@ -420,373 +205,38 @@ export default function App() {
   }), [stats?.priceRange]);
 
   const {
-    filters,
-    updateFilters,
-    clearFilters: clearAdvancedFilters,
-    applyPreset,
-    filterAndSortCamps,
-    activeFilterCount,
-    userLocation,
-    locationError,
-    requestLocation,
-    savedSearches,
-    saveSearch,
-    deleteSavedSearch,
-    applySavedSearch,
-    shareableURL
+    filters, updateFilters, clearFilters,
+    applyPreset, filterAndSortCamps, activeFilterCount,
+    searchInput, setSearchInput,
+    userLocation, locationError, requestLocation,
+    savedSearches, saveSearch, deleteSavedSearch, applySavedSearch, shareableURL
   } = useFilters(priceRange);
 
-  // Legacy filter state (for backwards compatibility with existing UI)
-  const [showFilters, setShowFilters] = useState(false);
+  // UI state
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-
-  // View state
   const [expandedCamp, setExpandedCamp] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
-
-  // Loading states
-  const [isPlannerLoading, setIsPlannerLoading] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-
-  // Modal state
-  const [showPlanner, setShowPlanner] = useState(false);
-  const [showChildren, setShowChildren] = useState(false);
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
-  const [showInsights, setShowInsights] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showCostDashboard, setShowCostDashboard] = useState(false);
-  const [showWishlist, setShowWishlist] = useState(false);
-  const [showFamilyWorkspace, setShowFamilyWorkspace] = useState(false);
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
-  const [compareList, setCompareList] = useState([]);
-  const [modalCamp, setModalCamp] = useState(null); // Camp detail modal
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
-  const [searchInput, setSearchInput] = useState(''); // Local state for debounced search input
-  const searchDebounceRef = useRef(null);
-
-  // Track initial load to prevent double-fetch
-  const initialLoadDone = useRef(false);
-
-  // Ref for table view scroll-to
   const tableRef = useRef(null);
 
-  // Ref for modal trigger focus restoration (WCAG 2.1 focus management)
-  const modalTriggerRef = useRef(null);
-
-  // Auth context
-  const { profile, favorites, isConfigured, showOnboarding, completeOnboarding, user, friendInterestCounts, squads, authError, clearAuthError } = useAuth();
-
-  // PWA hooks
-  const { canInstall, isStandalone, promptInstall } = usePWAInstall();
-  const { isOnline, wasOffline } = useOnlineStatus();
-  const { updateAvailable, applyUpdate } = useServiceWorkerUpdate();
-  const haptic = useHaptic();
-  const [showInstallBanner, setShowInstallBanner] = useState(true);
-  const [showSwipeHint, setShowSwipeHint] = useState(() => {
-    // Only show swipe hint once per device
-    return !localStorage.getItem('sb-camps-swipe-hint-seen');
-  });
-  const [mobileTab, setMobileTab] = useState('browse');
-  const [hiddenCamps, setHiddenCamps] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('sb-camps-hidden') || '[]');
-    } catch {
-      return [];
-    }
-  });
-
-  // Dismiss swipe hint
-  const dismissSwipeHint = useCallback(() => {
-    setShowSwipeHint(false);
-    localStorage.setItem('sb-camps-swipe-hint-seen', 'true');
-  }, []);
-
-  // Handle install prompt
-  const handleInstall = useCallback(async () => {
-    haptic.medium();
-    const installed = await promptInstall();
-    if (installed) {
-      setShowInstallBanner(false);
-    }
-  }, [promptInstall, haptic]);
-
-  // Handle camp swipe actions
-  const handleSwipeRight = useCallback((campId) => {
-    haptic.success();
-    // Add to favorites - the FavoriteButton component handles the actual toggle
-    window.dispatchEvent(new CustomEvent('toggle-favorite', { detail: { campId } }));
-  }, [haptic]);
-
-  const handleSwipeLeft = useCallback((campId) => {
-    haptic.light();
-    setHiddenCamps(prev => {
-      const updated = [...prev, campId];
-      localStorage.setItem('sb-camps-hidden', JSON.stringify(updated));
-      return updated;
-    });
-  }, [haptic]);
-
-  // Handle mobile tab changes
-  const handleMobileTabChange = useCallback((tab) => {
-    haptic.light();
-    setMobileTab(tab);
-
-    // Close all views first
-    setShowWishlist(false);
-    setShowPlanner(false);
-    setShowDashboard(false);
-    setShowSettings(false);
-
-    // Open the requested view
-    if (tab === 'wishlist') {
-      setShowWishlist(true);
-    } else if (tab === 'schedule') {
-      setShowPlanner(true);
-    } else if (tab === 'dashboard') {
-      if (user) {
-        setShowDashboard(true);
-      } else {
-        // Trigger sign in for non-logged users
-        window.dispatchEvent(new CustomEvent('navigate', { detail: 'signin' }));
-      }
-    } else if (tab === 'more') {
-      setShowSettings(true);
-    }
-    // 'browse' is the default - just closes everything
-  }, [haptic, user]);
-
-  // Check for join squad route
-  const [joinInviteCode, setJoinInviteCode] = useState(() => {
-    const path = window.location.pathname;
-    const match = path.match(/^\/join\/([a-f0-9]+)$/i);
-    return match ? match[1] : null;
-  });
-
-  // SECURITY: Handle shared schedule links with Zod validation
-  const [sharedSchedule, setSharedSchedule] = useState(() => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const sharedParam = urlParams.get('shared');
-      if (sharedParam) {
-        // Decode URL-safe base64: replace - with +, _ with /, add padding back
-        const base64 = sharedParam.replace(/-/g, '+').replace(/_/g, '/');
-        const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
-        const jsonStr = atob(base64 + padding);
-        const parsed = JSON.parse(jsonStr);
-
-        // SECURITY: Validate parsed data against schema before using it
-        // This prevents XSS attacks via malformed data in URL parameters
-        const validated = SharedScheduleSchema.parse(parsed);
-        return validated;
-      }
-    } catch (error) {
-      console.error('Failed to parse or validate shared schedule:', error);
-      // Clear the invalid shared param from URL
-      const url = new URL(window.location.href);
-      url.searchParams.delete('shared');
-      window.history.replaceState({}, '', url.toString());
-    }
-    return null;
-  });
+  // Filtered camps
+  const filteredCamps = useMemo(() => filterAndSortCamps(camps, profile), [camps, filterAndSortCamps, profile]);
+  const searchResultCount = filteredCamps.length;
 
   // Detect mobile viewport
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Listen for navigation events from auth menu and squad notifications
-  useEffect(() => {
-    function handleNavigate(e) {
-      const detail = e.detail;
-
-      // BUG-F-015: Handle both string targets and object details (from squad notifications)
-      if (typeof detail === 'string') {
-        const target = detail;
-        if (target === 'planner') setShowPlanner(true);
-        if (target === 'children') setShowChildren(true);
-        if (target === 'favorites') setShowWishlist(true); // Now opens wishlist
-        if (target === 'dashboard') setShowDashboard(true);
-        if (target === 'admin') setShowAdmin(true);
-        if (target === 'settings') setShowSettings(true);
-        if (target === 'budget') setShowCostDashboard(true);
-      } else if (typeof detail === 'object' && detail !== null) {
-        // Handle object-based navigation (from SquadNotificationBell)
-        const { view, tab, squadId, campId } = detail;
-        if (view === 'planner') {
-          setShowPlanner(true);
-          // The SchedulePlanner component will need to handle the tab and squadId
-          // Store them for the planner to pick up
-          if (tab || squadId) {
-            window.__plannerNavTarget = { tab, squadId, campId };
-          }
-        }
-        if (view === 'camp' && campId) {
-          setModalCamp(campId);
-        }
-      }
-    }
-    window.addEventListener('navigate', handleNavigate);
-    return () => window.removeEventListener('navigate', handleNavigate);
-  }, []);
-
-  // Focus trap for camp detail modal
-  useEffect(() => {
-    if (!modalCamp) return;
-    const modal = document.querySelector('[role="dialog"]');
-    if (!modal) return;
-    const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const firstEl = focusableElements[0];
-    const lastEl = focusableElements[focusableElements.length - 1];
-
-    const handleTab = (e) => {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey && document.activeElement === firstEl) {
-        e.preventDefault();
-        lastEl.focus();
-      } else if (!e.shiftKey && document.activeElement === lastEl) {
-        e.preventDefault();
-        firstEl.focus();
-      }
-    };
-
-    firstEl?.focus();
-    modal.addEventListener('keydown', handleTab);
-
-    // BUG-B-010: Escape handler is bound to document (not modal element) intentionally.
-    // This ensures the modal can be closed even when focus escapes the modal (edge case),
-    // and provides consistent keyboard navigation regardless of focus position within the modal.
-    // The cleanup in the return function ensures no memory leaks.
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') {
-        setModalCamp(null);
-        document.body.classList.remove('modal-open');
-        // Restore focus to trigger element (WCAG 2.1 AA focus management)
-        if (modalTriggerRef.current) {
-          modalTriggerRef.current.focus();
-          modalTriggerRef.current = null;
-        }
-      }
-    };
-    document.addEventListener('keydown', handleEsc);
-
-    return () => {
-      modal.removeEventListener('keydown', handleTab);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [modalCamp]);
-
-  // Comparison functions - memoized to prevent unnecessary child re-renders
-  const toggleCompare = useCallback((campId) => {
-    setCompareList(prev =>
-      prev.includes(campId)
-        ? prev.filter(id => id !== campId)
-        : prev.length < 6 ? [...prev, campId] : prev
-    );
-  }, []);
-
-  const addToCompare = useCallback((campId) => {
-    setCompareList(prev => {
-      if (prev.includes(campId) || prev.length >= 6) return prev;
-      return [...prev, campId];
-    });
-  }, []);
-
-  const removeFromCompare = useCallback((campId) => {
-    setCompareList(prev => prev.filter(id => id !== campId));
-  }, []);
-
-  // Load initial data
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [campsData, categoriesData, statsData] = await Promise.all([
-          fetchCamps(),
-          fetchCategories(),
-          fetchStats()
-        ]);
-        setCamps(campsData.camps);
-        setCategories(categoriesData);
-        setStats(statsData);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-        initialLoadDone.current = true;
-      }
-    }
-    loadData();
-  }, []);
-
-  // Legacy filter state helpers (derived from filters hook)
-  const search = filters.search || '';
-  const selectedCategory = filters.categories?.length === 1 ? filters.categories[0] : 'All';
-  const childAge = filters.childAge || '';
-  const maxPrice = filters.priceMax < (priceRange.max || 1000) ? filters.priceMax.toString() : '';
-  const extendedCare = filters.extendedCare || false;
-  const foodIncluded = filters.foodIncluded || false;
-  const hasTransport = filters.hasTransport || false;
-  const siblingDiscount = filters.siblingDiscount || false;
-  const matchWorkSchedule = filters.matchWorkSchedule || false;
-  const sortBy = filters.sortBy || 'camp_name';
-  const sortDir = filters.sortDir || 'asc';
-
-  // Setters that update the filters hook
-  // Debounced search - updates local input immediately, debounces filter update (300ms)
-  const setSearch = useCallback((val) => {
-    setSearchInput(val);
-    // Clear any existing debounce timer
-    if (searchDebounceRef.current) {
-      clearTimeout(searchDebounceRef.current);
-    }
-    // Debounce the actual filter update
-    searchDebounceRef.current = setTimeout(() => {
-      updateFilters({ ...filters, search: val });
-    }, 300);
-  }, [filters, updateFilters]);
-  const setSelectedCategory = useCallback((val) => {
-    if (val === 'All') {
-      updateFilters({ ...filters, categories: [] });
-    } else {
-      updateFilters({ ...filters, categories: [val] });
-    }
-  }, [filters, updateFilters]);
-  const setChildAge = useCallback((val) => updateFilters({ ...filters, childAge: val }), [filters, updateFilters]);
-  const setMaxPrice = useCallback((val) => {
-    // When clearing (val is empty), set to Infinity to remove the filter
-    const numVal = val ? parseInt(val, 10) : Infinity;
-    updateFilters({ ...filters, priceMax: numVal });
-  }, [filters, updateFilters]);
-  const setExtendedCare = useCallback((val) => updateFilters({ ...filters, extendedCare: val }), [filters, updateFilters]);
-  const setFoodIncluded = useCallback((val) => updateFilters({ ...filters, foodIncluded: val }), [filters, updateFilters]);
-  const setHasTransport = useCallback((val) => updateFilters({ ...filters, hasTransport: val }), [filters, updateFilters]);
-  const setSiblingDiscount = useCallback((val) => updateFilters({ ...filters, siblingDiscount: val }), [filters, updateFilters]);
-  const setMatchWorkSchedule = useCallback((val) => updateFilters({ ...filters, matchWorkSchedule: val }), [filters, updateFilters]);
-  const setSortBy = useCallback((val) => updateFilters({ ...filters, sortBy: val }), [filters, updateFilters]);
-  const setSortDir = useCallback((val) => updateFilters({ ...filters, sortDir: val }), [filters, updateFilters]);
-
-  // Clear all filters - uses the hook
-  const clearFilters = clearAdvancedFilters;
-
-  // Apply filtered and sorted camps using the hook
-  const filteredCamps = useMemo(() => {
-    return filterAndSortCamps(camps, profile);
-  }, [camps, filterAndSortCamps, profile]);
-
-  // Copy share URL to clipboard
+  // Copy share URL
   const copyShareUrl = useCallback(async () => {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(shareableURL);
       } else {
-        // Fallback for browsers without clipboard API
         const textArea = document.createElement('textarea');
         textArea.value = shareableURL;
         textArea.style.position = 'fixed';
@@ -803,150 +253,32 @@ export default function App() {
     }
   }, [shareableURL]);
 
-  // Derived state for backwards compatibility
-  const searchResultCount = filteredCamps.length;
-
-  // Sync local searchInput when filters.search changes externally (URL params, clear, etc.)
-  useEffect(() => {
-    if (filters.search !== searchInput && !searchDebounceRef.current) {
-      setSearchInput(filters.search || '');
-    }
-  }, [filters.search]);
-
-  // Track if search is active (for UI feedback)
-  useEffect(() => {
-    if (filters.search) {
-      setIsSearching(true);
-      const timer = setTimeout(() => setIsSearching(false), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [filters.search]);
-
-  // Close "More filters" dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (showMoreFilters && !e.target.closest('.filter-more-btn') && !e.target.closest('.filter-more-dropdown')) {
-        setShowMoreFilters(false);
-      }
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [showMoreFilters]);
-
-  // Handle join squad route
-  if (joinInviteCode) {
-    return (
-      <JoinSquad
-        inviteCode={joinInviteCode}
-        onComplete={() => {
-          setJoinInviteCode(null);
-          window.history.replaceState({}, '', '/');
-          setShowPlanner(true);
-        }}
-        onCancel={() => {
-          setJoinInviteCode(null);
-          window.history.replaceState({}, '', '/');
-        }}
-      />
-    );
-  }
-
-  // BUG-E-005: Handle shared schedule view
-  if (sharedSchedule) {
-    return (
-      <SharedScheduleView
-        schedule={sharedSchedule}
-        onClose={() => {
-          setSharedSchedule(null);
-          window.history.replaceState({}, '', '/');
-        }}
-      />
-    );
-  }
-
+  // Handle shared schedule view
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--sand-50)' }}>
+      <div className="min-h-[70vh] flex items-center justify-center">
         <div className="text-center p-12 max-w-md">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--terra-100)' }}>
             <svg className="w-10 h-10" style={{ color: 'var(--terra-500)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h1 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>
-            Could not load camps
-          </h1>
+          <h1 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>Could not load camps</h1>
           <p className="text-base mb-2" style={{ color: 'var(--earth-700)' }}>
-            {error.includes('network') || error.includes('fetch')
-              ? 'Check your internet connection and try again.'
-              : 'Something went wrong loading camp data.'}
+            {error.includes('network') || error.includes('fetch') ? 'Check your internet connection and try again.' : 'Something went wrong loading camp data.'}
           </p>
-          {process.env.NODE_ENV === 'development' && (
-            <details className="mt-4 text-left">
-              <summary className="text-sm cursor-pointer" style={{ color: 'var(--earth-600)' }}>
-                Error details
-              </summary>
-              <p className="mt-2 text-xs font-mono p-3 rounded" style={{ background: 'var(--sand-100)', color: 'var(--earth-700)' }}>
-                {error}
-              </p>
-            </details>
-          )}
-          <button
-            onClick={() => window.location.reload()}
-            className="btn-primary mt-6"
-          >
-            Refresh Page
-          </button>
+          <button onClick={() => window.location.reload()} className="btn-primary mt-6">Refresh Page</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--sand-50)' }}>
-      <a href="#main-content" className="skip-to-content">Skip to content</a>
-
-      {/* PWA Install Banner */}
-      {canInstall && showInstallBanner && !isStandalone && (
-        <InstallBanner
-          onInstall={handleInstall}
-          onDismiss={() => setShowInstallBanner(false)}
-        />
-      )}
-
-      {/* Offline Indicator */}
-      {!isOnline && <OfflineIndicator />}
-
-      {/* Update Toast */}
-      {updateAvailable && (
-        <UpdateToast onUpdate={applyUpdate} />
-      )}
-
-      {/* Auth Error Banner */}
-      {authError && (
-        <div className="auth-error-banner" role="alert">
-          <div className="auth-error-content">
-            <svg className="auth-error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <p className="auth-error-text">Sign in failed: {authError}</p>
-          </div>
-          <button
-            onClick={clearAuthError}
-            className="auth-error-dismiss"
-            aria-label="Dismiss error"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      )}
-
+    <>
       {/* Hero Section */}
       <header className="hero-section relative pt-4 pb-16 sm:pt-8 sm:pb-24 md:pt-12 md:pb-32">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
-          {/* Top Bar - simplified on mobile */}
+          {/* Top Bar */}
           <div className="flex items-center justify-between mb-6 sm:mb-12 md:mb-16">
             <div className="flex items-center gap-2 sm:gap-3">
               <AppLogo className="w-8 h-8 sm:w-9 sm:h-9" />
@@ -955,186 +287,75 @@ export default function App() {
               </span>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Dashboard button (logged in users) - desktop only */}
               {user && (
-                <button
-                  onClick={() => setShowDashboard(true)}
-                  className="btn-secondary hidden md:flex"
-                  title="My Plan"
-                >
-                  <DashboardIcon />
-                  <span className="hidden lg:inline">My Plan</span>
-                </button>
+                <Link to="/dashboard" className="btn-secondary hidden md:flex" title="My Plan">
+                  <DashboardIcon /><span className="hidden lg:inline">My Plan</span>
+                </Link>
               )}
-
-              {/* Compare button (when items selected) */}
               {compareList.length > 0 && (
-                <button
-                  onClick={() => setShowComparison(true)}
-                  className="btn-secondary relative p-2 sm:px-3"
-                  title="Compare camps"
-                >
-                  <CompareIcon />
-                  <span className="hidden md:inline ml-1">Compare</span>
-                  <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[10px] sm:text-xs font-bold flex items-center justify-center text-white" style={{ background: 'var(--terra-500)' }}>
-                    {compareList.length}
-                  </span>
+                <button onClick={() => navigate('/compare')} className="btn-secondary relative p-2 sm:px-3" title="Compare camps">
+                  <CompareIcon /><span className="hidden md:inline ml-1">Compare</span>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full text-[10px] sm:text-xs font-bold flex items-center justify-center text-white" style={{ background: 'var(--terra-500)' }}>{compareList.length}</span>
                 </button>
               )}
-
-              {/* Plan My Summer button - primary CTA, always visible on tablet+ */}
-              <button
-                onClick={() => {
-                  setIsPlannerLoading(true);
-                  setTimeout(() => {
-                    setShowPlanner(true);
-                    setIsPlannerLoading(false);
-                  }, 100);
-                }}
-                className="btn-primary text-sm sm:text-base px-3 sm:px-4"
-                disabled={isPlannerLoading}
-              >
-                {isPlannerLoading ? (
-                  <>
-                    <LoadingSpinner className="w-5 h-5" />
-                    <span>Opening planner...</span>
-                  </>
-                ) : (
-                  <>
-                    <CalendarPlanIcon />
-                    <span>Plan My Summer</span>
-                  </>
-                )}
+              <button onClick={() => navigate('/schedule')} className="btn-primary text-sm sm:text-base px-3 sm:px-4">
+                <CalendarPlanIcon /><span>Plan My Summer</span>
               </button>
-
-              {/* View toggle - desktop only */}
-              <button
-                onClick={() => {
-                  const newView = viewMode === 'grid' ? 'table' : 'grid';
-                  setViewMode(newView);
-                  if (newView === 'table') {
-                    setTimeout(() => {
-                      tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 100);
-                  }
-                }}
-                className="btn-secondary hidden sm:flex"
-                title={viewMode === 'grid' ? 'Switch to table view' : 'Switch to grid view'}
-              >
+              <button onClick={() => setViewMode(viewMode === 'grid' ? 'table' : 'grid')} className="btn-secondary hidden sm:flex" title={viewMode === 'grid' ? 'Switch to table view' : 'Switch to grid view'}>
                 {viewMode === 'grid' ? <TableIcon /> : <GridIcon />}
                 <span className="hidden md:inline">{viewMode === 'grid' ? 'Table' : 'Grid'}</span>
               </button>
-
-              {/* Family workspace - desktop only for logged in users */}
               {user && (
-                <button
-                  onClick={() => setShowFamilyWorkspace(true)}
-                  className="filter-control-btn hidden md:flex"
-                  title="Family planning workspace"
-                >
+                <Link to="/family" className="filter-control-btn hidden md:flex" title="Family planning workspace">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                   <span className="hidden lg:inline">Family</span>
-                </button>
+                </Link>
               )}
-
-              {/* Notification bell - only for logged in users */}
               {user && <NotificationBell />}
-
-              {/* Auth button */}
               <AuthButton />
             </div>
           </div>
 
           {/* Hero Content */}
           <div className="text-center max-w-3xl mx-auto">
-            <div className="hero-title">
-              <span className="hero-year-badge">
-                Summer 2026
-              </span>
+            <div className="hero-title animate-fade-up" style={{ '--fade-delay': '0ms' }}>
+              <span className="hero-year-badge">Summer 2026</span>
               <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display leading-tight mb-6" style={{ color: 'var(--earth-800)' }}>
-                Your summer,{' '}
-                <span className="text-gradient">sorted.</span>
+                Your summer,{' '}<span className="text-gradient">sorted.</span>
               </h1>
             </div>
-            <p className="hero-subtitle font-sans text-lg md:text-xl font-body mb-10" style={{ color: 'var(--earth-700)', opacity: 0.9 }}>
-              {stats ? (
-                <>Stop juggling spreadsheets. <strong>{stats.active}</strong> camps, one plan, zero scrambling.</>
-              ) : (
-                <>Stop juggling spreadsheets. All your camps, one plan, zero scrambling.</>
-              )}
+            <p className="hero-subtitle animate-fade-up font-sans text-lg md:text-xl font-body mb-10" style={{ '--fade-delay': '100ms', color: 'var(--earth-700)', opacity: 0.9 }}>
+              {stats ? (<>Stop juggling spreadsheets. <strong>{stats.active}</strong> camps, one plan, zero scrambling.</>) : (<>Stop juggling spreadsheets. All your camps, one plan, zero scrambling.</>)}
             </p>
 
             {/* Search Bar */}
-            <div className="hero-search relative max-w-2xl mx-auto mb-8">
-              <div className="absolute left-5 top-1/2 -translate-y-1/2" style={{ color: 'var(--sand-400)' }}>
-                <SearchIcon />
-              </div>
-              <input
-                type="text"
-                placeholder="Search camps by name or activity"
-                value={searchInput}
-                onChange={(e) => setSearch(e.target.value)}
-                className="search-input"
-                aria-label="Search camps by name or activity"
-              />
-
-              {/* Clear button */}
+            <div className="hero-search animate-fade-up relative max-w-2xl mx-auto mb-8" style={{ '--fade-delay': '200ms' }}>
+              <div className="absolute left-5 top-1/2 -translate-y-1/2" style={{ color: 'var(--sand-400)' }}><SearchIcon /></div>
+              <input type="text" placeholder="Search camps by name or activity" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="search-input" aria-label="Search camps by name or activity" />
               {searchInput && (
-                <button
-                  className="absolute right-5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-sand-200 transition-colors"
-                  onClick={() => setSearch('')}
-                  title="Clear search"
-                  aria-label="Clear search"
-                  style={{ color: 'var(--sand-400)' }}
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                <button className="absolute right-5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-sand-200 transition-colors" onClick={() => setSearchInput('')} title="Clear search" aria-label="Clear search" style={{ color: 'var(--sand-400)' }}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               )}
-
-              {/* Search status indicator - shows while debounce is pending */}
-              {searchInput && searchInput !== search && (
-                <div className="absolute right-14 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--sand-500)' }}>
-                  Searching...
-                </div>
-              )}
+              {searchInput && searchInput !== (filters.search || '') && (<div className="absolute right-14 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--sand-500)' }}>Searching...</div>)}
             </div>
 
-            {/* Results count below search */}
-            {searchResultCount !== null && search && (
-              <p className="text-center text-sm mb-4" style={{ color: 'var(--earth-700)' }}>
-                Found <strong>{searchResultCount}</strong> {searchResultCount === 1 ? 'camp' : 'camps'} matching "{search}"
-              </p>
+            {searchResultCount !== null && filters.search && (
+              <p className="text-center text-sm mb-4" style={{ color: 'var(--earth-700)' }}>Found <strong>{searchResultCount}</strong> {searchResultCount === 1 ? 'camp' : 'camps'} matching "{filters.search}"</p>
             )}
 
-            {/* Trust Signals - Quick Stats with Data Freshness */}
             {stats && (
-              <div className="hero-stats flex flex-wrap justify-center gap-6 text-sm" style={{ color: 'var(--earth-700)' }}>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ocean-400)' }}></span>
-                  <span><strong>{camps.length}</strong> local camps</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ background: 'var(--terra-400)' }}></span>
-                  <span><strong>{categories.length}</strong> categories</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ background: 'var(--sun-400)' }}></span>
-                  <span>Ages 3–18</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <VerifiedIcon />
-                  <span>Updated Jan 2026</span>
-                </div>
+              <div className="hero-stats animate-fade-up flex flex-wrap justify-center gap-6 text-sm" style={{ '--fade-delay': '300ms', color: 'var(--earth-700)' }}>
+                <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{ background: 'var(--ocean-400)' }}></span><span><strong>{camps.length}</strong> local camps</span></div>
+                <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{ background: 'var(--terra-400)' }}></span><span><strong>{categories.length}</strong> categories</span></div>
+                <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full" style={{ background: 'var(--sun-400)' }}></span><span>Ages 3-18</span></div>
+                <div className="flex items-center gap-2"><VerifiedIcon /><span>Updated Jan 2026</span></div>
               </div>
             )}
           </div>
         </div>
-
-        {/* Wave decoration */}
         <div className="wave-decoration">
           <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="wave-fill"></path>
@@ -1142,340 +363,81 @@ export default function App() {
         </div>
       </header>
 
-      {/* Filter Bar - Editorial Style */}
+      {/* Filter Bar */}
       <section className="filter-bar-section sticky top-0 z-40" role="search" aria-label="Camp filters">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          {/* Main Filter Row */}
           <div className="filter-bar-inner">
-            {/* Left: Quick Presets with progressive disclosure */}
             <div className="filter-presets">
               <span className="filter-presets-label">Quick filters</span>
               <div className="filter-presets-divider" />
-
-              {/* Priority filters - always visible */}
-              <button
-                onClick={() => {
-                  clearFilters();
-                  setExtendedCare(true);
-                }}
-                className={`filter-preset-link priority ${extendedCare && !foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`}
-                data-filter="extended-care"
-              >
-                Extended Care
-              </button>
-              <button
-                onClick={() => {
-                  clearFilters();
-                  setMaxPrice('300');
-                }}
-                className={`filter-preset-link priority ${maxPrice === '300' && !extendedCare && selectedCategory === 'All' ? 'active' : ''}`}
-                data-filter="under-300"
-              >
-                Under $300
-              </button>
-              <button
-                onClick={() => {
-                  clearFilters();
-                  setSelectedCategory('Sports');
-                }}
-                className={`filter-preset-link priority ${selectedCategory === 'Sports' ? 'active' : ''}`}
-                data-filter="sports"
-              >
-                Sports
-              </button>
-
-              {/* Overflow filters - hidden at medium viewports, shown in dropdown */}
-              <button
-                onClick={() => {
-                  clearFilters();
-                  setSelectedCategory('Art');
-                }}
-                className={`filter-preset-link overflow ${selectedCategory === 'Art' ? 'active' : ''}`}
-                data-filter="art"
-              >
-                Art & Creative
-              </button>
-              <button
-                onClick={() => {
-                  clearFilters();
-                  setSelectedCategory('Science/STEM');
-                }}
-                className={`filter-preset-link overflow ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
-                data-filter="stem"
-              >
-                STEM
-              </button>
-              <button
-                onClick={() => {
-                  clearFilters();
-                  setSelectedCategory('Nature/Outdoor');
-                }}
-                className={`filter-preset-link overflow ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}
-                data-filter="outdoors"
-              >
-                Outdoors
-              </button>
-
-              {/* "More" dropdown for overflow filters at constrained viewports */}
+              <button onClick={() => { clearFilters(); setExtendedCare(true); }} className={`filter-preset-link priority ${extendedCare && !foodIncluded && !maxPrice && selectedCategory === 'All' ? 'active' : ''}`} data-filter="extended-care">Extended Care</button>
+              <button onClick={() => { clearFilters(); setMaxPrice('300'); }} className={`filter-preset-link priority ${maxPrice === '300' && !extendedCare && selectedCategory === 'All' ? 'active' : ''}`} data-filter="under-300">Under $300</button>
+              <button onClick={() => { clearFilters(); setSelectedCategory('Sports'); }} className={`filter-preset-link priority ${selectedCategory === 'Sports' ? 'active' : ''}`} data-filter="sports">Sports</button>
+              <button onClick={() => { clearFilters(); setSelectedCategory('Art'); }} className={`filter-preset-link overflow ${selectedCategory === 'Art' ? 'active' : ''}`} data-filter="art">Art & Creative</button>
+              <button onClick={() => { clearFilters(); setSelectedCategory('Science/STEM'); }} className={`filter-preset-link overflow ${selectedCategory === 'Science/STEM' ? 'active' : ''}`} data-filter="stem">STEM</button>
+              <button onClick={() => { clearFilters(); setSelectedCategory('Nature/Outdoor'); }} className={`filter-preset-link overflow ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`} data-filter="outdoors">Outdoors</button>
               <div className="filter-more-wrapper">
-                <button
-                  onClick={() => setShowMoreFilters(!showMoreFilters)}
-                  className={`filter-more-btn ${['Art', 'Science/STEM', 'Nature/Outdoor'].includes(selectedCategory) ? 'has-selection' : ''}`}
-                  aria-expanded={showMoreFilters}
-                  aria-haspopup="true"
-                >
-                  More
-                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
+                <button onClick={() => setShowMoreFilters(!showMoreFilters)} className={`filter-more-btn ${['Art', 'Science/STEM', 'Nature/Outdoor'].includes(selectedCategory) ? 'has-selection' : ''}`} aria-expanded={showMoreFilters} aria-haspopup="true">
+                  More<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 </button>
-
                 {showMoreFilters && (
                   <div className="filter-more-dropdown open">
-                    <button
-                      onClick={() => {
-                        clearFilters();
-                        setSelectedCategory('Art');
-                        setShowMoreFilters(false);
-                      }}
-                      className={`filter-preset-link ${selectedCategory === 'Art' ? 'active' : ''}`}
-                    >
-                      Art & Creative
-                    </button>
-                    <button
-                      onClick={() => {
-                        clearFilters();
-                        setSelectedCategory('Science/STEM');
-                        setShowMoreFilters(false);
-                      }}
-                      className={`filter-preset-link ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}
-                    >
-                      STEM
-                    </button>
-                    <button
-                      onClick={() => {
-                        clearFilters();
-                        setSelectedCategory('Nature/Outdoor');
-                        setShowMoreFilters(false);
-                      }}
-                      className={`filter-preset-link ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}
-                    >
-                      Outdoors
-                    </button>
+                    <button onClick={() => { clearFilters(); setSelectedCategory('Art'); setShowMoreFilters(false); }} className={`filter-preset-link ${selectedCategory === 'Art' ? 'active' : ''}`}>Art & Creative</button>
+                    <button onClick={() => { clearFilters(); setSelectedCategory('Science/STEM'); setShowMoreFilters(false); }} className={`filter-preset-link ${selectedCategory === 'Science/STEM' ? 'active' : ''}`}>STEM</button>
+                    <button onClick={() => { clearFilters(); setSelectedCategory('Nature/Outdoor'); setShowMoreFilters(false); }} className={`filter-preset-link ${selectedCategory === 'Nature/Outdoor' ? 'active' : ''}`}>Outdoors</button>
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Right: Filter Controls */}
             <div className="filter-controls">
-              {/* All Filters Button */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`filter-control-btn ${showFilters ? 'active' : ''}`}
-                aria-label={activeFilterCount > 0 ? `Filters, ${activeFilterCount} active` : 'Filters'}
-                aria-expanded={showFilters}
-              >
-                <FilterIcon />
-                <span>Filters</span>
-                {activeFilterCount > 0 && (
-                  <span className="filter-count" aria-hidden="true">{activeFilterCount}</span>
-                )}
+              <button onClick={() => setShowFilters(!showFilters)} className={`filter-control-btn ${showFilters ? 'active' : ''}`} aria-label={activeFilterCount > 0 ? `Filters, ${activeFilterCount} active` : 'Filters'} aria-expanded={showFilters}>
+                <FilterIcon /><span>Filters</span>{activeFilterCount > 0 && (<span className="filter-count" aria-hidden="true">{activeFilterCount}</span>)}
               </button>
-
-              {/* Advanced Filters Button */}
-              <button
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className={`filter-control-btn ${showAdvancedFilters ? 'active' : ''}`}
-                title="Advanced filters with presets, date ranges, and more"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
+              <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className={`filter-control-btn ${showAdvancedFilters ? 'active' : ''}`} title="Advanced filters with presets, date ranges, and more">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
                 <span className="hidden sm:inline">Advanced</span>
               </button>
-
-              {/* Insights Button - Data Visualizations */}
-              <button
-                onClick={() => setShowInsights(true)}
-                className="filter-control-btn"
-                title="View camp data insights and visualizations"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+              <button onClick={() => navigate('/insights')} className="filter-control-btn" title="View camp data insights and visualizations">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                 <span className="hidden sm:inline">Insights</span>
               </button>
-
-              {/* Sort dropdown */}
-              <select
-                value={filters.sortByDistance ? 'distance-asc' : `${sortBy}-${sortDir}`}
-                onChange={(e) => {
-                  const [field, dir] = e.target.value.split('-');
-                  if (field === 'distance') {
-                    updateFilters({ ...filters, sortByDistance: true });
-                    if (!userLocation) requestLocation();
-                  } else {
-                    updateFilters({ ...filters, sortByDistance: false, sortBy: field, sortDir: dir });
-                  }
-                }}
-                className="filter-sort-select"
-                aria-label="Sort camps by"
-              >
+              <select value={filters.sortByDistance ? 'distance-asc' : `${sortBy}-${sortDir}`} onChange={(e) => { const [field, dir] = e.target.value.split('-'); if (field === 'distance') { updateFilters({ ...filters, sortByDistance: true }); if (!userLocation) requestLocation(); } else { updateFilters({ ...filters, sortByDistance: false, sortBy: field, sortDir: dir }); } }} className="filter-sort-select" aria-label="Sort camps by">
                 <option value="camp_name-asc">A-Z</option>
                 <option value="camp_name-desc">Z-A</option>
                 <option value="min_price-asc">Price: Low</option>
                 <option value="min_price-desc">Price: High</option>
                 <option value="distance-asc">Nearest</option>
               </select>
-
-              {/* Share URL button */}
               {activeFilterCount > 0 && (
-                <button
-                  onClick={copyShareUrl}
-                  className={`share-url-btn ${copiedShareUrl ? 'copied' : ''}`}
-                  title="Copy shareable URL with these filters"
-                >
-                  {copiedShareUrl ? (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                    </svg>
-                  )}
+                <button onClick={copyShareUrl} className={`share-url-btn ${copiedShareUrl ? 'copied' : ''}`} title="Copy shareable URL with these filters">
+                  {copiedShareUrl ? (<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>) : (<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>)}
                   <span className="hidden sm:inline">{copiedShareUrl ? 'Copied' : 'Share'}</span>
                 </button>
               )}
-
-              {/* Clear filters */}
-              {activeFilterCount > 0 && (
-                <button onClick={clearFilters} className="filter-clear-btn">
-                  Clear
-                </button>
-              )}
+              {activeFilterCount > 0 && (<button onClick={clearFilters} className="filter-clear-btn">Clear</button>)}
             </div>
           </div>
         </div>
 
-        {/* Active Filters Display - shows applied filters with remove buttons */}
+        {/* Active Filters Display */}
         {activeFilterCount > 0 && (
           <div className="active-filters-bar">
             <span className="active-filters-label">Active:</span>
             <div className="active-filters-chips">
-              {selectedCategory !== 'All' && (
-                <button
-                  onClick={() => setSelectedCategory('All')}
-                  className="active-filter-chip"
-                >
-                  {selectedCategory}
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {childAge && (
-                <button
-                  onClick={() => setChildAge('')}
-                  className="active-filter-chip"
-                >
-                  Age {childAge}
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {maxPrice && (
-                <button
-                  onClick={() => setMaxPrice('')}
-                  className="active-filter-chip"
-                >
-                  Under ${maxPrice}
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {extendedCare && (
-                <button
-                  onClick={() => setExtendedCare(false)}
-                  className="active-filter-chip"
-                >
-                  Extended Care
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {foodIncluded && (
-                <button
-                  onClick={() => setFoodIncluded(false)}
-                  className="active-filter-chip"
-                >
-                  Food Included
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {hasTransport && (
-                <button
-                  onClick={() => setHasTransport(false)}
-                  className="active-filter-chip"
-                >
-                  Transportation
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {siblingDiscount && (
-                <button
-                  onClick={() => setSiblingDiscount(false)}
-                  className="active-filter-chip"
-                >
-                  Sibling Discount
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {filters.hasOpenings && (
-                <button
-                  onClick={() => updateFilters({ ...filters, hasOpenings: false })}
-                  className="active-filter-chip"
-                >
-                  Has Openings
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {filters.sortByDistance && (
-                <button
-                  onClick={() => updateFilters({ ...filters, sortByDistance: false })}
-                  className="active-filter-chip"
-                >
-                  Nearest First
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {filters.selectedWeeks?.length > 0 && (
-                <button
-                  onClick={() => updateFilters({ ...filters, selectedWeeks: [] })}
-                  className="active-filter-chip"
-                >
-                  {filters.selectedWeeks.length} Week{filters.selectedWeeks.length > 1 ? 's' : ''}
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {filters.categories?.length > 1 && (
-                <button
-                  onClick={() => updateFilters({ ...filters, categories: [] })}
-                  className="active-filter-chip"
-                >
-                  {filters.categories.length} Categories
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="active-filter-chip"
-                >
-                  "{search}"
-                  <span className="active-filter-remove">×</span>
-                </button>
-              )}
+              {selectedCategory !== 'All' && (<button onClick={() => setSelectedCategory('All')} className="active-filter-chip">{selectedCategory}<span className="active-filter-remove">x</span></button>)}
+              {childAge && (<button onClick={() => setChildAge('')} className="active-filter-chip">Age {childAge}<span className="active-filter-remove">x</span></button>)}
+              {maxPrice && (<button onClick={() => setMaxPrice('')} className="active-filter-chip">Under ${maxPrice}<span className="active-filter-remove">x</span></button>)}
+              {extendedCare && (<button onClick={() => setExtendedCare(false)} className="active-filter-chip">Extended Care<span className="active-filter-remove">x</span></button>)}
+              {foodIncluded && (<button onClick={() => setFoodIncluded(false)} className="active-filter-chip">Food Included<span className="active-filter-remove">x</span></button>)}
+              {hasTransport && (<button onClick={() => setHasTransport(false)} className="active-filter-chip">Transportation<span className="active-filter-remove">x</span></button>)}
+              {siblingDiscount && (<button onClick={() => setSiblingDiscount(false)} className="active-filter-chip">Sibling Discount<span className="active-filter-remove">x</span></button>)}
+              {filters.hasOpenings && (<button onClick={() => updateFilters({ ...filters, hasOpenings: false })} className="active-filter-chip">Has Openings<span className="active-filter-remove">x</span></button>)}
+              {filters.sortByDistance && (<button onClick={() => updateFilters({ ...filters, sortByDistance: false })} className="active-filter-chip">Nearest First<span className="active-filter-remove">x</span></button>)}
+              {filters.selectedWeeks?.length > 0 && (<button onClick={() => updateFilters({ ...filters, selectedWeeks: [] })} className="active-filter-chip">{filters.selectedWeeks.length} Week{filters.selectedWeeks.length > 1 ? 's' : ''}<span className="active-filter-remove">x</span></button>)}
+              {filters.categories?.length > 1 && (<button onClick={() => updateFilters({ ...filters, categories: [] })} className="active-filter-chip">{filters.categories.length} Categories<span className="active-filter-remove">x</span></button>)}
+              {search && (<button onClick={() => setSearch('')} className="active-filter-chip">"{search}"<span className="active-filter-remove">x</span></button>)}
             </div>
-            <button onClick={clearFilters} className="active-filters-clear">
-              Clear all
-            </button>
+            <button onClick={clearFilters} className="active-filters-clear">Clear all</button>
           </div>
         )}
       </section>
@@ -1485,68 +447,27 @@ export default function App() {
         <section className="filter-panel-animated" style={{ background: 'white', borderBottom: '1px solid var(--sand-200)' }}>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
-                Filter
-              </h3>
-              {activeFilterCount > 0 && (
-                <button
-                  onClick={clearFilters}
-                  className="text-sm font-medium hover:underline"
-                  style={{ color: 'var(--terra-500)' }}
-                >
-                  Clear all
-                </button>
-              )}
+              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>Filter</h3>
+              {activeFilterCount > 0 && (<button onClick={clearFilters} className="text-sm font-medium hover:underline" style={{ color: 'var(--terra-500)' }}>Clear all</button>)}
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Category */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Category
-                </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all"
-                  style={{ borderColor: 'var(--sand-200)', background: 'white' }}
-                >
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>Category</label>
+                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all" style={{ borderColor: 'var(--sand-200)', background: 'white' }}>
                   <option value="All">All Categories</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
+                  {categories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
                 </select>
               </div>
-
-              {/* Age */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Age
-                </label>
-                <select
-                  value={childAge}
-                  onChange={(e) => setChildAge(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all"
-                  style={{ borderColor: 'var(--sand-200)', background: 'white' }}
-                >
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>Age</label>
+                <select value={childAge} onChange={(e) => setChildAge(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all" style={{ borderColor: 'var(--sand-200)', background: 'white' }}>
                   <option value="">Any Age</option>
-                  {[...Array(16)].map((_, i) => (
-                    <option key={i + 3} value={i + 3}>{i + 3} years old</option>
-                  ))}
+                  {[...Array(16)].map((_, i) => (<option key={i + 3} value={i + 3}>{i + 3} years old</option>))}
                 </select>
               </div>
-
-              {/* Price */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Price
-                </label>
-                <select
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all"
-                  style={{ borderColor: 'var(--sand-200)', background: 'white' }}
-                >
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>Price</label>
+                <select value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all" style={{ borderColor: 'var(--sand-200)', background: 'white' }}>
                   <option value="">Any Price</option>
                   <option value="200">Under $200</option>
                   <option value="300">Under $300</option>
@@ -1555,32 +476,17 @@ export default function App() {
                   <option value="750">Under $750</option>
                 </select>
               </div>
-
-              {/* Sort (mobile) */}
               <div className="md:hidden">
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>
-                  Sort
-                </label>
-                <select
-                  value={`${sortBy}-${sortDir}`}
-                  onChange={(e) => {
-                    const [field, dir] = e.target.value.split('-');
-                    setSortBy(field);
-                    setSortDir(dir);
-                  }}
-                  className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all"
-                  style={{ borderColor: 'var(--sand-200)', background: 'white' }}
-                >
-                  <option value="camp_name-asc">Name A–Z</option>
-                  <option value="camp_name-desc">Name Z–A</option>
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--earth-700)' }}>Sort</label>
+                <select value={`${sortBy}-${sortDir}`} onChange={(e) => { const [field, dir] = e.target.value.split('-'); setSortBy(field); setSortDir(dir); }} className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all" style={{ borderColor: 'var(--sand-200)', background: 'white' }}>
+                  <option value="camp_name-asc">Name A-Z</option>
+                  <option value="camp_name-desc">Name Z-A</option>
                   <option value="min_price-asc">Price: Low to High</option>
                   <option value="min_price-desc">Price: High to Low</option>
                   <option value="min_age-asc">Age: Youngest</option>
                 </select>
               </div>
             </div>
-
-            {/* Feature Toggles */}
             <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--sand-100)' }}>
               <p className="text-sm font-medium mb-4" style={{ color: 'var(--earth-700)' }}>Features</p>
               <div className="flex flex-wrap gap-3">
@@ -1591,23 +497,13 @@ export default function App() {
                   { key: 'siblingDiscount', label: 'Sibling Discount', state: siblingDiscount, setter: setSiblingDiscount },
                   ...(user ? [{ key: 'matchWorkSchedule', label: 'Fits My Hours', state: matchWorkSchedule, setter: setMatchWorkSchedule }] : []),
                 ].map(({ key, label, state, setter }) => (
-                  <button
-                    key={key}
-                    onClick={() => setter(!state)}
-                    className={`filter-pill ${state ? 'active' : ''}`}
-                    aria-pressed={state}
-                  >
-                    {state && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
+                  <button key={key} onClick={() => setter(!state)} className={`filter-pill ${state ? 'active' : ''}`} aria-pressed={state}>
+                    {state && (<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>)}
                     {label}
                   </button>
                 ))}
               </div>
             </div>
-
           </div>
         </section>
       )}
@@ -1617,35 +513,12 @@ export default function App() {
         <section className="filter-panel-animated" style={{ background: 'white', borderBottom: '1px solid var(--sand-200)' }}>
           <div className="max-w-6xl mx-auto">
             <div className="flex justify-between items-center px-4 sm:px-6 py-4" style={{ borderBottom: '1px solid var(--sand-100)' }}>
-              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
-                Advanced Filters
-              </h3>
-              <button
-                onClick={() => setShowAdvancedFilters(false)}
-                className="p-2 rounded-full hover:bg-sand-100 transition-colors"
-                style={{ color: 'var(--sand-400)' }}
-                aria-label="Close advanced filters"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+              <h3 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>Advanced Filters</h3>
+              <button onClick={() => setShowAdvancedFilters(false)} className="p-2 rounded-full hover:bg-sand-100 transition-colors" style={{ color: 'var(--sand-400)' }} aria-label="Close advanced filters">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <AdvancedFilters
-              filters={filters}
-              onFiltersChange={updateFilters}
-              categories={categories}
-              categoryCounts={stats?.categories || {}}
-              priceRange={priceRange}
-              onClearFilters={clearFilters}
-              onApplyPreset={applyPreset}
-              savedSearches={savedSearches}
-              onSaveSearch={saveSearch}
-              onDeleteSavedSearch={deleteSavedSearch}
-              onApplySavedSearch={applySavedSearch}
-              userLocation={userLocation}
-              onRequestLocation={requestLocation}
-            />
+            <AdvancedFilters filters={filters} onFiltersChange={updateFilters} categories={categories} categoryCounts={stats?.categories || {}} priceRange={priceRange} onClearFilters={clearFilters} onApplyPreset={applyPreset} savedSearches={savedSearches} onSaveSearch={saveSearch} onDeleteSavedSearch={deleteSavedSearch} onApplySavedSearch={applySavedSearch} userLocation={userLocation} onRequestLocation={requestLocation} />
           </div>
         </section>
       )}
@@ -1660,15 +533,7 @@ export default function App() {
                 const count = stats?.categories?.[name] || 0;
                 if (count === 0) return null;
                 return (
-                  <button
-                    key={name}
-                    onClick={() => {
-                      clearFilters();
-                      setSelectedCategory(name);
-                    }}
-                    className={`category-browse-card ${categoryClasses[name] || ''} ${selectedCategory === name ? 'active' : ''}`}
-                    data-category={name}
-                  >
+                  <button key={name} onClick={() => { clearFilters(); setSelectedCategory(name); }} className={`category-browse-card ${categoryClasses[name] || ''} ${selectedCategory === name ? 'active' : ''}`} data-category={name}>
                     <span className="category-browse-icon"><BrandIcon name={icon} size={28} /></span>
                     <span className="category-browse-name">{name}</span>
                     <span className="category-browse-count">{count} {count === 1 ? 'camp' : 'camps'}</span>
@@ -1683,16 +548,13 @@ export default function App() {
       {/* Testimonial Banner */}
       {!loading && camps.length > 0 && activeFilterCount === 0 && (
         <section className="testimonial-banner">
-          <p className="testimonial-quote">
-            "Found the right STEM camp for my 10-year-old in under 5 minutes."
-          </p>
-          <p className="testimonial-author">— Sarah M., Goleta</p>
+          <p className="testimonial-quote">"Found the right STEM camp for my 10-year-old in under 5 minutes."</p>
+          <p className="testimonial-author">-- Sarah M., Goleta</p>
         </section>
       )}
 
       {/* Main Content */}
       <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-        {/* Results Count */}
         <div aria-live="polite" aria-atomic="true">
           {!loading && filteredCamps.length > 0 && (
             <p className="results-count">
@@ -1723,42 +585,18 @@ export default function App() {
             </div>
           </div>
         ) : filteredCamps.length === 0 ? (
-          <div className="text-center py-20 px-4">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'var(--sand-100)' }}>
-              <svg className="w-12 h-12" style={{ color: 'var(--sand-400)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <h2 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>
-              No camps found
-            </h2>
-            <p className="text-base mb-6 max-w-md mx-auto" style={{ color: 'var(--earth-700)' }}>
-              {filters.minAge && filters.maxAge ? (
-                <>Try a wider age range or check <strong>all categories</strong>.</>
-              ) : filters.maxPrice ? (
-                <>Try increasing your price budget or browse <strong>all camps</strong>.</>
-              ) : filters.categories?.length > 0 ? (
-                <>Try selecting <strong>more categories</strong> or clear filters to see all camps.</>
-              ) : searchInput ? (
-                <>No camps match "<strong>{searchInput}</strong>". Try a different search term.</>
-              ) : (
-                <>Try adjusting your filters or clear them to see all camps.</>
-              )}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-              <button onClick={clearFilters} className="btn-primary">
-                Clear All Filters
-              </button>
-              {(filters.minAge || filters.maxAge || filters.maxPrice) && (
-                <button
-                  onClick={() => {
-                    updateFilters({ minAge: null, maxAge: null, maxPrice: null });
-                  }}
-                  className="btn-secondary"
-                >
-                  Reset Age & Price
-                </button>
-              )}
+          <div className="py-16 px-4">
+            <div className="empty-state-card text-center">
+              <div className="w-20 h-20 mx-auto mb-5 rounded-full flex items-center justify-center" style={{ background: 'var(--sand-100)' }}>
+                <BrandIcon name="search" size={48} style={{ color: 'var(--sand-400)', opacity: 0.6 }} aria-hidden="true" />
+              </div>
+              <h2 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>No camps match these filters</h2>
+              <p className="text-base mb-6 max-w-sm mx-auto" style={{ color: 'var(--earth-600)' }}>
+                {filters.minAge && filters.maxAge ? (<>Try a wider age range or check <strong>all categories</strong>.</>) : filters.maxPrice ? (<>Try increasing your price budget or browse <strong>all camps</strong>.</>) : filters.categories?.length > 0 ? (<>Try selecting <strong>more categories</strong> or clear filters to see all camps.</>) : searchInput ? (<>No camps match "<strong>{searchInput}</strong>". Try a different search term.</>) : (<>Try adjusting your filters or clear them to see all camps.</>)}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                <button onClick={clearFilters} className="btn-primary">Clear Filters</button>
+              </div>
             </div>
           </div>
         ) : viewMode === 'grid' ? (
@@ -1768,16 +606,11 @@ export default function App() {
                 key={camp.id}
                 camp={camp}
                 expanded={expandedCamp === camp.id}
-                onToggle={(e) => {
+                onToggle={() => {
                   if (isMobile) {
-                    // Mobile: inline expand
                     setExpandedCamp(expandedCamp === camp.id ? null : camp.id);
                   } else {
-                    // Store trigger for focus restoration (WCAG 2.1 AA)
-                    modalTriggerRef.current = e?.currentTarget || document.activeElement;
-                    // Desktop: open modal
-                    setModalCamp(camp);
-                    document.body.classList.add('modal-open');
+                    navigate(`/camp/${camp.id}`, { state: { backgroundLocation: location } });
                   }
                 }}
                 index={index}
@@ -1790,176 +623,29 @@ export default function App() {
           </div>
         ) : (
           <div ref={tableRef}>
-            <CampTable
-              camps={filteredCamps}
-              sortBy={sortBy}
-              sortDir={sortDir}
-              onSort={(field) => {
-                if (sortBy === field) {
-                  setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                } else {
-                  setSortBy(field);
-                  setSortDir('asc');
-                }
-              }}
-              expandedCamp={expandedCamp}
-              onToggle={(id) => setExpandedCamp(expandedCamp === id ? null : id)}
-            />
+            <CampTable camps={filteredCamps} sortBy={sortBy} sortDir={sortDir} onSort={(field) => { if (sortBy === field) { setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); } else { setSortBy(field); setSortDir('asc'); } }} expandedCamp={expandedCamp} onToggle={(id) => setExpandedCamp(expandedCamp === id ? null : id)} />
           </div>
         )}
       </main>
 
-      {/* Footer - Enhanced with trust signals */}
+      {/* Footer */}
       <footer className="site-footer">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <AppLogo className="w-7 h-7" />
-              <span className="font-serif text-lg" style={{ color: 'var(--sand-100)' }}>
-                Santa Barbara Summer Camps
-              </span>
+              <span className="font-serif text-lg" style={{ color: 'var(--sand-100)' }}>Santa Barbara Summer Camps</span>
             </div>
             <div className="text-center md:text-right">
-              <p className="text-sm mb-1" style={{ color: 'var(--sand-200)' }}>
-                Data from camp websites • Updated Jan 2026
-              </p>
-              <p className="text-xs" style={{ color: 'var(--sand-400)' }}>
-                Verify prices and availability directly with camps before enrolling.
-              </p>
+              <p className="text-sm mb-1" style={{ color: 'var(--sand-200)' }}>Data from camp websites - Updated Jan 2026</p>
+              <p className="text-xs" style={{ color: 'var(--sand-400)' }}>Verify prices and availability directly with camps before enrolling.</p>
             </div>
           </div>
         </div>
       </footer>
 
-      {/* Modals - Lazy loaded with Suspense for better performance */}
-      <Suspense fallback={<ModalLoadingFallback />}>
-        {showPlanner && (
-          <SchedulePlanner camps={camps} onClose={() => setShowPlanner(false)} />
-        )}
-
-        {showChildren && (
-          <ChildrenManager onClose={() => setShowChildren(false)} />
-        )}
-
-        {showDashboard && (
-          <Dashboard
-            camps={camps}
-            onClose={() => setShowDashboard(false)}
-            onOpenPlanner={() => {
-              setShowDashboard(false);
-              setShowPlanner(true);
-            }}
-            onSelectCamp={(camp) => {
-              setShowDashboard(false);
-              if (isMobile) {
-                // Mobile: inline expand
-                setExpandedCamp(camp.id);
-              } else {
-                // Store trigger for focus restoration (WCAG 2.1 AA)
-                modalTriggerRef.current = document.activeElement;
-                // Desktop: open modal
-                setModalCamp(camp);
-                document.body.classList.add('modal-open');
-              }
-            }}
-          />
-        )}
-
-        {showComparison && (
-          <CampComparison
-            camps={camps}
-            selectedCampIds={compareList}
-            onClose={() => setShowComparison(false)}
-            onRemoveCamp={removeFromCompare}
-            onAddCamp={addToCompare}
-          />
-        )}
-
-        {showInsights && (
-          <CampInsights
-            camps={camps}
-            onClose={() => setShowInsights(false)}
-            onSelectCamp={(camp) => {
-              setShowInsights(false);
-              if (isMobile) {
-                setExpandedCamp(camp.id);
-              } else {
-                // Store trigger for focus restoration (WCAG 2.1 AA)
-                modalTriggerRef.current = document.activeElement;
-                setModalCamp(camp);
-                document.body.classList.add('modal-open');
-              }
-            }}
-            onCompare={(campIds) => {
-              setShowInsights(false);
-              setCompareList(campIds);
-              setShowComparison(true);
-            }}
-          />
-        )}
-
-        {showOnboarding && (
-          <OnboardingWizard onComplete={completeOnboarding} />
-        )}
-
-        {showAdmin && (
-          <AdminDashboard
-            camps={camps}
-            onClose={() => setShowAdmin(false)}
-          />
-        )}
-
-        {showSettings && (
-          <Settings onClose={() => setShowSettings(false)} />
-        )}
-
-        {showCostDashboard && (
-          <CostDashboard
-            camps={camps}
-            onClose={() => setShowCostDashboard(false)}
-          />
-        )}
-
-        {showWishlist && (
-          <Wishlist
-            camps={camps}
-            onClose={() => setShowWishlist(false)}
-            onScheduleCamp={(camp) => {
-              setShowWishlist(false);
-              setShowPlanner(true);
-            }}
-            onCompareCamps={(campIds) => {
-              setCompareList(campIds);
-            setShowWishlist(false);
-            setShowComparison(true);
-          }}
-        />
-      )}
-
-        {/* Family Workspace Modal */}
-        {showFamilyWorkspace && (
-          <div className="fixed inset-0 z-50 bg-white">
-            <FamilyWorkspace onClose={() => setShowFamilyWorkspace(false)} />
-          </div>
-        )}
-      </Suspense>
-
-      {/* FavoritesModal is not lazy loaded as it's small */}
-      {showFavorites && (
-        <FavoritesModal
-          camps={camps}
-          onClose={() => setShowFavorites(false)}
-          onOpenPlanner={() => {
-            setShowFavorites(false);
-            setShowPlanner(true);
-          }}
-          isPlannerLoading={isPlannerLoading}
-          setIsPlannerLoading={setIsPlannerLoading}
-        />
-      )}
-
       {/* Sticky Compare Bar */}
-      {compareList.length > 0 && !showComparison && (
+      {compareList.length > 0 && (
         <div className="compare-bar">
           <div className="compare-bar-content">
             <div className="compare-bar-camps">
@@ -1969,536 +655,96 @@ export default function App() {
                 return (
                   <div key={campId} className="compare-bar-chip">
                     <span className="compare-bar-chip-name">{camp.camp_name}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeFromCompare(campId)}
-                      className="compare-bar-chip-remove"
-                      aria-label="Remove from compare"
-                    >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                    <button type="button" onClick={() => removeFromCompare(campId)} className="compare-bar-chip-remove" aria-label="Remove from compare">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
                 );
               })}
-              {compareList.length < 6 && (
-                <span className="compare-bar-hint">Add {6 - compareList.length} more</span>
-              )}
+              {compareList.length < 6 && (<span className="compare-bar-hint">Add {6 - compareList.length} more</span>)}
             </div>
             <div className="compare-bar-actions">
-              <button
-                type="button"
-                onClick={() => setCompareList([])}
-                className="compare-bar-clear"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowComparison(true)}
-                className="btn-primary compare-bar-button"
-              >
-                <CompareIcon />
-                Compare {compareList.length} Camps
+              <button type="button" onClick={() => clearCompare()} className="compare-bar-clear">Clear</button>
+              <button type="button" onClick={() => navigate('/compare')} className="btn-primary compare-bar-button">
+                <CompareIcon />Compare {compareList.length} Camps
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Camp Detail Modal */}
-      {modalCamp && (
-        <CampDetailModal
-          camp={modalCamp}
-          allCamps={camps}
-          onClose={() => {
-            setModalCamp(null);
-            document.body.classList.remove('modal-open');
-            // Restore focus to trigger element (WCAG 2.1 AA focus management)
-            if (modalTriggerRef.current) {
-              modalTriggerRef.current.focus();
-              modalTriggerRef.current = null;
-            }
-          }}
-          onAddToSchedule={() => {
-            setModalCamp(null);
-            document.body.classList.remove('modal-open');
-            setShowPlanner(true);
-          }}
-          onToggleFavorite={() => {
-            // Favorite toggle is handled by the FavoriteButton inside the modal
-          }}
-          isFavorite={favorites.some(f => f.camp_id === modalCamp.id)}
-          onToggleCompare={() => toggleCompare(modalCamp.id)}
-          isInCompare={compareList.includes(modalCamp.id)}
-          onSelectSimilar={(similarCamp) => {
-            setModalCamp(similarCamp);
-          }}
-        />
-      )}
-
-      {/* Mobile Bottom Navigation - CSS controls visibility via media query */}
-      <MobileNav
-        activeTab={mobileTab}
-        onTabChange={handleMobileTabChange}
-        favoritesCount={favorites?.length || 0}
-        hasNotifications={false}
-      />
-    </div>
+    </>
   );
 }
 
-// Favorites Modal Component
-function FavoritesModal({ camps, onClose, onOpenPlanner, isPlannerLoading, setIsPlannerLoading }) {
-  const { favorites } = useAuth();
+// ── Sub-Components ──
 
-  const favoriteCamps = useMemo(() => {
-    return favorites.map(f => {
-      const camp = camps.find(c => c.id === f.camp_id);
-      return { ...f, camp };
-    }).filter(f => f.camp);
-  }, [favorites, camps]);
-
+// Detail Row Component
+const DetailRow = memo(function DetailRow({ label, value }) {
+  if (!value || value === 'Unknown' || value === 'N/A') return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        <div className="p-6" style={{ borderBottom: '1px solid var(--sand-200)' }}>
-          <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
-              My Favorites
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full"
-              style={{ color: 'var(--sand-400)' }}
-            >
-              <XModalIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 150px)' }}>
-          {favoriteCamps.length === 0 ? (
-            <div className="text-center py-12">
-              <HeartOutlineIcon className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--sand-300)' }} />
-              <h3 className="font-serif text-lg font-heading mb-2" style={{ color: 'var(--earth-800)' }}>
-                No favorites yet
-              </h3>
-              <p style={{ color: 'var(--earth-700)' }}>
-                Tap the heart on any camp to save it.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {favoriteCamps.map(({ camp, notes }) => (
-                <div
-                  key={camp.id}
-                  className="flex items-start gap-4 p-4 rounded-xl"
-                  style={{ background: 'var(--sand-50)', border: '1px solid var(--sand-200)' }}
-                >
-                  <div className="flex-1">
-                    <h4 className="font-semibold" style={{ color: 'var(--earth-800)' }}>
-                      {camp.camp_name}
-                    </h4>
-                    <p className="text-sm" style={{ color: 'var(--sand-400)' }}>
-                      {camp.category} • {camp.ages} • {formatPrice(camp)}
-                    </p>
-                    {notes && (
-                      <p className="text-sm mt-2 italic" style={{ color: 'var(--earth-700)' }}>
-                        {notes}
-                      </p>
-                    )}
-                  </div>
-                  <FavoriteButton campId={camp.id} size="sm" />
-                </div>
-              ))}
-
-              <button
-                onClick={() => {
-                  setIsPlannerLoading(true);
-                  setTimeout(() => {
-                    onOpenPlanner();
-                    setIsPlannerLoading(false);
-                  }, 100);
-                }}
-                className="btn-primary w-full mt-4"
-                disabled={isPlannerLoading}
-              >
-                {isPlannerLoading ? (
-                  <>
-                    <LoadingSpinner className="w-5 h-5" />
-                    <span>Opening planner...</span>
-                  </>
-                ) : (
-                  <>
-                    <CalendarPlanIcon />
-                    <span>Plan My Summer</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// BUG-E-005: Shared Schedule View Component - displays read-only shared schedules
-const SharedScheduleView = memo(function SharedScheduleView({ schedule, onClose }) {
-  if (!schedule) return null;
-
-  return (
-    <div className="min-h-screen" style={{ background: 'var(--sand-50)' }}>
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AppLogo className="w-8 h-8" />
-            <div>
-              <p className="text-xs uppercase tracking-wide" style={{ color: 'var(--sand-400)' }}>
-                Shared Schedule
-              </p>
-              <h1 className="font-serif text-xl font-heading" style={{ color: 'var(--earth-800)' }}>
-                {schedule.childName}'s Summer 2026
-              </h1>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="btn-secondary"
-          >
-            Browse Camps
-          </button>
-        </div>
-      </header>
-
-      {/* Schedule Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Summary Stats */}
-        <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm" style={{ border: '1px solid var(--sand-200)' }}>
-          <div className="flex flex-wrap gap-6 justify-center">
-            <div className="text-center">
-              <p className="text-2xl font-bold" style={{ color: 'var(--earth-800)' }}>
-                {schedule.weeks?.length || 0}
-              </p>
-              <p className="text-sm" style={{ color: 'var(--sand-400)' }}>Weeks Planned</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold" style={{ color: 'var(--terra-500)' }}>
-                ${schedule.totalCost?.toLocaleString() || 0}
-              </p>
-              <p className="text-sm" style={{ color: 'var(--sand-400)' }}>Total Cost</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold" style={{ color: 'var(--ocean-500)' }}>
-                {schedule.weeks?.reduce((sum, w) => sum + (w.camps?.length || 0), 0) || 0}
-              </p>
-              <p className="text-sm" style={{ color: 'var(--sand-400)' }}>Camps</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Week-by-Week Schedule */}
-        <div className="space-y-4">
-          {schedule.weeks?.map((week, index) => (
-            <div
-              key={week.weekNum || index}
-              className="bg-white rounded-xl p-5 shadow-sm"
-              style={{ border: '1px solid var(--sand-200)' }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold" style={{ color: 'var(--earth-800)' }}>
-                  Week {week.weekNum}
-                </h3>
-                <span className="text-sm" style={{ color: 'var(--sand-400)' }}>
-                  {week.display}
-                </span>
-              </div>
-              <div className="space-y-2">
-                {week.camps?.map((camp, campIndex) => (
-                  <div
-                    key={campIndex}
-                    className="flex items-center justify-between p-3 rounded-lg"
-                    style={{ background: 'var(--sand-50)' }}
-                  >
-                    <div>
-                      <p className="font-medium" style={{ color: 'var(--earth-800)' }}>
-                        {camp.name}
-                      </p>
-                      {camp.status && camp.status !== 'planned' && (
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full"
-                          style={{
-                            background: camp.status === 'confirmed' ? 'var(--ocean-100)' : 'var(--sun-100)',
-                            color: camp.status === 'confirmed' ? 'var(--ocean-600)' : 'var(--sun-600)'
-                          }}
-                        >
-                          {camp.status}
-                        </span>
-                      )}
-                    </div>
-                    {camp.price && (
-                      <span className="font-medium" style={{ color: 'var(--terra-500)' }}>
-                        ${camp.price}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {(!schedule.weeks || schedule.weeks.length === 0) && (
-            <div className="text-center py-12">
-              <p style={{ color: 'var(--sand-400)' }}>
-                No camps scheduled yet.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Call to Action */}
-        <div className="mt-8 text-center">
-          <p className="mb-4" style={{ color: 'var(--earth-700)' }}>
-            Ready to plan your own summer?
-          </p>
-          <button onClick={onClose} className="btn-primary">
-            <CalendarPlanIcon />
-            <span>Start Planning</span>
-          </button>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="py-6 text-center">
-        <p className="text-sm" style={{ color: 'var(--sand-400)' }}>
-          Santa Barbara Summer Camps 2026
-        </p>
-      </footer>
+    <div>
+      <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--sand-400)' }}>{label}</p>
+      <p className="font-medium" style={{ color: 'var(--earth-800)' }}>{value}</p>
     </div>
   );
 });
 
-// Memoized icon components for header/actions
-const CalendarPlanIcon = memo(function CalendarPlanIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  );
-});
-
-const DashboardIcon = memo(function DashboardIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-    </svg>
-  );
-});
-
-const CompareIcon = memo(function CompareIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-  );
-});
-
-const XModalIcon = memo(function XModalIcon({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-});
-
-const HeartOutlineIcon = memo(function HeartOutlineIcon({ className, style }) {
-  return (
-    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-    </svg>
-  );
-});
-
-// Verified/Shield Icon for trust signals
-const VerifiedIcon = memo(function VerifiedIcon() {
-  return (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--ocean-500)' }}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  );
-});
-
-// Camp Card Component with scroll-triggered reveal - memoized for performance
-// Only re-renders when camp data, expanded state, or compare state changes
+// Camp Card Component
 const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isComparing = false, onToggleCompare, friendInterestCounts = {}, hasSquads = false }) {
   const categoryClass = categoryClasses[camp.category] || 'category-multi-activity';
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
   const [imageError, setImageError] = useState(false);
   const [cardRef, isRevealed] = useScrollReveal();
-
-  // Get friend interest count for this camp
   const friendCount = friendInterestCounts[camp.id] || 0;
 
   return (
-    <article
-      id={`camp-${camp.id}`}
-      ref={cardRef}
-      className={`camp-card scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`}
-      style={{
-        '--stagger-index': index % 12,
-        ...(isComparing ? { ringColor: 'var(--ocean-500)' } : {})
-      }}
-    >
-      <div
-        className="camp-card-button"
-        role="button"
-        tabIndex={0}
-        onClick={onToggle}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }}
-        aria-label={`View details for ${camp.camp_name}`}
-      >
-      {/* Camp Image or Category color bar */}
-      {camp.image_url && !imageError ? (
-        <div className="camp-card-image">
-          <img
-            src={camp.image_url}
-            alt={camp.camp_name}
-            loading="lazy"
-            decoding="async"
-            onError={() => setImageError(true)}
-          />
-          <div className="camp-card-image-overlay" style={{ background: categoryGradient }}></div>
-        </div>
-      ) : (
-        <div className="camp-card-image" style={{ background: categoryGradient }}>
-          <div className="w-full h-full flex items-center justify-center opacity-40">
-            <BrandIcon name={categoryIcons.find(c => c.name === camp.category)?.icon || 'overnight'} size={48} />
-          </div>
-        </div>
-      )}
-
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2 mb-4">
-          <h3 className="font-serif text-xl font-heading leading-tight flex-1" style={{ color: 'var(--earth-800)' }}>
-            {camp.camp_name}
-          </h3>
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleCompare?.(); }}
-              className={`min-w-[44px] min-h-[44px] p-2 rounded-full transition-colors flex items-center justify-center ${isComparing ? '' : 'hover:bg-sand-100'}`}
-              style={{
-                color: isComparing ? 'var(--ocean-600)' : 'var(--sand-400)',
-                background: isComparing ? 'var(--ocean-100)' : 'transparent'
-              }}
-              title={isComparing ? 'Remove from compare' : 'Add to compare'}
-              aria-label={isComparing ? 'Remove from compare' : 'Add to compare'}
-              aria-pressed={isComparing}
-            >
-              <svg className="w-5 h-5" fill={isComparing ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </button>
-            <FavoriteButton campId={camp.id} />
-          </div>
-          <ChevronIcon expanded={expanded} />
-        </div>
-
-        {/* Category Badge */}
-        <div className={`${categoryClass} mb-4`}>
-          <span className="category-badge">
-            <span className="category-dot"></span>
-            {camp.category}
-          </span>
-        </div>
-
-        {/* Description */}
-        <p className="text-sm line-clamp-2 mb-5" style={{ color: 'var(--earth-700)', lineHeight: 1.6 }}>
-          {camp.description}
-        </p>
-
-        {/* Quick Info Row - Scannable */}
-        <div className="camp-quick-info">
-          <div className="camp-quick-info-item">
-            <p className="camp-quick-info-label">Ages</p>
-            <p className="camp-quick-info-value">{camp.ages || '—'}</p>
-          </div>
-          <div className="camp-quick-info-item">
-            <p className="camp-quick-info-label">Price</p>
-            <p className="camp-quick-info-value price">{formatPrice(camp)}</p>
-          </div>
-          <div className="camp-quick-info-item">
-            <p className="camp-quick-info-label">Hours</p>
-            <p className="camp-quick-info-value">{camp.hours || 'TBD'}</p>
-          </div>
-        </div>
-
-        {/* Registration Status Badge - hide for closed camps */}
-        {!isCampEffectivelyClosed(camp) && (() => {
-          const regStatus = getRegistrationStatus(camp);
-          if (regStatus.status === 'unknown') return null;
-          return (
-            <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-3 w-fit"
-              style={{
-                backgroundColor: `${regStatus.color}15`,
-                color: regStatus.color
-              }}
-            >
-              {regStatus.isOpen ? (
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              ) : regStatus.status === 'upcoming' && regStatus.daysUntil <= 7 ? (
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                </svg>
-              ) : regStatus.status === 'closed' || regStatus.status === 'waitlist' ? (
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
-              )}
-              <span>{regStatus.label}</span>
-            </div>
-          );
-        })()}
-
-        {/* Friend Interest Indicator */}
-        {hasSquads && friendCount > 0 && (
-          <div className="friend-interest-badge mb-3">
-            <span className="friend-interest-icon"><BrandIcon name="people" size={16} /></span>
-            <span className="friend-interest-label">
-              {friendCount} {friendCount === 1 ? 'friend' : 'friends'} interested
-            </span>
-          </div>
+    <article id={`camp-${camp.id}`} ref={cardRef} className={`camp-card scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`} style={{ '--stagger-index': index % 12, '--card-accent': categoryGradient, ...(isComparing ? { ringColor: 'var(--ocean-500)' } : {}) }}>
+      <div className="camp-card-button" role="button" tabIndex={0} onClick={onToggle} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }} aria-label={`View details for ${camp.camp_name}`}>
+        {camp.image_url && !imageError ? (
+          <div className="camp-card-image"><img src={camp.image_url} alt={camp.camp_name} loading="lazy" decoding="async" onError={() => setImageError(true)} /><div className="camp-card-image-overlay" style={{ background: categoryGradient }}></div></div>
+        ) : (
+          <div className="camp-card-image" style={{ background: categoryGradient }}><div className="w-full h-full flex items-center justify-center opacity-40"><BrandIcon name={categoryIcons.find(c => c.name === camp.category)?.icon || 'overnight'} size={48} /></div></div>
         )}
-
-        {/* Feature Badges */}
-        <div className="flex flex-wrap gap-2">
-          {camp.has_extended_care && (
-            <span className="feature-badge feature-badge-extended">Extended Care</span>
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <h3 className="font-serif text-xl font-heading leading-tight flex-1" style={{ color: 'var(--earth-800)' }}>{camp.camp_name}</h3>
+            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <button onClick={(e) => { e.stopPropagation(); onToggleCompare?.(); }} className={`min-w-[44px] min-h-[44px] p-2 rounded-full transition-colors flex items-center justify-center ${isComparing ? '' : 'hover:bg-sand-100'}`} style={{ color: isComparing ? 'var(--ocean-600)' : 'var(--sand-400)', background: isComparing ? 'var(--ocean-100)' : 'transparent' }} title={isComparing ? 'Remove from compare' : 'Add to compare'} aria-label={isComparing ? 'Remove from compare' : 'Add to compare'} aria-pressed={isComparing}>
+                <svg className="w-5 h-5" fill={isComparing ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+              </button>
+              <FavoriteButton campId={camp.id} />
+            </div>
+            <ChevronIcon expanded={expanded} />
+          </div>
+          <div className={`${categoryClass} mb-4`}><span className="category-badge"><span className="category-dot"></span>{camp.category}</span></div>
+          <p className="text-sm line-clamp-2 mb-5" style={{ color: 'var(--earth-700)', lineHeight: 1.6 }}>{camp.description}</p>
+          <div className="camp-quick-info">
+            <div className="camp-quick-info-item"><p className="camp-quick-info-label">Ages</p><p className="camp-quick-info-value">{camp.ages || '--'}</p></div>
+            <div className="camp-quick-info-item"><p className="camp-quick-info-label">Price</p><p className="camp-quick-info-value price">{formatPrice(camp)}</p></div>
+            <div className="camp-quick-info-item"><p className="camp-quick-info-label">Hours</p><p className="camp-quick-info-value">{camp.hours || 'TBD'}</p></div>
+          </div>
+          {!isCampEffectivelyClosed(camp) && (() => {
+            const regStatus = getRegistrationStatus(camp);
+            if (regStatus.status === 'unknown') return null;
+            return (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-3 w-fit" style={{ backgroundColor: `${regStatus.color}15`, color: regStatus.color }}>
+                {regStatus.isOpen ? (<svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>) : (<svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>)}
+                <span>{regStatus.label}</span>
+              </div>
+            );
+          })()}
+          {hasSquads && friendCount > 0 && (
+            <div className="friend-interest-badge mb-3"><span className="friend-interest-icon"><BrandIcon name="people" size={16} /></span><span className="friend-interest-label">{friendCount} {friendCount === 1 ? 'friend' : 'friends'} interested</span></div>
           )}
-          {camp.food_included && (
-            <span className="feature-badge feature-badge-food">Meals</span>
-          )}
-          {camp.has_transport && (
-            <span className="feature-badge feature-badge-transport">Transport</span>
-          )}
-          {camp.has_sibling_discount && (
-            <span className="feature-badge feature-badge-sibling">Sibling $</span>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {camp.has_extended_care && (<span className="feature-badge feature-badge-extended">Extended Care</span>)}
+            {camp.food_included && (<span className="feature-badge feature-badge-food">Meals</span>)}
+            {camp.has_transport && (<span className="feature-badge feature-badge-transport">Transport</span>)}
+            {camp.has_sibling_discount && (<span className="feature-badge feature-badge-sibling">Sibling $</span>)}
+          </div>
         </div>
       </div>
-      </div>
-
-      {/* Expanded Details */}
       {expanded && (
         <div className="expanded-details" onClick={(e) => e.stopPropagation()}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -2510,170 +756,24 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
             <DetailRow label="Phone" value={camp.contact_phone} />
             <DetailRow label="Email" value={camp.contact_email} />
           </div>
-
-          {/* Food Information Section */}
-          <div className="mt-5 p-4 rounded-xl" style={{ background: 'var(--ocean-50)', border: '1px solid var(--ocean-200)' }}>
-            <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--ocean-600)' }}>
-              <BrandIcon name="utensils" size={16} /> Food
-            </p>
-            <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
-              {camp.food_provided && camp.food_provided !== 'N/A' && camp.food_provided !== 'Unknown'
-                ? camp.food_provided
-                : camp.food_included
-                  ? 'Meals included'
-                  : 'Bring lunch'}
-            </p>
-          </div>
-
-          {/* Cancellation Policy Section */}
-          {camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A' && (
-            <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--terra-50)', border: '1px solid var(--terra-200)' }}>
-              <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--terra-600)' }}>
-                <BrandIcon name="clipboard" size={16} /> Cancellation
-              </p>
-              <p className="text-sm" style={{ color: 'var(--earth-700)' }}>
-                {camp.refund_policy}
-              </p>
-            </div>
-          )}
-
-          {/* Activities */}
           {camp.extracted?.activities && camp.extracted.activities.length > 0 && (
             <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--sage-50)', border: '1px solid var(--sage-200)' }}>
-              <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--sage-600)' }}>
-                <BrandIcon name="target" size={16} /> Activities
-              </p>
+              <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--sage-600)' }}><BrandIcon name="target" size={16} /> Activities</p>
               <div className="flex flex-wrap gap-1">
-                {camp.extracted.activities.slice(0, 8).map((activity, i) => (
-                  <span key={i} className="text-xs px-2 py-1 rounded-full" style={{ background: 'var(--sage-100)', color: 'var(--sage-700)' }}>
-                    {activity}
-                  </span>
-                ))}
-                {camp.extracted.activities.length > 8 && (
-                  <span className="text-xs px-2 py-1" style={{ color: 'var(--sage-500)' }}>
-                    +{camp.extracted.activities.length - 8} more
-                  </span>
-                )}
+                {camp.extracted.activities.slice(0, 8).map((activity, i) => (<span key={i} className="text-xs px-2 py-1 rounded-full" style={{ background: 'var(--sage-100)', color: 'var(--sage-700)' }}>{activity}</span>))}
+                {camp.extracted.activities.length > 8 && (<span className="text-xs px-2 py-1" style={{ color: 'var(--sage-500)' }}>+{camp.extracted.activities.length - 8} more</span>)}
               </div>
             </div>
           )}
-
-          {/* Staff Ratio & Certifications */}
-          {(camp.extracted?.staff_ratio || camp.extracted?.certifications?.length > 0) && (
-            <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--ocean-50)', border: '1px solid var(--ocean-200)' }}>
-              <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--ocean-600)' }}>
-                <BrandIcon name="people" size={16} /> Staff & Safety
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {camp.extracted?.staff_ratio && (
-                  <div>
-                    <span style={{ color: 'var(--sand-400)' }}>Ratio: </span>
-                    <span style={{ color: 'var(--earth-700)' }}>{camp.extracted.staff_ratio}</span>
-                  </div>
-                )}
-                {camp.extracted?.certifications?.length > 0 && (
-                  <div className="col-span-2">
-                    <span style={{ color: 'var(--sand-400)' }}>Certifications: </span>
-                    <span style={{ color: 'var(--earth-700)' }}>{camp.extracted.certifications.join(', ')}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Testimonials */}
-          {camp.extracted?.testimonials && camp.extracted.testimonials.length > 0 && (
-            <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--sun-50)', border: '1px solid var(--sun-200)' }}>
-              <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--sun-600)' }}>
-                <span>💬</span> Parent Review
-              </p>
-              <p className="text-sm italic" style={{ color: 'var(--earth-700)' }}>
-                "{camp.extracted.testimonials[0]}"
-              </p>
-            </div>
-          )}
-
-          {/* PDF Documents */}
-          {camp.pdf_links && camp.pdf_links.length > 0 && (
-            <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--sand-100)', border: '1px solid var(--sand-200)' }}>
-              <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--earth-700)' }}>
-                <span>📄</span> Documents
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {camp.pdf_links.slice(0, 4).map((pdf, i) => safeUrl(pdf.url) && (
-                  <a
-                    key={i}
-                    href={safeUrl(pdf.url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 hover:opacity-80 transition-opacity"
-                    style={{ background: 'white', color: 'var(--ocean-600)', border: '1px solid var(--ocean-200)' }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <span>📎</span>
-                    {pdf.text?.substring(0, 20) || pdf.type || 'Document'}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Social Media Links */}
-          {camp.social_media && Object.keys(camp.social_media).length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {safeUrl(camp.social_media.facebook) && (
-                <a href={safeUrl(camp.social_media.facebook)} target="_blank" rel="noopener noreferrer"
-                   className="p-2 rounded-lg hover:opacity-80 transition-opacity"
-                   style={{ background: '#1877f2', color: 'white' }}
-                   onClick={(e) => e.stopPropagation()}>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                </a>
-              )}
-              {safeUrl(camp.social_media.instagram) && (
-                <a href={safeUrl(camp.social_media.instagram)} target="_blank" rel="noopener noreferrer"
-                   className="p-2 rounded-lg hover:opacity-80 transition-opacity"
-                   style={{ background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white' }}
-                   onClick={(e) => e.stopPropagation()}>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-              )}
-              {safeUrl(camp.social_media.twitter) && (
-                <a href={safeUrl(camp.social_media.twitter)} target="_blank" rel="noopener noreferrer"
-                   className="p-2 rounded-lg hover:opacity-80 transition-opacity"
-                   style={{ background: '#000', color: 'white' }}
-                   onClick={(e) => e.stopPropagation()}>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-              )}
-              {safeUrl(camp.social_media.youtube) && (
-                <a href={safeUrl(camp.social_media.youtube)} target="_blank" rel="noopener noreferrer"
-                   className="p-2 rounded-lg hover:opacity-80 transition-opacity"
-                   style={{ background: '#ff0000', color: 'white' }}
-                   onClick={(e) => e.stopPropagation()}>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                </a>
-              )}
-            </div>
-          )}
-
           {camp.notes && (
             <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--sun-100)', border: '1px solid var(--sun-300)' }}>
               <p className="font-medium text-sm mb-1" style={{ color: 'var(--earth-800)' }}>Notes</p>
               <p className="text-sm" style={{ color: 'var(--earth-700)' }}>{camp.notes}</p>
             </div>
           )}
-
-          {/* Hide registration button for closed camps */}
           {!isCampEffectivelyClosed(camp) && camp.website_url && camp.website_url !== 'N/A' && safeUrl(camp.website_url) && (
-            <a
-              href={safeUrl(camp.website_url)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary w-full mt-5"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <span>Visit Website</span>
-              <ExternalLinkIcon />
+            <a href={safeUrl(camp.website_url)} target="_blank" rel="noopener noreferrer" className="btn-primary w-full mt-5" onClick={(e) => e.stopPropagation()}>
+              <span>Visit Website</span><ExternalLinkIcon />
             </a>
           )}
         </div>
@@ -2681,79 +781,28 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
     </article>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison for React.memo - only re-render when these props change
   const prevFriendCount = prevProps.friendInterestCounts?.[prevProps.camp.id] || 0;
   const nextFriendCount = nextProps.friendInterestCounts?.[nextProps.camp.id] || 0;
-  return (
-    prevProps.camp.id === nextProps.camp.id &&
-    prevProps.expanded === nextProps.expanded &&
-    prevProps.isComparing === nextProps.isComparing &&
-    prevProps.index === nextProps.index &&
-    prevProps.hasSquads === nextProps.hasSquads &&
-    prevFriendCount === nextFriendCount
-  );
+  return prevProps.camp.id === nextProps.camp.id && prevProps.expanded === nextProps.expanded && prevProps.isComparing === nextProps.isComparing && prevProps.index === nextProps.index && prevProps.hasSquads === nextProps.hasSquads && prevFriendCount === nextFriendCount;
 });
 
-// Detail Row Component - memoized
-const DetailRow = memo(function DetailRow({ label, value }) {
-  if (!value || value === 'Unknown' || value === 'N/A') return null;
-  return (
-    <div>
-      <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--sand-400)' }}>{label}</p>
-      <p className="font-medium" style={{ color: 'var(--earth-800)' }}>{value}</p>
-    </div>
-  );
-});
-
-// Camp Detail Modal - Editorial Magazine Style - memoized
-const CampDetailModal = memo(function CampDetailModal({
-  camp,
-  allCamps = [],
-  onClose,
-  onAddToSchedule,
-  onToggleFavorite,
-  isFavorite,
-  onToggleCompare,
-  isInCompare,
-  onSelectSimilar
-}) {
+// Camp Detail Modal
+const CampDetailModal = memo(function CampDetailModal({ camp, allCamps = [], onClose, onAddToSchedule, onToggleFavorite, isFavorite, onToggleCompare, isInCompare, onSelectSimilar }) {
   const [imageError, setImageError] = useState(false);
   const categoryGradient = categoryGradients[camp.category] || categoryGradients['Multi-Activity'];
-  const { findSimilarCamps } = useAuth();
-
-  // Get similar camps
+  const { findSimilarCamps } = useRecommendations();
   const similarCamps = useMemo(() => {
     if (!findSimilarCamps || allCamps.length === 0) return [];
     return findSimilarCamps(camp, allCamps, 4);
   }, [camp, allCamps, findSimilarCamps]);
 
-  // Manage body overflow when modal is open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
+  useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, []);
 
   const regStatus = getRegistrationStatus(camp);
-
-  // Build feature pills array - hide registration status for closed camps
-  // BUG-B-012: Added proper icon mapping with fallback for unknown/edge case statuses
   const featurePills = [];
   if (!isCampEffectivelyClosed(camp) && regStatus.status !== 'unknown') {
-    const statusIconMap = {
-      open: 'check',
-      upcoming: 'calendar',
-      waitlist: 'hourglass',
-      closed: 'x-circle',
-    };
-    featurePills.push({
-      icon: regStatus.isOpen ? 'check' : (statusIconMap[regStatus.status] || 'info'),
-      label: regStatus.label,
-      type: regStatus.isOpen ? 'open' : regStatus.status === 'upcoming' ? (regStatus.daysUntil <= 7 ? 'soon' : 'upcoming') : 'full',
-      key: 'registration',
-      color: regStatus.color
-    });
+    const statusIconMap = { open: 'check', upcoming: 'calendar', waitlist: 'hourglass', closed: 'x-circle' };
+    featurePills.push({ icon: regStatus.isOpen ? 'check' : (statusIconMap[regStatus.status] || 'info'), label: regStatus.label, type: regStatus.isOpen ? 'open' : regStatus.status === 'upcoming' ? (regStatus.daysUntil <= 7 ? 'soon' : 'upcoming') : 'full', key: 'registration', color: regStatus.color });
   }
   if (camp.has_extended_care) featurePills.push({ icon: 'clock-plus', label: 'Extended Care', key: 'extended' });
   if (camp.food_included) featurePills.push({ icon: 'utensils', label: 'Meals Included', key: 'food' });
@@ -2764,364 +813,89 @@ const CampDetailModal = memo(function CampDetailModal({
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={`${camp.camp_name} details`}>
       <article className="modal-card" onClick={(e) => e.stopPropagation()}>
-        {/* Close Button */}
         <button className="modal-close" onClick={onClose} aria-label="Close">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+          <span>Close</span>
         </button>
-
-        {/* Hero Section */}
         <header className="modal-hero">
-          {camp.image_url && !imageError ? (
-            <img
-              src={camp.image_url}
-              alt={camp.camp_name}
-              className="modal-hero-img"
-              decoding="async"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <div className="modal-hero-fallback" style={{ background: categoryGradient }} />
-          )}
+          {camp.image_url && !imageError ? (<img src={camp.image_url} alt={camp.camp_name} className="modal-hero-img" decoding="async" onError={() => setImageError(true)} />) : (<div className="modal-hero-fallback" style={{ background: categoryGradient }} />)}
           <div className="modal-hero-gradient" />
-
-          {/* Action Buttons - Favorite and Compare */}
           <div style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', gap: '0.5rem', zIndex: 10 }}>
-            {/* Compare Button */}
-            {/* BUG-B-014: type="button" ensures no form submission/page reload */}
-            {onToggleCompare && (
-              <button
-                type="button"
-                className={`modal-favorite ${isInCompare ? 'is-active' : ''}`}
-                onClick={onToggleCompare}
-                aria-label={isInCompare ? 'Remove from comparison' : 'Add to comparison'}
-                title={isInCompare ? 'Remove from comparison' : 'Add to comparison'}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </button>
-            )}
-
-            {/* Favorite Button */}
-            <button
-              className={`modal-favorite ${isFavorite ? 'is-active' : ''}`}
-              onClick={onToggleFavorite}
-              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            </button>
+            {onToggleCompare && (<button type="button" className={`modal-favorite ${isInCompare ? 'is-active' : ''}`} onClick={onToggleCompare} aria-label={isInCompare ? 'Remove from comparison' : 'Add to comparison'}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg></button>)}
+            <button className={`modal-favorite ${isFavorite ? 'is-active' : ''}`} onClick={onToggleFavorite} aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}><svg width="22" height="22" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></button>
           </div>
-
-          {/* Title Block */}
           <div className="modal-hero-content">
             <p className="modal-category">{camp.category}</p>
             <h1 className="modal-title">{camp.camp_name}</h1>
-            <p className="modal-subtitle">
-              {camp.ages || 'All ages'} · {formatPrice(camp)} · {camp.hours || 'Hours TBD'}
-            </p>
+            <p className="modal-subtitle">{camp.ages || 'All ages'} · {formatPrice(camp)} · {camp.hours || 'Hours TBD'}</p>
           </div>
         </header>
-
-        {/* Body */}
         <div className="modal-body">
-          {/* Feature Pills */}
-          {featurePills.length > 0 && (
-            <div className="modal-pills">
-              {featurePills.map((pill) => (
-                <span
-                  key={pill.key}
-                  className={`modal-pill ${pill.type ? `modal-pill--${pill.type}` : ''}`}
-                >
-                  <span className="modal-pill-icon"><BrandIcon name={pill.icon} size={14} /></span>
-                  {pill.label}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Description */}
-          {camp.description && (
-            <p className="modal-description">{camp.description}</p>
-          )}
-
-          {/* Details Grid */}
+          {featurePills.length > 0 && (<div className="modal-pills">{featurePills.map((pill) => (<span key={pill.key} className={`modal-pill ${pill.type ? `modal-pill--${pill.type}` : ''}`}><span className="modal-pill-icon"><BrandIcon name={pill.icon} size={14} /></span>{pill.label}</span>))}</div>)}
+          {camp.description && (<p className="modal-description">{camp.description}</p>)}
           <div className="modal-grid">
-            {/* Location & Schedule */}
             <section className="modal-section">
               <h2 className="modal-section-title">Where & When</h2>
               <dl className="modal-dl">
-                {camp.address && (
-                  <>
-                    <dt>Location</dt>
-                    <dd>{camp.address}</dd>
-                  </>
-                )}
-                {camp.indoor_outdoor && camp.indoor_outdoor !== 'Unknown' && (
-                  <>
-                    <dt>Setting</dt>
-                    <dd>{camp.indoor_outdoor}</dd>
-                  </>
-                )}
-                {camp.hours && (
-                  <>
-                    <dt>Hours</dt>
-                    <dd>{camp.hours}</dd>
-                  </>
-                )}
-                {camp.extended_care && camp.extended_care !== 'Unknown' && (
-                  <>
-                    <dt>Extended Care</dt>
-                    <dd>{camp.extended_care}</dd>
-                  </>
-                )}
+                {camp.address && (<><dt>Location</dt><dd>{camp.address}</dd></>)}
+                {camp.indoor_outdoor && camp.indoor_outdoor !== 'Unknown' && (<><dt>Setting</dt><dd>{camp.indoor_outdoor}</dd></>)}
+                {camp.hours && (<><dt>Hours</dt><dd>{camp.hours}</dd></>)}
+                {camp.extended_care && camp.extended_care !== 'Unknown' && (<><dt>Extended Care</dt><dd>{camp.extended_care}</dd></>)}
               </dl>
             </section>
-
-            {/* Contact & Pricing - only show if there's content */}
-            {(
-              (camp.contact_phone && !camp.contact_phone.toLowerCase().includes('see website') && camp.contact_phone.replace(/\D/g, '').length >= 7) ||
-              (camp.contact_email && !camp.contact_email.toLowerCase().includes('see website') && camp.contact_email.includes('@')) ||
-              (camp.extended_care_cost && camp.extended_care_cost !== 'Unknown' && camp.extended_care_cost !== 'N/A') ||
-              (camp.sibling_discount && camp.sibling_discount !== 'Unknown') ||
-              (camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A')
-            ) && (
-            <section className="modal-section">
-              <h2 className="modal-section-title">Contact & Cost</h2>
-              <dl className="modal-dl">
-                {camp.contact_phone && !camp.contact_phone.toLowerCase().includes('see website') && camp.contact_phone.replace(/\D/g, '').length >= 7 && (
-                  <>
-                    <dt>Phone</dt>
-                    <dd>
-                      <a href={`tel:${camp.contact_phone.replace(/\D/g, '')}`} className="modal-link">
-                        {camp.contact_phone}
-                      </a>
-                    </dd>
-                  </>
-                )}
-                {camp.contact_email && !camp.contact_email.toLowerCase().includes('see website') && camp.contact_email.includes('@') && (
-                  <>
-                    <dt>Email</dt>
-                    <dd>
-                      <a href={`mailto:${camp.contact_email}`} className="modal-link">
-                        {camp.contact_email}
-                      </a>
-                    </dd>
-                  </>
-                )}
-                {camp.extended_care_cost && camp.extended_care_cost !== 'Unknown' && camp.extended_care_cost !== 'N/A' && (
-                  <>
-                    <dt>Extended Care Cost</dt>
-                    <dd>{camp.extended_care_cost}</dd>
-                  </>
-                )}
-                {camp.sibling_discount && camp.sibling_discount !== 'Unknown' && (
-                  <>
-                    <dt>Sibling Discount</dt>
-                    <dd>{camp.sibling_discount}</dd>
-                  </>
-                )}
-                {camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A' && (
-                  <>
-                    <dt>Cancellation</dt>
-                    <dd>{camp.refund_policy}</dd>
-                  </>
-                )}
-              </dl>
-            </section>
+            {((camp.contact_phone && !camp.contact_phone.toLowerCase().includes('see website') && camp.contact_phone.replace(/\D/g, '').length >= 7) || (camp.contact_email && !camp.contact_email.toLowerCase().includes('see website') && camp.contact_email.includes('@')) || (camp.extended_care_cost && camp.extended_care_cost !== 'Unknown' && camp.extended_care_cost !== 'N/A') || (camp.sibling_discount && camp.sibling_discount !== 'Unknown') || (camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A')) && (
+              <section className="modal-section">
+                <h2 className="modal-section-title">Contact & Cost</h2>
+                <dl className="modal-dl">
+                  {camp.contact_phone && !camp.contact_phone.toLowerCase().includes('see website') && camp.contact_phone.replace(/\D/g, '').length >= 7 && (<><dt>Phone</dt><dd><a href={`tel:${camp.contact_phone.replace(/\D/g, '')}`} className="modal-link">{camp.contact_phone}</a></dd></>)}
+                  {camp.contact_email && !camp.contact_email.toLowerCase().includes('see website') && camp.contact_email.includes('@') && (<><dt>Email</dt><dd><a href={`mailto:${camp.contact_email}`} className="modal-link">{camp.contact_email}</a></dd></>)}
+                  {camp.extended_care_cost && camp.extended_care_cost !== 'Unknown' && camp.extended_care_cost !== 'N/A' && (<><dt>Extended Care Cost</dt><dd>{camp.extended_care_cost}</dd></>)}
+                  {camp.sibling_discount && camp.sibling_discount !== 'Unknown' && (<><dt>Sibling Discount</dt><dd>{camp.sibling_discount}</dd></>)}
+                  {camp.refund_policy && camp.refund_policy !== 'Unknown' && camp.refund_policy !== 'N/A' && (<><dt>Cancellation</dt><dd>{camp.refund_policy}</dd></>)}
+                </dl>
+              </section>
             )}
           </div>
-
-          {/* Pricing Tiers */}
           {camp.extracted?.pricing_tiers && (camp.extracted.pricing_tiers.earlyBird || camp.extracted.pricing_tiers.regular || camp.extracted.pricing_tiers.halfDay || camp.extracted.pricing_tiers.fullDay || camp.extracted.pricing_tiers.perSession) && (
             <section className="modal-section modal-section--full">
               <h2 className="modal-section-title">Pricing</h2>
               <dl className="modal-dl modal-dl--pricing">
-                {camp.extracted.pricing_tiers.earlyBird && (
-                  <>
-                    <dt>Early Bird</dt>
-                    <dd>${camp.extracted.pricing_tiers.earlyBird}/week</dd>
-                  </>
-                )}
-                {camp.extracted.pricing_tiers.regular && (
-                  <>
-                    <dt>Regular</dt>
-                    <dd>${camp.extracted.pricing_tiers.regular}/week</dd>
-                  </>
-                )}
-                {camp.extracted.pricing_tiers.halfDay && (
-                  <>
-                    <dt>Half Day</dt>
-                    <dd>${camp.extracted.pricing_tiers.halfDay}</dd>
-                  </>
-                )}
-                {camp.extracted.pricing_tiers.fullDay && (
-                  <>
-                    <dt>Full Day</dt>
-                    <dd>${camp.extracted.pricing_tiers.fullDay}</dd>
-                  </>
-                )}
-                {camp.extracted.pricing_tiers.perSession && (
-                  <>
-                    <dt>Per Session</dt>
-                    <dd>${camp.extracted.pricing_tiers.perSession}</dd>
-                  </>
-                )}
+                {camp.extracted.pricing_tiers.earlyBird && (<><dt>Early Bird</dt><dd>${camp.extracted.pricing_tiers.earlyBird}/week</dd></>)}
+                {camp.extracted.pricing_tiers.regular && (<><dt>Regular</dt><dd>${camp.extracted.pricing_tiers.regular}/week</dd></>)}
+                {camp.extracted.pricing_tiers.halfDay && (<><dt>Half Day</dt><dd>${camp.extracted.pricing_tiers.halfDay}</dd></>)}
+                {camp.extracted.pricing_tiers.fullDay && (<><dt>Full Day</dt><dd>${camp.extracted.pricing_tiers.fullDay}</dd></>)}
+                {camp.extracted.pricing_tiers.perSession && (<><dt>Per Session</dt><dd>${camp.extracted.pricing_tiers.perSession}</dd></>)}
               </dl>
             </section>
           )}
-
-          {/* Sessions / Dates */}
           {camp.extracted?.sessions && camp.extracted.sessions.length > 0 && (
             <section className="modal-section modal-section--full">
               <h2 className="modal-section-title">2026 Sessions</h2>
-              <div className="modal-sessions">
-                {camp.extracted.sessions.map((session, i) => {
-                  const text = (session.raw || '').replace(/[\n\t]+/g, ' ').trim();
-                  return text ? (
-                    <div key={i} className="modal-session-row">
-                      <span className="modal-session-text">{text}</span>
-                    </div>
-                  ) : null;
-                })}
-              </div>
+              <div className="modal-sessions">{camp.extracted.sessions.map((session, i) => { const text = (session.raw || '').replace(/[\n\t]+/g, ' ').trim(); return text ? (<div key={i} className="modal-session-row"><span className="modal-session-text">{text}</span></div>) : null; })}</div>
             </section>
           )}
-
-          {/* Availability */}
-          {camp.extracted?.availability && (camp.extracted.availability.isOpen || camp.extracted.availability.hasWaitlist || (camp.extracted.availability.soldOutSessions && camp.extracted.availability.soldOutSessions.length > 0)) && (
-            <div className="modal-callout modal-callout--availability">
-              <span className="modal-callout-icon"><BrandIcon name={camp.extracted.availability.isOpen ? 'check-square' : 'hourglass'} size={18} /></span>
-              <div>
-                <strong>{camp.extracted.availability.isOpen ? 'Open Now' : 'Limited Spots'}</strong>
-                {camp.extracted.availability.hasWaitlist && <p>Waitlist open</p>}
-                {camp.extracted.availability.soldOutSessions && camp.extracted.availability.soldOutSessions.length > 0 && (
-                  <p>Sold out: {camp.extracted.availability.soldOutSessions.join(', ')}</p>
-                )}
-                {camp.extracted.availability.openingDate && (
-                  <p>Opens: {camp.extracted.availability.openingDate}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Food Info */}
-          {(camp.food_provided || camp.food_included) && camp.food_provided !== 'Unknown' && (
-            <div className="modal-callout modal-callout--ocean">
-              <span className="modal-callout-icon"><BrandIcon name="utensils" size={18} /></span>
-              <div>
-                <strong>Food</strong>
-                <p>
-                  {camp.food_provided && camp.food_provided !== 'N/A' && camp.food_provided !== 'Unknown'
-                    ? camp.food_provided
-                    : camp.food_included ? 'Meals included' : 'Bring lunch'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Activities */}
           {camp.extracted?.activities && camp.extracted.activities.length > 0 && (
             <section className="modal-section modal-section--full">
               <h2 className="modal-section-title">Activities</h2>
-              <div className="modal-tags">
-                {camp.extracted.activities.map((activity, i) => (
-                  <span key={i} className="modal-tag">{activity}</span>
-                ))}
-              </div>
+              <div className="modal-tags">{camp.extracted.activities.map((activity, i) => (<span key={i} className="modal-tag">{activity}</span>))}</div>
             </section>
           )}
-
-          {/* Staff & Safety */}
-          {(camp.extracted?.staff_ratio || camp.extracted?.certifications?.length > 0) && (
-            <div className="modal-callout modal-callout--sage">
-              <span className="modal-callout-icon"><BrandIcon name="people" size={18} /></span>
-              <div>
-                <strong>Staff & Safety</strong>
-                {camp.extracted?.staff_ratio && <p>Staff ratio: {camp.extracted.staff_ratio}</p>}
-                {camp.extracted?.certifications?.length > 0 && (
-                  <p>Certifications: {camp.extracted.certifications.join(', ')}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Testimonials */}
           {camp.extracted?.testimonials && camp.extracted.testimonials.length > 0 && (
-            <div className="modal-testimonials">
-              {camp.extracted.testimonials.slice(0, 3).map((quote, i) => (
-                <blockquote key={i} className="modal-quote">
-                  <p>"{quote}"</p>
-                </blockquote>
-              ))}
-            </div>
+            <div className="modal-testimonials">{camp.extracted.testimonials.slice(0, 3).map((quote, i) => (<blockquote key={i} className="modal-quote"><p>"{quote}"</p></blockquote>))}</div>
           )}
-
-          {/* PDF Links */}
-          {camp.pdf_links && camp.pdf_links.length > 0 && (
-            <section className="modal-section modal-section--full">
-              <h2 className="modal-section-title">Documents</h2>
-              <div className="modal-pdf-links">
-                {camp.pdf_links.slice(0, 5).map((pdf, i) => safeUrl(pdf.url) && (
-                  <a key={i} href={safeUrl(pdf.url)} target="_blank" rel="noopener noreferrer" className="modal-pdf-link">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    {pdf.text || pdf.type || 'Document'}
-                  </a>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Notes */}
-          {camp.notes && (
-            <div className="modal-callout modal-callout--sun">
-              <span className="modal-callout-icon"><BrandIcon name="pencil" size={18} /></span>
-              <div>
-                <strong>Notes</strong>
-                <p>{camp.notes}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Similar Camps Section */}
+          {camp.notes && (<div className="modal-callout modal-callout--sun"><span className="modal-callout-icon"><BrandIcon name="pencil" size={18} /></span><div><strong>Notes</strong><p>{camp.notes}</p></div></div>)}
           {similarCamps.length > 0 && (
             <section className="modal-similar-camps">
               <h2 className="modal-section-title">Camps Like This</h2>
               <p className="modal-similar-subtitle">Similar options you might like</p>
               <div className="modal-similar-grid">
                 {similarCamps.map(({ camp: similarCamp, explanation }) => (
-                  <button
-                    key={similarCamp.id}
-                    className="modal-similar-card"
-                    onClick={() => onSelectSimilar?.(similarCamp)}
-                  >
-                    {similarCamp.image_url ? (
-                      <img
-                        src={similarCamp.image_url}
-                        alt=""
-                        className="modal-similar-img"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div
-                        className="modal-similar-img-fallback"
-                        style={{ background: categoryGradients[similarCamp.category] || 'var(--sand-200)' }}
-                      />
-                    )}
+                  <button key={similarCamp.id} className="modal-similar-card" onClick={() => onSelectSimilar?.(similarCamp)}>
+                    {similarCamp.image_url ? (<img src={similarCamp.image_url} alt="" className="modal-similar-img" loading="lazy" />) : (<div className="modal-similar-img-fallback" style={{ background: categoryGradients[similarCamp.category] || 'var(--sand-200)' }} />)}
                     <div className="modal-similar-info">
                       <p className="modal-similar-name">{similarCamp.camp_name}</p>
-                      <p className="modal-similar-meta">
-                        {similarCamp.ages || 'All ages'} · {formatPrice(similarCamp)}
-                      </p>
-                      {explanation && (
-                        <p className="modal-similar-reason">{explanation}</p>
-                      )}
+                      <p className="modal-similar-meta">{similarCamp.ages || 'All ages'} · {formatPrice(similarCamp)}</p>
+                      {explanation && (<p className="modal-similar-reason">{explanation}</p>)}
                     </div>
                   </button>
                 ))}
@@ -3129,54 +903,17 @@ const CampDetailModal = memo(function CampDetailModal({
             </section>
           )}
         </div>
-
-        {/* Footer Actions - hide for closed camps, camps with N/A price, or closed registration status */}
-        {/* BUG-B-013: Also hide for camps with registration status 'closed' or price 'N/A' */}
         {!isCampEffectivelyClosed(camp) && regStatus.status !== 'closed' && (
           <footer className="modal-footer">
-            {camp.website_url && safeUrl(camp.website_url) && (
-              <a
-                href={safeUrl(camp.website_url)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="modal-btn modal-btn--primary"
-              >
-                Visit Website
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
-                </svg>
-              </a>
-            )}
-            <button onClick={onAddToSchedule} className="modal-btn modal-btn--secondary">
-              Schedule This Camp
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-            </button>
+            {camp.website_url && safeUrl(camp.website_url) && (<a href={safeUrl(camp.website_url)} target="_blank" rel="noopener noreferrer" className="modal-btn modal-btn--primary">Visit Website<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" /></svg></a>)}
+            <button onClick={onAddToSchedule} className="modal-btn modal-btn--secondary">Schedule This Camp<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg></button>
           </footer>
         )}
-
-        {/* Social Links */}
         {camp.social_media && Object.keys(camp.social_media).length > 0 && (
           <div className="modal-social">
-            {safeUrl(camp.social_media.facebook) && (
-              <a href={safeUrl(camp.social_media.facebook)} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="Facebook">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              </a>
-            )}
-            {safeUrl(camp.social_media.instagram) && (
-              <a href={safeUrl(camp.social_media.instagram)} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="Instagram">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-              </a>
-            )}
-            {safeUrl(camp.social_media.youtube) && (
-              <a href={safeUrl(camp.social_media.youtube)} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="YouTube">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-              </a>
-            )}
+            {safeUrl(camp.social_media.facebook) && (<a href={safeUrl(camp.social_media.facebook)} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="Facebook"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>)}
+            {safeUrl(camp.social_media.instagram) && (<a href={safeUrl(camp.social_media.instagram)} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="Instagram"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>)}
+            {safeUrl(camp.social_media.youtube) && (<a href={safeUrl(camp.social_media.youtube)} target="_blank" rel="noopener noreferrer" className="modal-social-link" aria-label="YouTube"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>)}
           </div>
         )}
       </article>
@@ -3184,25 +921,7 @@ const CampDetailModal = memo(function CampDetailModal({
   );
 });
 
-// Modal Detail Row - memoized
-const DetailRowModal = memo(function DetailRowModal({ icon, label, value, isEmail }) {
-  if (!value || value === 'Unknown' || value === 'N/A') return null;
-  return (
-    <div className="camp-modal-detail-row">
-      <span className="camp-modal-detail-icon">{icon}</span>
-      <div>
-        <p className="camp-modal-detail-label">{label}</p>
-        {isEmail ? (
-          <a href={`mailto:${value}`} className="camp-modal-detail-value camp-modal-link">{value}</a>
-        ) : (
-          <p className="camp-modal-detail-value">{value}</p>
-        )}
-      </div>
-    </div>
-  );
-});
-
-// Camp Table Component - memoized for performance with large lists
+// Camp Table Component
 const CampTable = memo(function CampTable({ camps, sortBy, sortDir, onSort, expandedCamp, onToggle }) {
   const columns = [
     { key: 'camp_name', label: 'Camp Name' },
@@ -3212,109 +931,39 @@ const CampTable = memo(function CampTable({ camps, sortBy, sortDir, onSort, expa
     { key: 'category', label: 'Category' },
     { key: 'reg_date_2026', label: 'Registration' }
   ];
-
   return (
     <div className="overflow-x-auto rounded-2xl" style={{ boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.08)' }}>
       <table className="data-table">
-        <thead>
-          <tr>
-            {columns.map(col => (
-              <th
-                key={col.key}
-                onClick={() => onSort(col.key)}
-                className="select-none"
-                aria-sort={sortBy === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
-              >
-                <span className="flex items-center gap-2">
-                  {col.label}
-                  {sortBy === col.key && (
-                    <span>{sortDir === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
+        <thead><tr>{columns.map(col => (<th key={col.key} onClick={() => onSort(col.key)} className="select-none" aria-sort={sortBy === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}><span className="flex items-center gap-2">{col.label}{sortBy === col.key && (<span>{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>)}</span></th>))}</tr></thead>
         <tbody>
           {camps.map((camp) => (
             <React.Fragment key={camp.id}>
-              <tr
-                className={`cursor-pointer ${camp.is_closed ? 'opacity-50' : ''} ${expandedCamp === camp.id ? 'expanded' : ''}`}
-                onClick={() => onToggle(camp.id)}
-                tabIndex={0}
-                role="button"
-                aria-expanded={expandedCamp === camp.id}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onToggle(camp.id);
-                  }
-                }}
-              >
-                <td className="font-medium">
-                  <span className="flex items-center gap-3">
-                    <ChevronIcon expanded={expandedCamp === camp.id} />
-                    <span style={{ color: 'var(--earth-800)' }}>{camp.camp_name}</span>
-                    <span onClick={(e) => e.stopPropagation()}>
-                      <FavoriteButton campId={camp.id} size="sm" />
-                    </span>
-                  </span>
-                </td>
+              <tr className={`cursor-pointer ${camp.is_closed ? 'opacity-50' : ''} ${expandedCamp === camp.id ? 'expanded' : ''}`} onClick={() => onToggle(camp.id)} tabIndex={0} role="button" aria-expanded={expandedCamp === camp.id} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(camp.id); } }}>
+                <td className="font-medium"><span className="flex items-center gap-3"><ChevronIcon expanded={expandedCamp === camp.id} /><span style={{ color: 'var(--earth-800)' }}>{camp.camp_name}</span><span onClick={(e) => e.stopPropagation()}><FavoriteButton campId={camp.id} size="sm" /></span></span></td>
                 <td>{camp.ages}</td>
                 <td style={{ color: 'var(--terra-500)', fontWeight: 600 }}>{formatPrice(camp)}</td>
                 <td>{camp.hours || 'TBD'}</td>
-                <td>
-                  <div className={categoryClasses[camp.category] || 'category-multi-activity'}>
-                    <span className="category-badge">
-                      <span className="category-dot"></span>
-                      {camp.category}
-                    </span>
-                  </div>
-                </td>
+                <td><div className={categoryClasses[camp.category] || 'category-multi-activity'}><span className="category-badge"><span className="category-dot"></span>{camp.category}</span></div></td>
                 <td>{camp['reg_date_2026'] || 'TBD'}</td>
               </tr>
               {expandedCamp === camp.id && (
-                <tr>
-                  <td colSpan={6} className="p-0">
-                    <div className="expanded-details">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                        <div className="md:col-span-3 pb-4" style={{ borderBottom: '1px solid var(--sand-200)' }}>
-                          <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--sand-400)' }}>Description</p>
-                          <p style={{ color: 'var(--earth-700)', lineHeight: 1.6 }}>{camp.description}</p>
-                        </div>
-                        <DetailRow label="Location" value={camp.address} />
-                        <DetailRow label="Indoor/Outdoor" value={camp.indoor_outdoor} />
-                        <DetailRow label="Food Provided" value={camp.food_provided} />
-                        <DetailRow label="Extended Care" value={camp.extended_care} />
-                        <DetailRow label="Sibling Discount" value={camp.sibling_discount} />
-                        <DetailRow label="Transport" value={camp.transport} />
-                        <DetailRow label="Refund Policy" value={camp.refund_policy} />
-                        <DetailRow label="Phone" value={camp.contact_phone} />
-                        <DetailRow label="Email" value={camp.contact_email} />
-                      </div>
-                      {camp.notes && (
-                        <div className="mt-5 p-4 rounded-xl" style={{ background: 'var(--sun-100)', border: '1px solid var(--sun-300)' }}>
-                          <p className="font-medium text-sm mb-1" style={{ color: 'var(--earth-800)' }}>Notes</p>
-                          <p className="text-sm" style={{ color: 'var(--earth-700)' }}>{camp.notes}</p>
-                        </div>
-                      )}
-                      {camp.website_url && camp.website_url !== 'N/A' && safeUrl(camp.website_url) && (
-                        <div className="mt-5">
-                          <a
-                            href={safeUrl(camp.website_url)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-primary inline-flex"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <span>Visit Website</span>
-                            <ExternalLinkIcon />
-                          </a>
-                        </div>
-                      )}
+                <tr><td colSpan={6} className="p-0">
+                  <div className="expanded-details">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                      <div className="md:col-span-3 pb-4" style={{ borderBottom: '1px solid var(--sand-200)' }}><p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--sand-400)' }}>Description</p><p style={{ color: 'var(--earth-700)', lineHeight: 1.6 }}>{camp.description}</p></div>
+                      <DetailRow label="Location" value={camp.address} />
+                      <DetailRow label="Indoor/Outdoor" value={camp.indoor_outdoor} />
+                      <DetailRow label="Food Provided" value={camp.food_provided} />
+                      <DetailRow label="Extended Care" value={camp.extended_care} />
+                      <DetailRow label="Sibling Discount" value={camp.sibling_discount} />
+                      <DetailRow label="Phone" value={camp.contact_phone} />
+                      <DetailRow label="Email" value={camp.contact_email} />
                     </div>
-                  </td>
-                </tr>
+                    {camp.website_url && camp.website_url !== 'N/A' && safeUrl(camp.website_url) && (
+                      <div className="mt-5"><a href={safeUrl(camp.website_url)} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex" onClick={(e) => e.stopPropagation()}><span>Visit Website</span><ExternalLinkIcon /></a></div>
+                    )}
+                  </div>
+                </td></tr>
               )}
             </React.Fragment>
           ))}
@@ -3323,3 +972,4 @@ const CampTable = memo(function CampTable({ camps, sortBy, sortDir, onSort, expa
     </div>
   );
 });
+

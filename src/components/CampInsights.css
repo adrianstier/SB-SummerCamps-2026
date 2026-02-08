@@ -198,7 +198,7 @@
   display: inline;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .insights-tab-label {
     display: none;
   }
@@ -290,7 +290,7 @@
   align-items: start;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 767px) {
   .category-chart-container {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -492,7 +492,7 @@
   gap: 1rem;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 639px) {
   .stats-grid {
     grid-template-columns: 1fr;
   }
@@ -970,7 +970,7 @@
   margin-bottom: 1rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .age-heatmap {
     grid-template-columns: repeat(8, 1fr);
   }
@@ -1393,7 +1393,7 @@
    MOBILE RESPONSIVE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .insights-modal {
     max-height: 95vh;
     border-radius: 24px 24px 0 0;

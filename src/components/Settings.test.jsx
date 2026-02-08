@@ -13,6 +13,12 @@ vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
 }));
 
+vi.mock('../contexts/ScheduleContext', () => ({
+  useSchedule: () => ({
+    refreshSchedule: vi.fn(),
+  }),
+}));
+
 vi.mock('../lib/supabase', () => ({
   updateProfile: (...args) => mockUpdateProfile(...args),
   getNotificationPreferences: vi.fn(() => Promise.resolve({

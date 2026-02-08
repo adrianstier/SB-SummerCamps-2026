@@ -238,7 +238,7 @@
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .planning-tip {
     flex-direction: column;
     padding-right: var(--space-8);

@@ -451,7 +451,7 @@
   padding: 2px 8px;
 }
 
-/* BUG-D-002: Work Schedule Overlay Indicator */
+/* Work Schedule Overlay Indicator */
 .summer-strip-work-hours {
   display: flex;
   align-items: center;
@@ -1009,7 +1009,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .month-weeks,
   .month-august .month-weeks {
     grid-template-columns: 1fr;
@@ -1058,7 +1058,7 @@
   border-color: var(--terra-400);
 }
 
-/* BUG-D-008: Current week highlighting */
+/* Current week highlighting */
 .week-card.is-current-week {
   border: 2px solid var(--ocean-500);
   box-shadow: 0 0 0 3px var(--ocean-100), 0 4px 16px -6px rgba(31, 26, 22, 0.12);
@@ -1925,7 +1925,7 @@
   color: var(--forest-600);
 }
 
-/* BUG-D-007: Budget warning styles */
+/* Budget warning styles */
 .planner-bottom-stat.over-budget {
   background: var(--terra-50);
   border-color: var(--terra-300);
@@ -1935,7 +1935,7 @@
   color: var(--terra-600);
 }
 
-/* BUG-D-007: Budget approaching indicator (80%+ of budget) */
+/* Budget approaching indicator (80%+ of budget) */
 .planner-bottom-stat.approaching-budget {
   background: var(--sun-50);
   border-color: var(--sun-300);
@@ -2321,13 +2321,13 @@
   overflow-x: auto;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1279px) {
   .status-board {
     grid-template-columns: repeat(3, minmax(250px, 1fr));
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .status-board {
     grid-template-columns: repeat(2, minmax(200px, 1fr));
     padding: 1rem;
@@ -2788,7 +2788,7 @@
   50% { opacity: 0.7; }
 }
 
-/* BUG-D-002: Work hours warning */
+/* Work hours warning */
 .week-card.work-hours-warning {
   border-color: var(--sunset-400);
   box-shadow: 0 0 0 2px var(--sunset-100);
@@ -3973,7 +3973,7 @@
 }
 
 /* Mobile adjustments */
-@media (max-width: 479px) {
+@media (max-width: 639px) {
   .custom-block-modal {
     max-height: 85vh;
     border-radius: 1rem 1rem 0 0;

@@ -1,9 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   CAMP COMPARISON - Enhanced Visual Comparison Mode
-   Beautiful side-by-side camp comparison with visual diffs
+   CAMP COMPARISON - Premium Visual Comparison
+   Polished side-by-side camp comparison with editorial-grade design
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Header */
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .comparison-header {
   padding: 1.5rem 2rem;
   display: flex;
@@ -90,6 +93,135 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.comparison-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.comparison-empty-illustration {
+  position: relative;
+  width: 160px;
+  height: 120px;
+  margin-bottom: 2rem;
+}
+
+.comparison-empty-card {
+  position: absolute;
+  width: 80px;
+  height: 100px;
+  border-radius: 12px;
+  border: 2px dashed var(--sand-300);
+  background: var(--sand-50);
+  transition: transform 0.3s ease;
+}
+
+.comparison-empty-card:nth-child(1) {
+  left: 0;
+  top: 10px;
+  transform: rotate(-6deg);
+}
+
+.comparison-empty-card:nth-child(2) {
+  left: 40px;
+  top: 0;
+  transform: rotate(3deg);
+  border-color: var(--ocean-300);
+  background: var(--ocean-50);
+}
+
+.comparison-empty-card:nth-child(3) {
+  right: 0;
+  top: 10px;
+  transform: rotate(6deg);
+}
+
+.comparison-empty-card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 12px 12px 0 0;
+  background: var(--sand-300);
+}
+
+.comparison-empty-card:nth-child(2) .comparison-empty-card-accent {
+  background: var(--ocean-400);
+}
+
+.comparison-empty-card-lines {
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comparison-empty-card-line {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sand-200);
+}
+
+.comparison-empty-card:nth-child(2) .comparison-empty-card-line {
+  background: var(--ocean-200);
+}
+
+.comparison-empty-card-line:nth-child(2) {
+  width: 60%;
+}
+
+.comparison-empty-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  margin: 0 0 0.75rem;
+}
+
+.comparison-empty-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  color: var(--earth-600);
+  margin: 0 0 2rem;
+  max-width: 360px;
+  line-height: 1.6;
+}
+
+.comparison-empty-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: var(--ocean-500);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(30, 117, 120, 0.25);
+}
+
+.comparison-empty-cta:hover {
+  background: var(--ocean-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 117, 120, 0.35);
+}
+
+.comparison-empty-cta:active {
+  transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    VISUAL COMPARISON MODE
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -107,20 +239,75 @@
   margin-bottom: 2rem;
 }
 
+/* ─── Camp Card ─────────────────────────────────────────────────────────── */
+
 .comparison-card {
   position: relative;
   background: white;
   border: 1px solid var(--sand-200);
   border-radius: 16px;
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  box-shadow:
+    0 1px 3px rgba(45, 38, 30, 0.04),
+    0 4px 12px rgba(45, 38, 30, 0.03);
 }
 
 .comparison-card:hover {
   border-color: var(--card-accent);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 8px 24px rgba(45, 38, 30, 0.08),
+    0 2px 8px rgba(45, 38, 30, 0.04);
+  transform: translateY(-2px);
 }
 
+/* Camp Card Hero Image Header */
+.comparison-card-hero {
+  position: relative;
+  height: 110px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--sand-200), var(--sand-100));
+}
+
+.comparison-card-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.comparison-card:hover .comparison-card-hero img {
+  transform: scale(1.06);
+}
+
+.comparison-card-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(31, 26, 22, 0.75) 0%,
+    rgba(31, 26, 22, 0.15) 50%,
+    rgba(31, 26, 22, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.comparison-card-hero-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 1rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.3;
+  z-index: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Fallback when no image: color accent bar */
 .comparison-card-header {
   position: relative;
   height: 6px;
@@ -131,23 +318,25 @@
   inset: 0;
 }
 
+/* Remove Button - Refined */
 .comparison-card-remove {
   position: absolute;
-  top: 12px;
+  top: 8px;
   right: 8px;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
   border: none;
-  border-radius: 6px;
-  color: var(--sand-400);
+  border-radius: 8px;
+  color: var(--sand-500);
   cursor: pointer;
   opacity: 0;
-  transition: all 0.15s ease;
-  z-index: 2;
+  transition: all 0.2s ease;
+  z-index: 3;
 }
 
 .comparison-card:hover .comparison-card-remove {
@@ -155,12 +344,22 @@
 }
 
 .comparison-card-remove:hover {
-  color: var(--terra-500);
-  background: var(--terra-50);
+  color: white;
+  background: var(--terra-500);
+  transform: scale(1.1);
 }
 
+.comparison-card-remove:active {
+  transform: scale(0.95);
+}
+
+/* Card Body */
 .comparison-card-body {
   padding: 1rem 1.25rem 1.25rem;
+}
+
+.comparison-card-body.has-hero {
+  padding-top: 0.75rem;
 }
 
 .comparison-card-title-row {
@@ -251,6 +450,63 @@
   color: var(--ocean-700);
 }
 
+/* ─── Add Camp Placeholder Card ─────────────────────────────────────────── */
+
+.comparison-card-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 260px;
+  border: 2px dashed var(--sand-300);
+  border-radius: 16px;
+  background: var(--sand-50);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.comparison-card-add:hover {
+  border-color: var(--ocean-400);
+  background: var(--ocean-50);
+  transform: translateY(-2px);
+}
+
+.comparison-card-add:active {
+  transform: translateY(0);
+}
+
+.comparison-card-add-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: white;
+  color: var(--sand-400);
+  box-shadow: 0 2px 8px rgba(45, 38, 30, 0.06);
+  transition: all 0.2s ease;
+}
+
+.comparison-card-add:hover .comparison-card-add-icon {
+  background: var(--ocean-500);
+  color: white;
+  box-shadow: 0 4px 12px rgba(30, 117, 120, 0.25);
+}
+
+.comparison-card-add-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sand-400);
+  transition: color 0.2s ease;
+}
+
+.comparison-card-add:hover .comparison-card-add-text {
+  color: var(--ocean-600);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    COMPARISON SECTIONS
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -297,7 +553,7 @@
   gap: 1rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .comparison-price-row {
     grid-template-columns: 100px 1fr 60px;
     gap: 0.75rem;
@@ -382,7 +638,7 @@
   margin-bottom: 0.25rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .comparison-age-labels {
     padding: 0 60px 0 100px;
   }
@@ -402,7 +658,7 @@
   gap: 1rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .comparison-age-row {
     grid-template-columns: 100px 1fr;
   }
@@ -504,11 +760,289 @@
 .comparison-features-cell {
   display: flex;
   justify-content: center;
-  color: var(--earth-500); /* Improved contrast for WCAG AA */
+  color: var(--earth-500);
 }
 
 .comparison-features-cell.has-feature {
   color: var(--sage-600);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABLE VIEW - Premium Treatment
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.comparison-table-wrapper {
+  position: relative;
+  overflow: hidden;
+  max-height: calc(90vh - 200px);
+}
+
+.comparison-table-scroll {
+  overflow: auto;
+  max-height: calc(90vh - 200px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* ─── Sticky Column Headers with Image ──────────────────────────────────── */
+
+.comparison-table-feature-th {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  background: var(--sand-50);
+  min-width: 160px;
+  border-bottom: 2px solid var(--sand-200);
+}
+
+.comparison-table-feature-th-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sand-400);
+}
+
+.comparison-table-camp-th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 0;
+  min-width: 220px;
+  vertical-align: bottom;
+  border-bottom: 2px solid var(--sand-200);
+  background: white;
+}
+
+.comparison-th-inner {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Image hero in table header */
+.comparison-th-hero {
+  position: relative;
+  height: 100px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--sand-200), var(--sand-100));
+}
+
+.comparison-th-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.comparison-th-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(31, 26, 22, 0.8) 0%,
+    rgba(31, 26, 22, 0.2) 55%,
+    rgba(31, 26, 22, 0) 100%
+  );
+}
+
+.comparison-th-hero-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.625rem 0.875rem;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.25;
+  z-index: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Fallback header (no image) */
+.comparison-th-noimage {
+  padding: 1rem 0.875rem;
+}
+
+.comparison-th-noimage h3 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  line-height: 1.25;
+  margin: 0;
+}
+
+/* Camp header badges */
+.comparison-th-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+.comparison-th-badge {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 4px;
+}
+
+.comparison-th-badge-value {
+  background: var(--sage-100);
+  color: var(--sage-600);
+}
+
+.comparison-th-badge-care {
+  background: var(--ocean-100);
+  color: var(--ocean-600);
+}
+
+/* Header actions */
+.comparison-th-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+/* Refined remove button for table headers */
+.comparison-th-remove {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: none;
+  border-radius: 8px;
+  color: var(--sand-500);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.comparison-table-camp-th:hover .comparison-th-remove {
+  opacity: 1;
+}
+
+.comparison-th-remove:hover {
+  color: white;
+  background: var(--terra-500);
+  transform: scale(1.1);
+}
+
+.comparison-th-remove:active {
+  transform: scale(0.95);
+}
+
+/* ─── Table Rows ────────────────────────────────────────────────────────── */
+
+.comparison-table-row {
+  transition: background 0.15s ease;
+}
+
+.comparison-table-row:nth-child(odd) {
+  background: var(--sand-50);
+}
+
+.comparison-table-row:nth-child(even) {
+  background: white;
+}
+
+.comparison-table-row:hover {
+  background: rgba(207, 233, 235, 0.15);
+}
+
+/* Row label (left column) */
+.comparison-table-label-td {
+  position: sticky;
+  left: 0;
+  padding: 0.875rem 1.25rem;
+  z-index: 5;
+}
+
+.comparison-table-row:nth-child(odd) .comparison-table-label-td {
+  background: var(--sand-50);
+}
+
+.comparison-table-row:nth-child(even) .comparison-table-label-td {
+  background: white;
+}
+
+.comparison-table-row:hover .comparison-table-label-td {
+  background: rgba(207, 233, 235, 0.15);
+}
+
+.comparison-table-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comparison-table-label-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sand-400);
+}
+
+.comparison-table-label-icon {
+  color: var(--sand-400);
+  flex-shrink: 0;
+}
+
+/* Data cell */
+.comparison-table-cell {
+  padding: 0.875rem 1rem;
+}
+
+/* Best value highlight in cells */
+.comparison-table-cell-best {
+  position: relative;
+}
+
+.comparison-table-cell-best::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: rgba(86, 100, 69, 0.06);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.comparison-best-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.375rem;
+  color: var(--sage-600);
+}
+
+/* Price cell in table - ocean blue bold */
+.comparison-table-price {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  color: var(--ocean-600);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -525,8 +1059,8 @@
 .comparison-cell-price-value {
   font-family: 'Outfit', sans-serif;
   font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--earth-800);
+  font-weight: 700;
+  color: var(--ocean-600);
 }
 
 .comparison-cell-price-bar {
@@ -544,6 +1078,9 @@
 }
 
 .comparison-cell-best-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-family: 'Outfit', sans-serif;
   font-size: 0.5625rem;
   font-weight: 700;
@@ -588,10 +1125,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   MOBILE RESPONSIVE
+   MOBILE HORIZONTAL SCROLL with SNAP POINTS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .comparison-header {
     padding: 1rem 1.25rem;
     flex-direction: column;
@@ -625,6 +1162,10 @@
     font-size: 0.8125rem;
   }
 
+  .comparison-card-hero {
+    height: 80px;
+  }
+
   .comparison-score-ring {
     width: 64px;
     height: 64px;
@@ -651,5 +1192,100 @@
   /* Minimum font size for readability (WCAG) */
   .comparison-cell-best-tag {
     font-size: max(0.6875rem, 11px);
+  }
+
+  /* ─── Mobile Table: Horizontal Scroll + Snap ────────────────────────── */
+
+  .comparison-table-wrapper {
+    position: relative;
+  }
+
+  .comparison-table-scroll {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .comparison-table-camp-th {
+    min-width: 200px;
+    scroll-snap-align: start;
+  }
+
+  .comparison-table-cell {
+    min-width: 200px;
+    scroll-snap-align: start;
+  }
+
+  .comparison-th-hero {
+    height: 80px;
+  }
+
+  .comparison-th-hero-name {
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .comparison-table-feature-th {
+    min-width: 120px;
+    padding: 0.75rem;
+  }
+
+  .comparison-table-label-td {
+    min-width: 120px;
+    padding: 0.75rem;
+  }
+
+  /* Always show remove buttons on mobile */
+  .comparison-th-remove,
+  .comparison-card-remove {
+    opacity: 1;
+  }
+}
+
+/* ─── Scroll Edge Fade Indicators ───────────────────────────────────────── */
+
+.comparison-scroll-fade-left,
+.comparison-scroll-fade-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  z-index: 15;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.comparison-scroll-fade-left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255,255,255,0.95), transparent);
+}
+
+.comparison-scroll-fade-right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255,255,255,0.95), transparent);
+}
+
+.comparison-scroll-fade-left.hidden,
+.comparison-scroll-fade-right.hidden {
+  opacity: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SAVE FOOTER - Refined
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.comparison-save-footer {
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid var(--sand-200);
+  background: var(--sand-50);
+}
+
+@media (max-width: 639px) {
+  .comparison-save-footer {
+    padding: 0.875rem 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 }

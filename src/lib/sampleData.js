@@ -44,7 +44,6 @@ export function generateSampleChildren() {
  */
 export function generateSampleSchedule(children, camps) {
   if (!children || children.length < 2 || !camps || camps.length === 0) {
-    console.warn('Not enough children or camps to generate sample schedule');
     return [];
   }
 
@@ -52,7 +51,6 @@ export function generateSampleSchedule(children, camps) {
   const jake = children.find(c => c.name.includes('Jake'));
 
   if (!emma || !jake) {
-    console.warn('Sample children not found');
     return [];
   }
 

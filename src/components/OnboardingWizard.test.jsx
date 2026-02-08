@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { OnboardingWizard } from './OnboardingWizard';
 
 const mockOnComplete = vi.fn();
@@ -61,35 +62,35 @@ afterEach(() => {
 describe('OnboardingWizard', () => {
   describe('Welcome step', () => {
     it('renders welcome message with user name', () => {
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       expect(screen.getByText(/Welcome.*Jane/)).toBeInTheDocument();
     });
 
     it('renders welcome without name when profile is null', () => {
       mockAuthContext.profile = null;
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       expect(screen.getByText(/Welcome/)).toBeInTheDocument();
     });
 
     it('shows setup steps', () => {
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       expect(screen.getByText('Add your children')).toBeInTheDocument();
       expect(screen.getByText('Set your preferences')).toBeInTheDocument();
       expect(screen.getByText('Get personalized picks')).toBeInTheDocument();
     });
 
     it('shows Continue button', () => {
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       expect(screen.getByText('Continue')).toBeInTheDocument();
     });
 
     it('does not show Back button on first step', () => {
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       expect(screen.queryByText('Back')).not.toBeInTheDocument();
     });
 
     it('proceeds to children step on Continue', () => {
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       fireEvent.click(screen.getByText('Continue'));
       expect(screen.getByText('Your children')).toBeInTheDocument();
     });
@@ -97,7 +98,7 @@ describe('OnboardingWizard', () => {
 
   describe('Children step', () => {
     beforeEach(() => {
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       fireEvent.click(screen.getByText('Continue')); // Move to children step
     });
 
@@ -162,8 +163,8 @@ describe('OnboardingWizard', () => {
       fireEvent.change(screen.getByRole('combobox'), { target: { value: '8' } });
       fireEvent.click(screen.getByText('Add Child'));
       expect(screen.getByText('Alice')).toBeInTheDocument();
-      // Find and click the delete button (trash icon)
-      const deleteBtn = screen.getByText('Alice').closest('[class*="flex items-center"]').querySelector('button[class*="hover:bg-red"]');
+      // Find and click the delete button by aria-label
+      const deleteBtn = screen.getByLabelText('Remove Alice');
       fireEvent.click(deleteBtn);
       expect(screen.queryByText('Alice')).not.toBeInTheDocument();
     });
@@ -180,7 +181,7 @@ describe('OnboardingWizard', () => {
 
   describe('Preferences step', () => {
     beforeEach(() => {
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       // Navigate to preferences: Welcome -> Children (add child) -> Preferences
       fireEvent.click(screen.getByText('Continue'));
       fireEvent.change(screen.getByPlaceholderText("Child's name"), { target: { value: 'Alice' } });
@@ -230,12 +231,13 @@ describe('OnboardingWizard', () => {
 
   describe('Complete step', () => {
     function navigateToComplete() {
-      render(<OnboardingWizard onComplete={mockOnComplete} />);
-      // Welcome -> Children -> Preferences -> Complete
+      render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
+      // Welcome -> Children -> Preferences -> Notifications -> Complete
       fireEvent.click(screen.getByText('Continue'));
       fireEvent.change(screen.getByPlaceholderText("Child's name"), { target: { value: 'Alice' } });
       fireEvent.change(screen.getByRole('combobox'), { target: { value: '8' } });
       fireEvent.click(screen.getByText('Add Child'));
+      fireEvent.click(screen.getByText('Continue'));
       fireEvent.click(screen.getByText('Continue'));
       fireEvent.click(screen.getByText('Continue'));
     }
@@ -317,14 +319,14 @@ describe('OnboardingWizard', () => {
 
   describe('progress indicator', () => {
     it('shows step indicators', () => {
-      const { container } = render(<OnboardingWizard onComplete={mockOnComplete} />);
+      const { container } = render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       const indicators = container.querySelectorAll('[class*="rounded-full"]');
       // There are step dots
       expect(indicators.length).toBeGreaterThanOrEqual(4);
     });
 
     it('has progress bar', () => {
-      const { container } = render(<OnboardingWizard onComplete={mockOnComplete} />);
+      const { container } = render(<MemoryRouter><OnboardingWizard onComplete={mockOnComplete} /></MemoryRouter>);
       const progressBar = container.querySelector('[class*="h-2"]');
       expect(progressBar).toBeInTheDocument();
     });

@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useRecommendations } from '../hooks/useRecommendations';
 import { FavoriteButton } from './FavoriteButton';
 import { formatPriceShort } from '../lib/formatters';
 import BrandIcon from './BrandIcon';
@@ -96,7 +97,7 @@ export const SimilarCampsSection = memo(function SimilarCampsSection({
   onSelectCamp,
   limit = 4
 }) {
-  const { findSimilarCamps } = useAuth();
+  const { findSimilarCamps } = useRecommendations();
 
   const similarCamps = useMemo(() => {
     if (!camp || !allCamps || !findSimilarCamps) return [];
@@ -134,7 +135,8 @@ export const PersonalizedRecommendations = memo(function PersonalizedRecommendat
   subtitle = null,
   limit = 6
 }) {
-  const { getRecommendationScores, profile, children } = useAuth();
+  const { profile, children } = useAuth();
+  const { getRecommendationScores } = useRecommendations();
 
   const recommendations = useMemo(() => {
     if (!camps || !getRecommendationScores) return [];
@@ -188,7 +190,8 @@ export const GapSuggestions = memo(function GapSuggestions({
   onSelectCamp,
   onScheduleCamp
 }) {
-  const { getGapFillingSuggestions, children } = useAuth();
+  const { children } = useAuth();
+  const { getGapFillingSuggestions } = useRecommendations();
 
   const gapSuggestions = useMemo(() => {
     if (!camps || !getGapFillingSuggestions) return {};
@@ -260,7 +263,7 @@ export const PopularCampsSection = memo(function PopularCampsSection({
   onSelectCamp,
   limit = 6
 }) {
-  const { getPopularInArea } = useAuth();
+  const { getPopularInArea } = useRecommendations();
 
   const popularCamps = useMemo(() => {
     if (!camps || !getPopularInArea) return [];

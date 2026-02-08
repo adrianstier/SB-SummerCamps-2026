@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAchievements } from '../contexts/AchievementsContext';
 import { FavoriteButton } from './FavoriteButton';
@@ -40,7 +40,7 @@ function formatPrice(camp) {
 
   if (isNaN(min)) return camp.price_week || 'TBD';
   if (min === max || isNaN(max)) return `$${min}`;
-  return `$${min}–${max}`;
+  return `$${min}\u2013${max}`;
 }
 
 // Get numeric price for comparison
@@ -56,6 +56,20 @@ function getAgeRange(camp) {
   const minAge = parseInt(camp.min_age) || 3;
   const maxAge = parseInt(camp.max_age) || 18;
   return { min: minAge, max: maxAge };
+}
+
+// Determine "best" values across camps for a given field
+function isBestBoolean(camp, field, allCamps) {
+  if (field.type !== 'boolean' || !field.highlight) return false;
+  return !!camp[field.key];
+}
+
+function isBestPrice(camp, allCamps) {
+  const prices = allCamps.map(getNumericPrice).filter(p => p !== null);
+  if (prices.length === 0) return false;
+  const minPrice = Math.min(...prices);
+  const campPrice = getNumericPrice(camp);
+  return campPrice !== null && campPrice === minPrice;
 }
 
 const COMPARISON_FIELDS = [
@@ -91,6 +105,11 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
   const [selectedChildId, setSelectedChildId] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
   const [viewMode, setViewMode] = useState('visual'); // 'visual' or 'table'
+
+  // Scroll fade state for mobile horizontal scroll indicators
+  const [scrollFadeLeft, setScrollFadeLeft] = useState(false);
+  const [scrollFadeRight, setScrollFadeRight] = useState(true);
+  const tableScrollRef = useRef(null);
 
   // Get selected camps (max 6 for optimal UI display in comparison view)
   const selectedCamps = useMemo(() => {
@@ -151,6 +170,23 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
     });
   }, [selectedCamps, priceStats]);
 
+  // Handle horizontal scroll fade indicators
+  const handleTableScroll = useCallback(() => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+    setScrollFadeLeft(el.scrollLeft > 10);
+    setScrollFadeRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  }, []);
+
+  useEffect(() => {
+    const el = tableScrollRef.current;
+    if (!el || viewMode !== 'table') return;
+    el.addEventListener('scroll', handleTableScroll, { passive: true });
+    // Initial check
+    handleTableScroll();
+    return () => el.removeEventListener('scroll', handleTableScroll);
+  }, [viewMode, handleTableScroll, selectedCamps.length]);
+
   const handleSave = async () => {
     if (!user || !saveName.trim()) return;
     setSaving(true);
@@ -198,32 +234,94 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
+  // ─── Empty State ────────────────────────────────────────────────────────
   if (selectedCamps.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-        <div className="bg-white rounded-2xl w-full max-w-md p-8 text-center">
-          <span className="block mb-4"><BrandIcon name="scale" size={48} /></span>
-          <h2 className="font-serif text-2xl font-semibold mb-3" style={{ color: 'var(--earth-800)' }}>
-            Compare Camps
-          </h2>
-          <p className="mb-6" style={{ color: 'var(--earth-600)' }}>
-            Select 2-6 camps to compare. Click the compare icon on camp cards.
-          </p>
-          <button onClick={onClose} className="btn-secondary">
-            Got it
-          </button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} role="dialog" aria-modal="true" aria-label="Compare Camps">
+        <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+          <div className="comparison-empty-state">
+            {/* Illustration: three overlapping camp cards */}
+            <div className="comparison-empty-illustration" aria-hidden="true">
+              <div className="comparison-empty-card">
+                <div className="comparison-empty-card-accent" />
+                <div className="comparison-empty-card-lines">
+                  <div className="comparison-empty-card-line" />
+                  <div className="comparison-empty-card-line" />
+                </div>
+              </div>
+              <div className="comparison-empty-card">
+                <div className="comparison-empty-card-accent" />
+                <div className="comparison-empty-card-lines">
+                  <div className="comparison-empty-card-line" />
+                  <div className="comparison-empty-card-line" />
+                </div>
+              </div>
+              <div className="comparison-empty-card">
+                <div className="comparison-empty-card-accent" />
+                <div className="comparison-empty-card-lines">
+                  <div className="comparison-empty-card-line" />
+                  <div className="comparison-empty-card-line" />
+                </div>
+              </div>
+            </div>
+
+            <h2 className="comparison-empty-title">Compare Camps</h2>
+            <p className="comparison-empty-text">
+              Select 2&ndash;6 camps to see them side by side. Use the compare icon on any camp card to get started.
+            </p>
+            <button onClick={onClose} className="comparison-empty-cta">
+              <BrandIcon name="search" size={18} />
+              Browse Camps
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Ref for focus trap
+  const modalRef = useRef(null);
+
+  // Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  // Focus trap
+  useEffect(() => {
+    if (!modalRef.current) return;
+    const modal = modalRef.current;
+    const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first?.focus();
+
+    const handleTab = (e) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+    modal.addEventListener('keydown', handleTab);
+    return () => modal.removeEventListener('keydown', handleTab);
+  }, [selectedCamps.length, showSearch, viewMode]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-      <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} role="dialog" aria-modal="true" aria-label="Compare Camps">
+      <div ref={modalRef} className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Status Toast */}
         {statusMessage && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
-               style={{ background: 'var(--ocean-600)', color: 'white' }}>
+               style={{ background: 'var(--ocean-600)', color: 'white' }}
+               role="status" aria-live="polite">
             {statusMessage}
           </div>
         )}
@@ -241,7 +339,8 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
               <button
                 className={`comparison-view-btn ${viewMode === 'visual' ? 'active' : ''}`}
                 onClick={() => setViewMode('visual')}
-                title="Visual comparison"
+                aria-label="Visual comparison"
+                aria-pressed={viewMode === 'visual'}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -253,7 +352,8 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
               <button
                 className={`comparison-view-btn ${viewMode === 'table' ? 'active' : ''}`}
                 onClick={() => setViewMode('table')}
-                title="Table view"
+                aria-label="Table view"
+                aria-pressed={viewMode === 'table'}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <path d="M3 6h18M3 12h18M3 18h18" />
@@ -302,6 +402,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
               placeholder="Search camps to add..."
               className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2"
               style={{ borderColor: 'var(--sand-200)' }}
+              aria-label="Search camps to add to comparison"
               autoFocus
             />
             {availableCamps.length > 0 && (
@@ -336,31 +437,48 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
           <div className="comparison-visual-content">
             {/* Camp Cards with Feature Scores */}
             <div className="comparison-cards-row">
-              {selectedCamps.map((camp, index) => {
+              {selectedCamps.map((camp) => {
                 const catColor = CATEGORY_COLORS[camp.category] || '#64748b';
                 const score = featureScores.find(s => s.campId === camp.id);
-                const price = getNumericPrice(camp);
-                const ageRange = getAgeRange(camp);
+                const hasImage = !!camp.image_url;
 
                 return (
                   <div key={camp.id} className="comparison-card" style={{ '--card-accent': catColor }}>
-                    <div className="comparison-card-header">
-                      <div className="comparison-card-accent" style={{ background: catColor }} />
-                      <button
-                        onClick={() => onRemoveCamp?.(camp.id)}
-                        className="comparison-card-remove"
-                        title="Remove"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="comparison-card-body">
-                      <div className="comparison-card-title-row">
-                        <h3 className="comparison-card-name">{camp.camp_name}</h3>
-                        <FavoriteButton campId={camp.id} size="sm" />
+                    {/* Hero image or color accent */}
+                    {hasImage ? (
+                      <div className="comparison-card-hero">
+                        <img src={camp.image_url} alt="" loading="lazy" decoding="async" />
+                        <div className="comparison-card-hero-overlay" />
+                        <span className="comparison-card-hero-name">{camp.camp_name}</span>
                       </div>
+                    ) : (
+                      <div className="comparison-card-header">
+                        <div className="comparison-card-accent" style={{ background: catColor }} />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => onRemoveCamp?.(camp.id)}
+                      className="comparison-card-remove"
+                      aria-label={`Remove ${camp.camp_name} from comparison`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <div className={`comparison-card-body${hasImage ? ' has-hero' : ''}`}>
+                      {/* Only show name in body if there is no hero image */}
+                      {!hasImage && (
+                        <div className="comparison-card-title-row">
+                          <h3 className="comparison-card-name">{camp.camp_name}</h3>
+                          <FavoriteButton campId={camp.id} size="sm" />
+                        </div>
+                      )}
+                      {hasImage && (
+                        <div className="comparison-card-title-row">
+                          <span />
+                          <FavoriteButton campId={camp.id} size="sm" />
+                        </div>
+                      )}
                       <span className="comparison-card-category" style={{ color: catColor }}>
                         {camp.category}
                       </span>
@@ -399,6 +517,22 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                   </div>
                 );
               })}
+
+              {/* Add Camp Placeholder */}
+              {selectedCamps.length < 6 && (
+                <button
+                  className="comparison-card-add"
+                  onClick={() => setShowSearch(true)}
+                  aria-label="Add another camp to compare"
+                >
+                  <div className="comparison-card-add-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                  <span className="comparison-card-add-text">Add Camp</span>
+                </button>
+              )}
             </div>
 
             {/* Visual Price Comparison */}
@@ -412,7 +546,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                   const price = getNumericPrice(camp);
                   const percentage = price ? ((price - priceStats.min) / (priceStats.max - priceStats.min || 1)) * 100 : 0;
                   const catColor = CATEGORY_COLORS[camp.category] || '#64748b';
-                  const isBestValue = camp.id === bestValue?.id;
+                  const isBest = camp.id === bestValue?.id;
 
                   return (
                     <div key={camp.id} className="comparison-price-row">
@@ -425,7 +559,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                             background: `linear-gradient(90deg, ${catColor}cc, ${catColor})`
                           }}
                         />
-                        {isBestValue && <span className="comparison-price-best">Best</span>}
+                        {isBest && <span className="comparison-price-best">Best</span>}
                       </div>
                       <span className="comparison-price-value">{formatPrice(camp)}</span>
                     </div>
@@ -524,94 +658,127 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
 
         {/* Table Comparison Mode */}
         {viewMode === 'table' && (
-        <div className="overflow-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
-          <table className="w-full">
-            {/* Camp Headers */}
+        <div className="comparison-table-wrapper">
+          {/* Scroll fade indicators */}
+          <div className={`comparison-scroll-fade-left${scrollFadeLeft ? '' : ' hidden'}`} />
+          <div className={`comparison-scroll-fade-right${scrollFadeRight ? '' : ' hidden'}`} />
+
+          <div className="comparison-table-scroll" ref={tableScrollRef}>
+          <table className="comparison-table">
+            {/* Camp Headers - Sticky with image hero */}
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-20 w-40 p-4 text-left" style={{ background: 'var(--sand-50)' }}>
-                  <span className="text-sm font-medium" style={{ color: 'var(--sand-400)' }}>
+                <th className="comparison-table-feature-th">
+                  <span className="comparison-table-feature-th-label">
                     Feature
                   </span>
                 </th>
-                {selectedCamps.map(camp => (
-                  <th
-                    key={camp.id}
-                    className="sticky top-0 z-10 p-4 text-left min-w-[200px]"
-                    style={{ background: 'white', borderBottom: '2px solid var(--sand-200)' }}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <h3 className="font-serif font-semibold line-clamp-2" style={{ color: 'var(--earth-800)' }}>
-                          {camp.camp_name}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          {camp.id === bestValue?.id && (
-                            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--sage-100)', color: 'var(--sage-600)' }}>
-                              Best Value
-                            </span>
-                          )}
-                          {camp.id === bestExtendedCare?.id && (
-                            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--ocean-100)', color: 'var(--ocean-600)' }}>
-                              Extended Care
-                            </span>
-                          )}
+                {selectedCamps.map(camp => {
+                  const hasImage = !!camp.image_url;
+                  return (
+                    <th
+                      key={camp.id}
+                      className="comparison-table-camp-th"
+                    >
+                      <div className="comparison-th-inner">
+                        {/* Actions overlay */}
+                        <div className="comparison-th-actions">
+                          <FavoriteButton campId={camp.id} size="sm" />
+                          <button
+                            onClick={() => onRemoveCamp?.(camp.id)}
+                            className="comparison-th-remove"
+                            aria-label={`Remove ${camp.camp_name} from comparison`}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                              <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                          </button>
                         </div>
+
+                        {/* Image hero or fallback */}
+                        {hasImage ? (
+                          <div className="comparison-th-hero">
+                            <img src={camp.image_url} alt="" loading="lazy" decoding="async" />
+                            <div className="comparison-th-hero-overlay" />
+                            <span className="comparison-th-hero-name">{camp.camp_name}</span>
+                          </div>
+                        ) : (
+                          <div className="comparison-th-noimage">
+                            <h3>{camp.camp_name}</h3>
+                          </div>
+                        )}
+
+                        {/* Badges */}
+                        {(camp.id === bestValue?.id || camp.id === bestExtendedCare?.id) && (
+                          <div className="comparison-th-badges">
+                            {camp.id === bestValue?.id && (
+                              <span className="comparison-th-badge comparison-th-badge-value">
+                                Best Value
+                              </span>
+                            )}
+                            {camp.id === bestExtendedCare?.id && (
+                              <span className="comparison-th-badge comparison-th-badge-care">
+                                Extended Care
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <FavoriteButton campId={camp.id} size="sm" />
-                        <button
-                          onClick={() => onRemoveCamp?.(camp.id)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                          style={{ color: 'var(--terra-500)' }}
-                          title="Remove from comparison"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </th>
-                ))}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
 
             {/* Comparison Rows */}
             <tbody>
-              {COMPARISON_FIELDS.map((field, index) => (
+              {COMPARISON_FIELDS.map((field) => (
                 <tr
                   key={field.key}
-                  style={{ background: index % 2 === 0 ? 'var(--sand-50)' : 'white' }}
+                  className="comparison-table-row"
                 >
-                  <td className="sticky left-0 p-4" style={{ background: index % 2 === 0 ? 'var(--sand-50)' : 'white' }}>
-                    <div className="flex items-center gap-2">
-                      <BrandIcon name={field.icon} size={16} />
-                      <span className="text-sm font-medium" style={{ color: 'var(--earth-700)' }}>
+                  <td className="comparison-table-label-td">
+                    <div className="comparison-table-label">
+                      <span className="comparison-table-label-icon">
+                        <BrandIcon name={field.icon} size={16} />
+                      </span>
+                      <span className="comparison-table-label-text">
                         {field.label}
                       </span>
                     </div>
                   </td>
-                  {selectedCamps.map(camp => (
-                    <td key={camp.id} className="p-4">
-                      <ComparisonCell camp={camp} field={field} allCamps={selectedCamps} priceStats={priceStats} />
-                    </td>
-                  ))}
+                  {selectedCamps.map(camp => {
+                    // Determine if this cell has the "best" value
+                    const isBest = field.key === 'price'
+                      ? isBestPrice(camp, selectedCamps)
+                      : isBestBoolean(camp, field, selectedCamps);
+
+                    return (
+                      <td
+                        key={camp.id}
+                        className={`comparison-table-cell${isBest ? ' comparison-table-cell-best' : ''}`}
+                      >
+                        <ComparisonCell camp={camp} field={field} allCamps={selectedCamps} priceStats={priceStats} />
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
 
               {/* Description row */}
-              <tr style={{ background: 'white' }}>
-                <td className="sticky left-0 p-4 align-top" style={{ background: 'white' }}>
-                  <div className="flex items-center gap-2">
-                    <BrandIcon name="pencil" size={16} />
-                    <span className="text-sm font-medium" style={{ color: 'var(--earth-700)' }}>
+              <tr className="comparison-table-row">
+                <td className="comparison-table-label-td">
+                  <div className="comparison-table-label">
+                    <span className="comparison-table-label-icon">
+                      <BrandIcon name="pencil" size={16} />
+                    </span>
+                    <span className="comparison-table-label-text">
                       Description
                     </span>
                   </div>
                 </td>
                 {selectedCamps.map(camp => (
-                  <td key={camp.id} className="p-4 align-top">
+                  <td key={camp.id} className="comparison-table-cell" style={{ verticalAlign: 'top' }}>
                     <p className="text-sm line-clamp-4" style={{ color: 'var(--earth-600)' }}>
                       {camp.description || 'No description available'}
                     </p>
@@ -620,17 +787,19 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
               </tr>
 
               {/* Website row */}
-              <tr style={{ background: 'var(--sand-50)' }}>
-                <td className="sticky left-0 p-4" style={{ background: 'var(--sand-50)' }}>
-                  <div className="flex items-center gap-2">
-                    <span><BrandIcon name="globe" size={16} /></span>
-                    <span className="text-sm font-medium" style={{ color: 'var(--earth-700)' }}>
+              <tr className="comparison-table-row">
+                <td className="comparison-table-label-td">
+                  <div className="comparison-table-label">
+                    <span className="comparison-table-label-icon">
+                      <BrandIcon name="globe" size={16} />
+                    </span>
+                    <span className="comparison-table-label-text">
                       Website
                     </span>
                   </div>
                 </td>
                 {selectedCamps.map(camp => (
-                  <td key={camp.id} className="p-4">
+                  <td key={camp.id} className="comparison-table-cell">
                     {camp.website_url && camp.website_url !== 'N/A' ? (
                       <a
                         href={camp.website_url}
@@ -645,19 +814,20 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                         </svg>
                       </a>
                     ) : (
-                      <span className="text-sm" style={{ color: 'var(--sand-400)' }}>—</span>
+                      <span className="text-sm" style={{ color: 'var(--sand-400)' }}>&mdash;</span>
                     )}
                   </td>
                 ))}
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
         )}
 
         {/* Save for later */}
         {user && (
-          <div className="p-4 flex items-center gap-4" style={{ borderTop: '1px solid var(--sand-200)', background: 'var(--sand-50)' }}>
+          <div className="comparison-save-footer">
             <input
               type="text"
               value={saveName}
@@ -665,6 +835,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
               placeholder="Name this comparison..."
               className="flex-1 max-w-xs px-4 py-2 rounded-xl border-2 focus:outline-none focus:ring-2"
               style={{ borderColor: 'var(--sand-200)' }}
+              aria-label="Name this comparison"
             />
             {children?.length > 0 && (
               <select
@@ -672,6 +843,7 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
                 onChange={(e) => setSelectedChildId(e.target.value || null)}
                 className="px-4 py-2 rounded-xl border-2 focus:outline-none focus:ring-2"
                 style={{ borderColor: 'var(--sand-200)' }}
+                aria-label="Select child for comparison"
               >
                 <option value="">For any child</option>
                 {children.map(child => (
@@ -712,7 +884,7 @@ function ComparisonCell({ camp, field, allCamps, priceStats }) {
         style={{ background: `${catColor}15`, color: catColor }}
       >
         <span className="w-2 h-2 rounded-full" style={{ background: catColor }} />
-        {value || '—'}
+        {value || '\u2014'}
       </span>
     );
   }
@@ -734,7 +906,14 @@ function ComparisonCell({ camp, field, allCamps, priceStats }) {
             style={{ width: `${Math.max(percentage, 8)}%` }}
           />
         </div>
-        {isBest && <span className="comparison-cell-best-tag">Best</span>}
+        {isBest && (
+          <span className="comparison-cell-best-tag">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+              <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Best
+          </span>
+        )}
       </div>
     );
   }
@@ -773,18 +952,19 @@ function ComparisonCell({ camp, field, allCamps, priceStats }) {
         }`}
       >
         {isBoth ? <><BrandIcon name="home" size={14} /><BrandIcon name="tree" size={14} /></> : isOutdoor ? <BrandIcon name="tree" size={14} /> : isIndoor ? <BrandIcon name="home" size={14} /> : null}
-        {value || '—'}
+        {value || '\u2014'}
       </span>
     );
   }
 
   if (field.type === 'boolean') {
+    const hasFeature = !!value;
     return (
       <span
-        className={`inline-flex items-center gap-1 text-sm font-medium ${value ? 'text-sage-600' : 'text-sand-400'}`}
-        style={{ color: value ? 'var(--sage-600)' : 'var(--sand-400)' }}
+        className={`inline-flex items-center gap-1 text-sm font-medium`}
+        style={{ color: hasFeature ? 'var(--sage-600)' : 'var(--sand-400)' }}
       >
-        {value ? (
+        {hasFeature ? (
           <>
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -804,7 +984,7 @@ function ComparisonCell({ camp, field, allCamps, priceStats }) {
   }
 
   if (!value || value === 'N/A' || value === 'Unknown') {
-    return <span className="text-sm" style={{ color: 'var(--sand-400)' }}>—</span>;
+    return <span className="text-sm" style={{ color: 'var(--sand-400)' }}>&mdash;</span>;
   }
 
   return <span className="text-sm" style={{ color: 'var(--earth-700)' }}>{value}</span>;

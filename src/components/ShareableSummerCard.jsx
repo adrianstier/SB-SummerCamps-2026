@@ -1,6 +1,7 @@
 import React, { memo, useRef, useCallback, useState } from 'react';
 import { useAchievements } from '../contexts/AchievementsContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useSchedule } from '../contexts/ScheduleContext';
 import './ShareableSummerCard.css';
 
 // Theme options for the shareable card
@@ -17,7 +18,8 @@ export const ShareableSummerCard = memo(function ShareableSummerCard({
   className = ''
 }) {
   const { planningStats, earnedAchievements, achievementProgress, achievements } = useAchievements();
-  const { profile, children: familyChildren, scheduledCamps } = useAuth();
+  const { profile, children: familyChildren } = useAuth();
+  const { scheduledCamps } = useSchedule();
   const cardRef = useRef(null);
   const [selectedTheme, setSelectedTheme] = useState(CARD_THEMES[0]);
   const [isGenerating, setIsGenerating] = useState(false);

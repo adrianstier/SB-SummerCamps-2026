@@ -25,6 +25,13 @@ vi.mock('./FavoriteButton', () => ({
   )
 }));
 
+// Mock AchievementsContext (CampComparison uses useAchievements for trackComparison)
+vi.mock('../contexts/AchievementsContext', () => ({
+  useAchievements: () => ({
+    trackComparison: vi.fn(),
+  }),
+}));
+
 // Mock navigator.clipboard
 const mockWriteText = vi.fn().mockResolvedValue(undefined);
 Object.defineProperty(navigator, 'clipboard', {
@@ -130,8 +137,8 @@ describe('CampComparison', () => {
       );
 
       expect(screen.getByText('Compare Camps')).toBeInTheDocument();
-      expect(screen.getByText(/select 2-4 camps/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /got it/i })).toBeInTheDocument();
+      expect(screen.getByText(/select 2.*6 camps/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /browse camps/i })).toBeInTheDocument();
     });
 
     it('calls onClose when "Got it" is clicked', async () => {
@@ -146,7 +153,7 @@ describe('CampComparison', () => {
         />
       );
 
-      await user.click(screen.getByRole('button', { name: /got it/i }));
+      await user.click(screen.getByRole('button', { name: /browse camps/i }));
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
   });
@@ -163,8 +170,9 @@ describe('CampComparison', () => {
         />
       );
 
-      expect(screen.getByText('Adventure Surf Camp')).toBeInTheDocument();
-      expect(screen.getByText('Art Explorers')).toBeInTheDocument();
+      // Camp names appear multiple times in visual mode (card, price bar, age timeline)
+      expect(screen.getAllByText('Adventure Surf Camp').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Art Explorers').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Comparing 2 camps')).toBeInTheDocument();
     });
 
@@ -213,7 +221,8 @@ describe('CampComparison', () => {
       expect(screen.getByText('$250')).toBeInTheDocument();
     });
 
-    it('displays boolean features correctly', () => {
+    it('displays boolean features correctly', async () => {
+      const user = userEvent.setup();
       render(
         <CampComparison
           camps={mockCamps}
@@ -224,14 +233,17 @@ describe('CampComparison', () => {
         />
       );
 
-      // Check for Yes/No indicators
+      // Switch to table view to see Yes/No indicators
+      await user.click(screen.getByLabelText('Table view'));
+
       const yesElements = screen.getAllByText('Yes');
       const noElements = screen.getAllByText('No');
       expect(yesElements.length).toBeGreaterThan(0);
       expect(noElements.length).toBeGreaterThan(0);
     });
 
-    it('displays descriptions', () => {
+    it('displays descriptions', async () => {
+      const user = userEvent.setup();
       render(
         <CampComparison
           camps={mockCamps}
@@ -241,12 +253,16 @@ describe('CampComparison', () => {
           onAddCamp={mockOnAddCamp}
         />
       );
+
+      // Switch to table view to see descriptions
+      await user.click(screen.getByLabelText('Table view'));
 
       expect(screen.getByText('Learn to surf on beautiful beaches')).toBeInTheDocument();
       expect(screen.getByText('Creative art exploration')).toBeInTheDocument();
     });
 
-    it('displays website links', () => {
+    it('displays website links', async () => {
+      const user = userEvent.setup();
       render(
         <CampComparison
           camps={mockCamps}
@@ -256,6 +272,9 @@ describe('CampComparison', () => {
           onAddCamp={mockOnAddCamp}
         />
       );
+
+      // Switch to table view to see website links
+      await user.click(screen.getByLabelText('Table view'));
 
       const websiteLinks = screen.getAllByText('Visit Website');
       expect(websiteLinks.length).toBe(2);
@@ -330,7 +349,7 @@ describe('CampComparison', () => {
         />
       );
 
-      const removeButtons = screen.getAllByTitle('Remove from comparison');
+      const removeButtons = screen.getAllByLabelText(/Remove .* from comparison/);
       await user.click(removeButtons[0]);
 
       expect(mockOnRemoveCamp).toHaveBeenCalledWith('camp-1');
@@ -338,7 +357,7 @@ describe('CampComparison', () => {
   });
 
   describe('add camp', () => {
-    it('shows add camp button when less than 4 camps selected', () => {
+    it('shows add camp button when less than 6 camps selected', () => {
       render(
         <CampComparison
           camps={mockCamps}
@@ -349,18 +368,23 @@ describe('CampComparison', () => {
         />
       );
 
-      // Button has icon + text
-      expect(screen.getByText('Add Camp')).toBeInTheDocument();
+      // "Add Camp" appears in header button and placeholder card
+      const addCampElements = screen.getAllByText('Add Camp');
+      expect(addCampElements.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('hides add camp button when 4 camps selected', () => {
-      const fourthCamp = { ...mockCamps[0], id: 'camp-4', camp_name: 'Fourth Camp' };
-      const allCamps = [...mockCamps, fourthCamp];
+    it('hides add camp button when 6 camps selected', () => {
+      const extraCamps = [
+        { ...mockCamps[0], id: 'camp-4', camp_name: 'Fourth Camp' },
+        { ...mockCamps[1], id: 'camp-5', camp_name: 'Fifth Camp' },
+        { ...mockCamps[2], id: 'camp-6', camp_name: 'Sixth Camp' },
+      ];
+      const allCamps = [...mockCamps, ...extraCamps];
 
       render(
         <CampComparison
           camps={allCamps}
-          selectedCampIds={['camp-1', 'camp-2', 'camp-3', 'camp-4']}
+          selectedCampIds={['camp-1', 'camp-2', 'camp-3', 'camp-4', 'camp-5', 'camp-6']}
           onClose={mockOnClose}
           onRemoveCamp={mockOnRemoveCamp}
           onAddCamp={mockOnAddCamp}
@@ -382,8 +406,10 @@ describe('CampComparison', () => {
         />
       );
 
-      const addButton = screen.getByText('Add Camp').closest('button');
-      await user.click(addButton);
+      // Click the header "Add Camp" button (btn-secondary class)
+      const addButtons = screen.getAllByText('Add Camp');
+      const headerAddButton = addButtons.map(el => el.closest('button')).find(btn => btn?.classList.contains('btn-secondary'));
+      await user.click(headerAddButton || addButtons[0].closest('button'));
 
       expect(screen.getByPlaceholderText(/search camps to add/i)).toBeInTheDocument();
     });
@@ -400,8 +426,9 @@ describe('CampComparison', () => {
         />
       );
 
-      const addButton = screen.getByText('Add Camp').closest('button');
-      await user.click(addButton);
+      const addButtons = screen.getAllByText('Add Camp');
+      const headerAddButton = addButtons.map(el => el.closest('button')).find(btn => btn?.classList.contains('btn-secondary'));
+      await user.click(headerAddButton || addButtons[0].closest('button'));
       await user.type(screen.getByPlaceholderText(/search camps to add/i), 'Art');
 
       // Should show Art Explorers in search results
@@ -421,8 +448,9 @@ describe('CampComparison', () => {
         />
       );
 
-      const addButton = screen.getByText('Add Camp').closest('button');
-      await user.click(addButton);
+      const addButtons = screen.getAllByText('Add Camp');
+      const headerAddButton = addButtons.map(el => el.closest('button')).find(btn => btn?.classList.contains('btn-secondary'));
+      await user.click(headerAddButton || addButtons[0].closest('button'));
       await user.type(screen.getByPlaceholderText(/search camps to add/i), 'Art');
 
       // Click on the search result button
@@ -437,7 +465,6 @@ describe('CampComparison', () => {
   describe('share functionality', () => {
     it('copies comparison to clipboard when share is clicked', async () => {
       const user = userEvent.setup();
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
       render(
         <CampComparison
@@ -453,12 +480,10 @@ describe('CampComparison', () => {
       const shareButton = screen.getByText('Share').closest('button');
       await user.click(shareButton);
 
-      // The share functionality should show an alert when complete
+      // The share functionality shows a status toast instead of alert
       await waitFor(() => {
-        expect(alertSpy).toHaveBeenCalledWith('Comparison copied to clipboard!');
+        expect(screen.getByText('Comparison copied to clipboard!')).toBeInTheDocument();
       });
-
-      alertSpy.mockRestore();
     });
   });
 
@@ -595,7 +620,8 @@ describe('CampComparison', () => {
   });
 
   describe('comparison fields', () => {
-    it('displays all comparison field labels', () => {
+    it('displays all comparison field labels', async () => {
+      const user = userEvent.setup();
       render(
         <CampComparison
           camps={mockCamps}
@@ -605,6 +631,9 @@ describe('CampComparison', () => {
           onAddCamp={mockOnAddCamp}
         />
       );
+
+      // Switch to table view to see all field labels
+      await user.click(screen.getByLabelText('Table view'));
 
       expect(screen.getByText('Category')).toBeInTheDocument();
       expect(screen.getByText('Age Range')).toBeInTheDocument();

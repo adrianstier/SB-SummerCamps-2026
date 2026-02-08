@@ -144,9 +144,18 @@ export function CampInsights({ camps, onClose, onSelectCamp, onCompare }) {
     }));
   }, [children]);
 
+  // Handle Escape key to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="insights-overlay" onClick={onClose}>
-      <div className="insights-modal" onClick={e => e.stopPropagation()}>
+      <div className="insights-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Camp Insights">
         {/* Header */}
         <header className="insights-header">
           <div className="insights-header-content">
@@ -179,7 +188,7 @@ export function CampInsights({ camps, onClose, onSelectCamp, onCompare }) {
         </header>
 
         {/* Tab Navigation */}
-        <nav className="insights-tabs">
+        <nav className="insights-tabs" role="tablist" aria-label="Insights views">
           {[
             { id: 'overview', label: 'Overview', icon: <BrandIcon name="chart" size={16} /> },
             { id: 'price', label: 'Price', icon: <BrandIcon name="coin" size={16} /> },
@@ -190,15 +199,18 @@ export function CampInsights({ camps, onClose, onSelectCamp, onCompare }) {
               key={tab.id}
               className={`insights-tab ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`insights-panel-${tab.id}`}
             >
-              <span className="insights-tab-icon">{tab.icon}</span>
+              <span className="insights-tab-icon" aria-hidden="true">{tab.icon}</span>
               <span className="insights-tab-label">{tab.label}</span>
             </button>
           ))}
         </nav>
 
         {/* Content */}
-        <div className="insights-content">
+        <div className="insights-content" role="tabpanel" id={`insights-panel-${activeTab}`} aria-label={`${activeTab} tab content`}>
           {activeTab === 'overview' && (
             <OverviewTab
               stats={stats}
@@ -320,7 +332,7 @@ function OverviewTab({ stats, camps, selectedCategory, setSelectedCategory, cate
         <h2 className="section-title">At a Glance</h2>
         <div className="stats-grid">
           <div className="stat-card stat-card-teal">
-            <div className="stat-card-icon">
+            <div className="stat-card-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -332,7 +344,7 @@ function OverviewTab({ stats, camps, selectedCategory, setSelectedCategory, cate
           </div>
 
           <div className="stat-card stat-card-coral">
-            <div className="stat-card-icon">
+            <div className="stat-card-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -344,7 +356,7 @@ function OverviewTab({ stats, camps, selectedCategory, setSelectedCategory, cate
           </div>
 
           <div className="stat-card stat-card-sage">
-            <div className="stat-card-icon">
+            <div className="stat-card-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
@@ -356,7 +368,7 @@ function OverviewTab({ stats, camps, selectedCategory, setSelectedCategory, cate
           </div>
 
           <div className="stat-card stat-card-amber">
-            <div className="stat-card-icon">
+            <div className="stat-card-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
@@ -491,12 +503,16 @@ function PriceTab({ stats, camps, priceSort, setPriceSort, onSelectCamp, onCompa
             <button
               className={`sort-btn ${priceSort === 'low' ? 'active' : ''}`}
               onClick={() => setPriceSort('low')}
+              aria-pressed={priceSort === 'low'}
+              type="button"
             >
               Low to High
             </button>
             <button
               className={`sort-btn ${priceSort === 'high' ? 'active' : ''}`}
               onClick={() => setPriceSort('high')}
+              aria-pressed={priceSort === 'high'}
+              type="button"
             >
               High to Low
             </button>
@@ -650,6 +666,9 @@ function AgesTab({ stats, camps, ageFilter, setAgeFilter, ageFilteredCamps, chil
                   '--cell-bg': `rgba(30, 117, 120, ${0.1 + intensity * 0.7})`
                 }}
                 onClick={() => setAgeFilter(isSelected ? null : age)}
+                type="button"
+                aria-pressed={isSelected}
+                aria-label={`Age ${age}: ${count} camp${count !== 1 ? 's' : ''}${hasChild ? ', matches your child' : ''}`}
               >
                 <span className="age-cell-age">{age}</span>
                 <span className="age-cell-count">{count}</span>
@@ -789,8 +808,7 @@ function MapTab({ camps, mapLoaded, setMapLoaded, onSelectCamp }) {
         } else if (address.includes('summerland')) {
           lat = 34.4214; lng = -119.5964;
         } else {
-          // BUG-B-009: Use deterministic hash based on camp ID for consistent positioning
-          // Simple hash function to generate consistent offsets
+          // Deterministic hash based on camp ID for consistent map positioning
           const hashCode = (camp.id || '').split('').reduce((acc, char) => {
             return ((acc << 5) - acc) + char.charCodeAt(0);
           }, 0);
@@ -840,7 +858,8 @@ function MapTab({ camps, mapLoaded, setMapLoaded, onSelectCamp }) {
                       '--marker-color': colors.accent
                     }}
                     onClick={() => setSelectedCamp(selectedCamp?.id === camp.id ? null : camp)}
-                    title={camp.camp_name}
+                    aria-label={camp.camp_name}
+                    type="button"
                   >
                     <svg width="24" height="32" viewBox="0 0 24 32">
                       <path
@@ -858,7 +877,7 @@ function MapTab({ camps, mapLoaded, setMapLoaded, onSelectCamp }) {
           {/* Selected camp popup */}
           {selectedCamp && (
             <div className="map-popup">
-              <button className="map-popup-close" onClick={() => setSelectedCamp(null)}>
+              <button className="map-popup-close" onClick={() => setSelectedCamp(null)} aria-label="Close camp details">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>

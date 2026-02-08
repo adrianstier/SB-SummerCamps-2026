@@ -182,7 +182,7 @@ export class ErrorBoundary extends Component {
               line-height: 1.4;
             }
 
-            @media (max-width: 640px) {
+            @media (max-width: 639px) {
               .error-boundary {
                 padding: 1.5rem;
               }

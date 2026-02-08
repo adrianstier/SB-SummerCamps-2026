@@ -252,7 +252,7 @@
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .progress-stats {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-3);

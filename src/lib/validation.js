@@ -332,7 +332,6 @@ export function validate(schema, data) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       const messages = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-      console.warn('Validation failed:', messages);
       return { success: false, error: messages };
     }
     return { success: false, error: 'Validation failed' };

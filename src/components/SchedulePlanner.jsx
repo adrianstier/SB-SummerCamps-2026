@@ -1,101 +1,47 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useFavorites } from '../contexts/FavoritesContext';
+import { useSchedule } from '../contexts/ScheduleContext';
+import { useSquads } from '../contexts/SquadsContext';
 import { useAchievements } from '../contexts/AchievementsContext';
-import { getSummerWeeks2026, addScheduledCamp, deleteScheduledCamp, updateScheduledCamp, clearSampleData, toggleLookingForFriends, getCampSessions, checkConflicts, checkWorkScheduleCoverage, updateProfile, getNotificationPreferences } from '../lib/supabase';
-import { createGoogleCalendarUrl, exportAllToICal, formatCampForCalendar, formatBlockedWeekForCalendar, generateICalFile } from '../lib/googleCalendar';
+import { addScheduledCamp, deleteScheduledCamp, updateScheduledCamp, clearSampleData, toggleLookingForFriends, getCampSessions, updateProfile, getNotificationPreferences } from '../lib/supabase';
+import { createGoogleCalendarUrl, exportAllToICal, formatCampForCalendar, formatBlockedWeekForCalendar } from '../lib/googleCalendar';
 import { GuidedTour } from './GuidedTour';
 import SquadsPanel from './SquadsPanel';
 import SquadNotificationBell from './SquadNotificationBell';
-import { ShareableSummerCard, ShareButton } from './ShareableSummerCard';
+import { ShareableSummerCard } from './ShareableSummerCard';
 import { ProgressTracker } from './ProgressTracker';
 import { PlanningTipsContainer } from './PlanningTips';
 import { AchievementBadges } from './AchievementBadges';
 import BrandIcon from './BrandIcon';
+import WeekColumn from './schedule/WeekColumn';
+import CostSummary from './schedule/CostSummary';
+import WeekSelector from './schedule/WeekSelector';
+import BlockedWeekManager from './schedule/BlockedWeekManager';
+import {
+  summerWeeks, TOTAL_SUMMER_WEEKS, CATEGORY_COLORS, CONFLICT_TYPES,
+  BLOCK_COLORS, BLOCK_ICONS,
+  formatWorkTime,
+  ArrowLeftIcon, XIcon, PlusIcon, DownloadIcon, CalendarExportIcon,
+  SearchIcon, ChevronLeftIcon, ChevronRightIcon, GripIcon, DragIcon,
+  WarningIcon, ClockIcon, ShareIcon, PrintIcon, EmailIcon, MessageIcon,
+} from './schedule/utils';
 import './SchedulePlanner.css';
 
-const summerWeeks = getSummerWeeks2026();
-
-// Calculate total summer weeks for coverage
-const TOTAL_SUMMER_WEEKS = summerWeeks.length;
-
-const CATEGORY_COLORS = {
-  'Sports': '#3b82f6',
-  'Arts': '#8b5cf6',
-  'STEM': '#10b981',
-  'Nature': '#059669',
-  'Academic': '#f59e0b',
-  'Music': '#ec4899',
-  'Adventure': '#f97316',
-  'Water Sports': '#0ea5e9',
-};
-
-// Block types for non-camp weeks
-const BLOCK_TYPES = [
-  { id: 'vacation', label: 'Vacation', icon: 'beach-surf', color: '#60a5fa' },
-  { id: 'family', label: 'Family Time', icon: 'family', color: '#a78bfa' },
-  { id: 'travel', label: 'Travel', icon: 'van', color: '#34d399' },
-  { id: 'staycation', label: 'Staycation', icon: 'home', color: '#fb923c' },
-  { id: 'visiting', label: 'Visitors Coming', icon: 'party', color: '#c084fc' },
-  { id: 'custom', label: 'Custom...', icon: 'pencil', color: '#94a3b8', isCustom: true },
-];
-
-// Color options for custom blocks
-const BLOCK_COLORS = [
-  { id: 'blue', color: '#60a5fa', label: 'Ocean Blue' },
-  { id: 'purple', color: '#a78bfa', label: 'Lavender' },
-  { id: 'green', color: '#34d399', label: 'Mint' },
-  { id: 'orange', color: '#fb923c', label: 'Sunset' },
-  { id: 'pink', color: '#f472b6', label: 'Rose' },
-  { id: 'teal', color: '#2dd4bf', label: 'Teal' },
-  { id: 'amber', color: '#fbbf24', label: 'Amber' },
-  { id: 'gray', color: '#94a3b8', label: 'Stone' },
-];
-
-// Icon options for custom blocks
-const BLOCK_ICONS = [
-  { id: 'beach-surf', label: 'Beach' },
-  { id: 'family', label: 'Family' },
-  { id: 'van', label: 'Travel' },
-  { id: 'home', label: 'Home' },
-  { id: 'party', label: 'Party' },
-  { id: 'calendar', label: 'Event' },
-  { id: 'star', label: 'Special' },
-  { id: 'heart', label: 'Love' },
-];
-
-// Conflict types
-const CONFLICT_TYPES = {
-  OVERLAP: 'overlap',
-  SAME_WEEK: 'same_week',
-  TIME_CONFLICT: 'time_conflict'
-};
-
-// BUG-D-002: Helper to format 24h time (e.g., "08:00") to 12h display (e.g., "8am")
-function formatWorkTime(time24) {
-  if (!time24) return '';
-  const [hours, minutes] = time24.split(':').map(Number);
-  const ampm = hours >= 12 ? 'pm' : 'am';
-  const hour12 = hours % 12 || 12;
-  return minutes === 0 ? `${hour12}${ampm}` : `${hour12}:${minutes.toString().padStart(2, '0')}${ampm}`;
-}
-
 export function SchedulePlanner({ camps, onClose }) {
+  const navigate = useNavigate();
   const {
     isConfigured,
     children,
-    scheduledCamps,
-    refreshSchedule,
     refreshChildren,
-    getTotalCost,
-    getCoverageGaps,
     profile,
     refreshProfile,
-    campInterests,
-    refreshCampInterests,
-    squads,
-    favorites,
     user
   } = useAuth();
+  const { favorites } = useFavorites();
+  const { scheduledCamps, refreshSchedule, getTotalCost, getCoverageGaps } = useSchedule();
+  const { squads, campInterests, refreshCampInterests } = useSquads();
 
   // Get achievements context for gamification features
   const { celebration, dismissCelebration } = useAchievements();
@@ -110,7 +56,6 @@ export function SchedulePlanner({ camps, onClose }) {
   const [dragOverWeek, setDragOverWeek] = useState(null);
   const [showBlockMenu, setShowBlockMenu] = useState(null); // { weekNum }
   const [showCustomBlockModal, setShowCustomBlockModal] = useState(null); // { weekNum, editExisting?: block }
-  // BUG-D-001: Initialize blockedWeeks from profile for cross-device persistence
   const [blockedWeeks, setBlockedWeeks] = useState(() => profile?.blocked_weeks || {}); // { [childId]: { [weekNum]: { type, label, note, icon, color } } }
   const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' or 'squads'
   const [draggedCamp, setDraggedCamp] = useState(null);
@@ -145,7 +90,6 @@ export function SchedulePlanner({ camps, onClose }) {
   const touchStartRef = useRef(null);
   const touchMoveRef = useRef(null);
 
-  // BUG-D-007: Budget warning threshold from user settings (default 80%)
   const [budgetWarningThreshold, setBudgetWarningThreshold] = useState(0.8);
 
   // Update selectedChild when children array changes
@@ -155,18 +99,6 @@ export function SchedulePlanner({ camps, onClose }) {
     }
   }, [children, selectedChild]);
 
-  // BUG-F-015: Check for navigation target from squad notifications
-  useEffect(() => {
-    if (window.__plannerNavTarget) {
-      const { tab, squadId } = window.__plannerNavTarget;
-      if (tab === 'squads' || tab === 'schedule') {
-        setActiveTab(tab);
-      }
-      // Clean up the navigation target
-      delete window.__plannerNavTarget;
-    }
-  }, []);
-
   // Auto-dismiss status message after 4 seconds
   useEffect(() => {
     if (!statusMessage) return;
@@ -174,14 +106,14 @@ export function SchedulePlanner({ camps, onClose }) {
     return () => clearTimeout(timer);
   }, [statusMessage]);
 
-  // BUG-D-001: Load blocked weeks from profile when it changes
+  // Sync blocked weeks from profile (cross-device persistence)
   useEffect(() => {
     if (profile?.blocked_weeks) {
       setBlockedWeeks(profile.blocked_weeks);
     }
   }, [profile?.blocked_weeks]);
 
-  // BUG-D-007: Load budget warning threshold from notification preferences
+  // Load budget warning threshold from notification preferences
   useEffect(() => {
     const loadBudgetThreshold = async () => {
       try {
@@ -198,7 +130,7 @@ export function SchedulePlanner({ camps, onClose }) {
     loadBudgetThreshold();
   }, []);
 
-  // BUG-D-001: Persist blocked weeks to profile when they change
+  // Persist blocked weeks to profile when they change
   const blockedWeeksRef = useRef(blockedWeeks);
   useEffect(() => {
     // Skip if no meaningful change
@@ -765,8 +697,7 @@ export function SchedulePlanner({ camps, onClose }) {
     setConflicts(detected);
   }, [scheduledCamps, selectedChild, campLookup]);
 
-  // Fetch camp sessions when session picker is opened
-  // BUG-D-003: Fall back to extracted.sessions from camp data when database is empty
+  // Fetch camp sessions when session picker is opened (falls back to extracted.sessions)
   useEffect(() => {
     if (!showSessionPicker) return;
     const fetchSessions = async () => {
@@ -783,7 +714,7 @@ export function SchedulePlanner({ camps, onClose }) {
           return;
         }
 
-        // BUG-D-003: Fall back to extracted.sessions from camp object
+        // Fall back to extracted.sessions from camp object
         if (camp.extracted?.sessions && camp.extracted.sessions.length > 0) {
           const extractedSessions = camp.extracted.sessions
             .filter(s => s.parsed?.startDate || s.raw) // Only sessions with some data
@@ -1084,450 +1015,53 @@ export function SchedulePlanner({ camps, onClose }) {
   // Check if user has any squads (to show the toggle)
   const hasSquads = squads.length > 0;
 
-  // Render week card helper function
+  // Render week card using extracted WeekColumn sub-component
   function renderWeekCard(week) {
     const weekCamps = currentChildSchedule[week.weekNum] || [];
-    const isGap = gaps.some(g => g.weekNum === week.weekNum);
-    const isDragOver = dragOverWeek === week.weekNum;
     const blocked = getBlockedWeek(week.weekNum);
-    const isBlockMenuOpen = showBlockMenu?.weekNum === week.weekNum;
     const weekCost = weekCostBreakdown.find(w => w.weekNum === week.weekNum)?.cost || 0;
 
-    // BUG-D-008: Check if this is the current week
-    const today = new Date();
-    const weekStartDate = new Date(week.startDate);
-    const weekEndDate = new Date(week.endDate);
-    weekEndDate.setHours(23, 59, 59); // Include the full end day
-    const isCurrentWeek = today >= weekStartDate && today <= weekEndDate;
-
-    // BUG-D-002: Check work schedule coverage for camps in this week
-    const workStart = profile?.work_hours_start;
-    const workEnd = profile?.work_hours_end;
-    const hasWorkHoursCoverage = !workStart || !workEnd || weekCamps.length === 0 || weekCamps.some(sc => {
-      const campInfo = campLookup.get(sc.camp_id);
-      if (!campInfo) return false;
-      // Simple check: compare camp hours with work hours
-      const campHoursStart = campInfo.drop_off || campInfo.hours?.split('-')[0]?.trim();
-      const campHoursEnd = campInfo.pick_up || campInfo.hours?.split('-')[1]?.trim();
-      if (!campHoursStart || !campHoursEnd) return true; // No camp hours, can't determine - assume OK
-      // Normalize times to 24h for comparison
-      const normalizeTime = (t) => {
-        if (!t) return null;
-        const match = t.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
-        if (!match) return t;
-        let h = parseInt(match[1]);
-        const m = match[2] || '00';
-        const ampm = match[3]?.toLowerCase();
-        if (ampm === 'pm' && h < 12) h += 12;
-        if (ampm === 'am' && h === 12) h = 0;
-        return `${h.toString().padStart(2, '0')}:${m}`;
-      };
-      const normCampStart = normalizeTime(campHoursStart);
-      const normCampEnd = normalizeTime(campHoursEnd);
-      // Camp should start at or before work starts and end at or after work ends
-      return normCampStart && normCampEnd && normCampStart <= workStart && normCampEnd >= workEnd;
-    });
-    const showWorkHoursWarning = workStart && workEnd && weekCamps.length > 0 && !hasWorkHoursCoverage;
-
-    // Check for conflicts on this week
-    const weekConflicts = conflicts.filter(c =>
-      c.camps.some(camp => {
-        const campStart = new Date(camp.start_date);
-        const weekStart = new Date(week.startDate);
-        const weekEnd = new Date(week.endDate);
-        return campStart >= weekStart && campStart <= weekEnd;
-      })
-    );
-    const hasConflict = weekConflicts.length > 0;
-
-    // Build accessible label for the week
-    const weekStatus = blocked
-      ? `blocked for ${blocked.label}`
-      : weekCamps.length > 0
-        ? `${weekCamps.length} camp${weekCamps.length > 1 ? 's' : ''} scheduled${hasConflict ? ', has scheduling conflict' : ''}`
-        : isGap
-          ? 'empty, coverage gap'
-          : 'empty';
-    const ariaLabel = `Week ${week.weekNum}, ${week.display}, ${weekStatus}. ${weekCamps.length === 0 && !blocked ? 'Press Enter to add a camp or block this week.' : ''}`;
-
     return (
-      <div
+      <WeekColumn
         key={week.weekNum}
-        data-week-num={week.weekNum}
-        className={`week-card ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''} ${hasConflict ? 'has-conflict' : ''} ${movingCamp ? 'move-target' : ''} ${isCurrentWeek ? 'is-current-week' : ''} ${showWorkHoursWarning ? 'work-hours-warning' : ''}`}
-        style={blocked ? { '--block-color': blocked.color } : { '--child-color': selectedChildData?.color || 'var(--ocean-500)' }}
-        role="button"
-        tabIndex={0}
-        aria-label={ariaLabel}
-        onDragOver={(e) => {
-          e.preventDefault();
-          if (!blocked) setDragOverWeek(week.weekNum);
-        }}
-        onDragLeave={() => setDragOverWeek(null)}
-        onDrop={(e) => !blocked && handleWeekDrop(week.weekNum, e)}
-        onClick={() => {
-          if (weekCamps.length === 0 && !blocked && !isBlockMenuOpen) {
-            setShowBlockMenu({ weekNum: week.weekNum });
-          }
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            if (weekCamps.length === 0 && !blocked && !isBlockMenuOpen) {
-              setShowBlockMenu({ weekNum: week.weekNum });
-            }
-          }
-          // BUG-D-005: Arrow key navigation between weeks
-          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            const prevWeekNum = week.weekNum - 1;
-            if (prevWeekNum >= 1) {
-              const prevWeekCard = document.querySelector(`[data-week-num="${prevWeekNum}"]`);
-              prevWeekCard?.focus();
-            }
-          }
-          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-            e.preventDefault();
-            const nextWeekNum = week.weekNum + 1;
-            if (nextWeekNum <= summerWeeks.length) {
-              const nextWeekCard = document.querySelector(`[data-week-num="${nextWeekNum}"]`);
-              nextWeekCard?.focus();
-            }
-          }
-        }}
-        onTouchStart={(e) => {
-          if (weekCamps.length === 0 && !blocked) {
-            // Prepare for potential drag
-          }
-        }}
-      >
-        {/* Week Header */}
-        <div className="week-card-header">
-          <span className="week-card-number">{week.weekNum}</span>
-          <div className="week-card-dates">
-            <span className="week-card-label">{week.label}</span>
-            <span className="week-card-range">{week.display}</span>
-          </div>
-          {weekCost > 0 && (
-            <span className="week-card-cost">${weekCost}</span>
-          )}
-        </div>
-
-        {/* Conflict Warning */}
-        {hasConflict && (
-          <div className="week-conflict-badge">
-            <WarningIcon />
-            <span>Conflict</span>
-          </div>
-        )}
-
-        {/* BUG-D-002: Work Hours Warning */}
-        {showWorkHoursWarning && (
-          <div className="week-work-hours-badge">
-            <ClockIcon />
-            <span>Hours</span>
-          </div>
-        )}
-
-        {/* Week Content */}
-        <div className="week-card-content">
-          {blocked ? (
-            <div
-              className="week-blocked"
-              style={{ '--block-color': blocked.color }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditBlock(week.weekNum);
-              }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleEditBlock(week.weekNum);
-                }
-              }}
-              title={blocked.note ? `${blocked.label}: ${blocked.note}` : blocked.label}
-            >
-              <span className="week-blocked-icon"><BrandIcon name={blocked.icon} size={24} /></span>
-              <span className="week-blocked-label">{blocked.label}</span>
-              {blocked.note && (
-                <span className="week-blocked-note">{blocked.note}</span>
-              )}
-              <div className="week-blocked-actions">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEditBlock(week.weekNum);
-                  }}
-                  className="week-blocked-edit"
-                  aria-label={`Edit ${blocked.label}`}
-                >
-                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleUnblockWeek(week.weekNum);
-                  }}
-                  className="week-blocked-remove"
-                  aria-label={`Remove ${blocked.label} block`}
-                >
-                  <XIcon />
-                </button>
-              </div>
-            </div>
-          ) : weekCamps.length > 0 ? (
-            weekCamps.map(sc => {
-              const campInfo = campLookup.get(sc.camp_id);
-              const lookingForFriends = isLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
-              const isPreviewCamp = sc.isPreview === true;
-              const catColor = CATEGORY_COLORS[campInfo?.category] || 'var(--ocean-500)';
-              const campHasConflict = weekConflicts.some(c => c.camps.some(cc => cc.id === sc.id));
-              const isBeingMoved = movingCamp?.id === sc.id;
-              return (
-                <div
-                  key={sc.id}
-                  draggable={!isPreviewCamp}
-                  onDragStart={(e) => !isPreviewCamp && handleStartMoveCamp(sc, e)}
-                  onDragEnd={() => setMovingCamp(null)}
-                  onTouchStart={(e) => {
-                    if (!isPreviewCamp) {
-                      const touch = e.touches[0];
-                      touchStartRef.current = { x: touch.clientX, y: touch.clientY, camp: sc, isMove: true, startTime: Date.now() };
-                    }
-                  }}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={(e) => {
-                    if (touchDragState && dragOverWeek && touchStartRef.current?.isMove) {
-                      handleMoveCamp(touchStartRef.current.camp.id, dragOverWeek);
-                    }
-                    touchStartRef.current = null;
-                    setTouchDragState(null);
-                    setDragOverWeek(null);
-                  }}
-                  className={`camp-card-enhanced ${lookingForFriends ? 'looking-for-friends' : ''} ${isPreviewCamp ? 'preview-camp-card' : ''} ${campHasConflict ? 'has-conflict' : ''} ${isBeingMoved ? 'is-moving' : ''}`}
-                  style={{ '--child-color': selectedChildData?.color || 'var(--ocean-500)', '--cat-color': catColor }}
-                >
-                  <div className="camp-card-accent" />
-                  <div className="camp-card-body">
-                    <div className="camp-card-top">
-                      <span className="camp-card-category">{campInfo?.category}</span>
-                      <div className="camp-card-actions">
-                        {!isPreviewCamp && (
-                          <div className="camp-card-move-container" style={{ position: 'relative' }}>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMoveMenuCamp(moveMenuCamp?.id === sc.id ? null : { id: sc.id, currentWeek: week.weekNum });
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Escape') setMoveMenuCamp(null);
-                              }}
-                              className="camp-card-move"
-                              aria-label={`Move ${campInfo?.camp_name || 'camp'} to another week`}
-                              aria-haspopup="menu"
-                              aria-expanded={moveMenuCamp?.id === sc.id}
-                              title="Move to another week"
-                            >
-                              <GripIcon />
-                            </button>
-                            {moveMenuCamp?.id === sc.id && (
-                              <div
-                                className="camp-move-menu"
-                                role="menu"
-                                aria-label="Select week to move camp to"
-                                ref={(el) => {
-                                  // BUG-D-005: Auto-focus first menu item when menu opens
-                                  if (el) {
-                                    const firstItem = el.querySelector('[role="menuitem"]');
-                                    if (firstItem) firstItem.focus();
-                                  }
-                                }}
-                                onKeyDown={(e) => {
-                                  // BUG-D-005: Keyboard navigation for move menu
-                                  const items = e.currentTarget.querySelectorAll('[role="menuitem"]');
-                                  const currentIndex = Array.from(items).indexOf(document.activeElement);
-
-                                  switch (e.key) {
-                                    case 'ArrowDown':
-                                      e.preventDefault();
-                                      const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
-                                      items[nextIndex]?.focus();
-                                      break;
-                                    case 'ArrowUp':
-                                      e.preventDefault();
-                                      const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
-                                      items[prevIndex]?.focus();
-                                      break;
-                                    case 'Home':
-                                      e.preventDefault();
-                                      items[0]?.focus();
-                                      break;
-                                    case 'End':
-                                      e.preventDefault();
-                                      items[items.length - 1]?.focus();
-                                      break;
-                                    case 'Escape':
-                                      e.preventDefault();
-                                      setMoveMenuCamp(null);
-                                      break;
-                                  }
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  top: '100%',
-                                  right: 0,
-                                  zIndex: 100,
-                                  background: 'white',
-                                  borderRadius: '8px',
-                                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                  padding: '4px 0',
-                                  minWidth: '140px',
-                                  maxHeight: '200px',
-                                  overflowY: 'auto'
-                                }}
-                              >
-                                {summerWeeks.filter(w => w.weekNum !== week.weekNum).map(targetWeek => (
-                                  <button
-                                    key={targetWeek.weekNum}
-                                    role="menuitem"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMoveCamp(sc.id, targetWeek.weekNum);
-                                      setMoveMenuCamp(null);
-                                    }}
-                                    style={{
-                                      display: 'block',
-                                      width: '100%',
-                                      padding: '8px 12px',
-                                      textAlign: 'left',
-                                      border: 'none',
-                                      background: 'transparent',
-                                      cursor: 'pointer',
-                                      fontSize: '13px',
-                                      color: 'var(--earth-700)'
-                                    }}
-                                    className="camp-move-menu-item"
-                                  >
-                                    Week {targetWeek.weekNum}: {targetWeek.label}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        <button
-                          onClick={(e) => handleRemoveCamp(sc.id, e)}
-                          className="camp-card-remove"
-                          aria-label={`Remove ${campInfo?.camp_name || 'camp'} from schedule`}
-                        >
-                          <XIcon />
-                        </button>
-                      </div>
-                    </div>
-                    <h4 className="camp-card-name">{campInfo?.camp_name || 'Unknown'}</h4>
-                    {sc.session_name && (
-                      <span className="camp-card-session">{sc.session_name}</span>
-                    )}
-                    <div className="camp-card-details">
-                      <span className="camp-card-price">
-                        {sc.price ? `$${sc.price}` : 'TBD'}
-                      </span>
-                      <span className={`camp-card-status status-${sc.status}`}>
-                        {sc.status}
-                      </span>
-                      {sc.is_sample && (
-                        <span className="camp-card-sample-badge" title="Sample data from guided tour">
-                          sample
-                        </span>
-                      )}
-                    </div>
-                    {campHasConflict && (
-                      <div className="camp-card-conflict-badge" title={weekConflicts.find(c => c.camps.some(cc => cc.id === sc.id))?.message}>
-                        <WarningIcon />
-                        <span>Conflict</span>
-                      </div>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // BUG-F-013: Allow toggle even without squads - settings persist for when user joins a squad
-                        handleToggleLookingForFriends(sc.camp_id, sc.child_id, week.weekNum);
-                      }}
-                      className={`camp-card-friends ${lookingForFriends ? 'active' : ''}`}
-                      title={lookingForFriends
-                        ? 'Looking for friends at this camp' + (!hasSquads ? ' (join a squad to connect)' : '')
-                        : (hasSquads ? 'Let squad members know you want friends here' : 'Mark as looking for friends (join a squad to connect)')}
-                    >
-                      <BrandIcon name="people" size={16} />
-                      <span>{lookingForFriends ? 'Looking for friends' : 'Find friends'}</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="week-empty">
-              <div className="week-empty-icon">
-                <PlusIcon />
-              </div>
-              <span>Add camp</span>
-            </div>
-          )}
-        </div>
-
-        {/* Gap indicator */}
-        {isGap && weekCamps.length === 0 && !blocked && (
-          <div className="week-gap-badge">
-            <WarningIcon />
-            Gap
-          </div>
-        )}
-
-        {/* Block Menu Popup */}
-        {isBlockMenuOpen && (
-          <div className="week-block-menu" onClick={(e) => e.stopPropagation()}>
-            <div className="block-menu-header">
-              <span>What's happening?</span>
-              <button onClick={() => setShowBlockMenu(null)} className="block-menu-close" aria-label="Close menu">
-                <XIcon />
-              </button>
-            </div>
-            <button
-              onClick={() => {
-                setShowBlockMenu(null);
-                setShowAddCamp({ weekNum: week.weekNum });
-              }}
-              className="block-menu-option block-menu-camp"
-            >
-              <span className="block-menu-icon"><BrandIcon name="overnight" size={16} /></span>
-              <span>Add a Camp</span>
-            </button>
-            <div className="block-menu-divider">
-              <span>or mark as...</span>
-            </div>
-            {BLOCK_TYPES.map(block => (
-              <button
-                key={block.id}
-                onClick={() => handleBlockWeek(week.weekNum, block)}
-                className="block-menu-option"
-                style={{ '--block-color': block.color }}
-              >
-                <span className="block-menu-icon"><BrandIcon name={block.icon} size={16} /></span>
-                <span>{block.label}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        week={week}
+        weekCamps={weekCamps}
+        gaps={gaps}
+        dragOverWeek={dragOverWeek}
+        blocked={blocked}
+        showBlockMenu={showBlockMenu}
+        weekCost={weekCost}
+        profile={profile}
+        campLookup={campLookup}
+        conflicts={conflicts}
+        movingCamp={movingCamp}
+        selectedChildData={selectedChildData}
+        isLookingForFriends={isLookingForFriends}
+        hasSquads={hasSquads}
+        moveMenuCamp={moveMenuCamp}
+        setMoveMenuCamp={setMoveMenuCamp}
+        setShowBlockMenu={setShowBlockMenu}
+        setShowAddCamp={setShowAddCamp}
+        setDragOverWeek={setDragOverWeek}
+        setMovingCamp={setMovingCamp}
+        onWeekDrop={handleWeekDrop}
+        onBlockWeek={handleBlockWeek}
+        onEditBlock={handleEditBlock}
+        onUnblockWeek={handleUnblockWeek}
+        onStartMoveCamp={handleStartMoveCamp}
+        onMoveCamp={handleMoveCamp}
+        onRemoveCamp={handleRemoveCamp}
+        onToggleLookingForFriends={handleToggleLookingForFriends}
+        onTouchStartCamp={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={() => { setTouchDragState(null); setDragOverWeek(null); }}
+        touchStartRef={touchStartRef}
+        touchDragState={touchDragState}
+      />
     );
   }
 
-  // Mobile swipe handling
+    // Mobile swipe handling
   function handleSwipe(direction) {
     if (direction === 'left' && currentWeekIndex < summerWeeks.length - 1) {
       setCurrentWeekIndex(prev => prev + 1);
@@ -1561,7 +1095,7 @@ export function SchedulePlanner({ camps, onClose }) {
 
       {/* Custom Block Modal */}
       {showCustomBlockModal && (
-        <CustomBlockModal
+        <BlockedWeekManager
           weekNum={showCustomBlockModal.weekNum}
           editExisting={showCustomBlockModal.editExisting}
           summerWeeks={summerWeeks}
@@ -1609,7 +1143,8 @@ export function SchedulePlanner({ camps, onClose }) {
             <button
               onClick={() => setPreviewMode(!previewMode)}
               className={`planner-preview-toggle ${previewMode ? 'active' : ''}`}
-              title={previewMode ? 'Exit What-If Mode' : 'What-If Planning'}
+              aria-label={previewMode ? 'Exit What-If Mode' : 'What-If Planning'}
+              aria-pressed={previewMode}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -1619,7 +1154,7 @@ export function SchedulePlanner({ camps, onClose }) {
             <button
               onClick={() => setShowShareCard(true)}
               className="planner-share-btn"
-              title="Share your summer plan"
+              aria-label="Share your summer plan"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <circle cx="18" cy="5" r="3" />
@@ -1745,7 +1280,7 @@ export function SchedulePlanner({ camps, onClose }) {
               <h2 className="planner-empty-title">Add your children first</h2>
               <p className="planner-empty-text">Add children to plan each schedule separately.</p>
               <button
-                onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }))}
+                onClick={() => navigate('/children')}
                 className="btn-primary"
               >
                 Add Children
@@ -1828,7 +1363,7 @@ export function SchedulePlanner({ camps, onClose }) {
         </main>
       ) : (
       <main key="schedule" className="planner-main tab-content-enter">
-        {/* Sample Data Banner - BUG-A-006: Made more prominent with DEMO badge */}
+        {/* Sample Data Banner */}
         {hasSampleData && !previewMode && (
           <div className="planner-sample-banner" role="status" aria-live="polite">
             <div className="planner-sample-content">
@@ -1854,7 +1389,7 @@ export function SchedulePlanner({ camps, onClose }) {
             <h2 className="planner-empty-title">Add your children first</h2>
             <p className="planner-empty-text">Add children to plan each schedule separately.</p>
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'children' }))}
+              onClick={() => navigate('/children')}
               className="btn-primary"
             >
               Add Children
@@ -1876,7 +1411,7 @@ export function SchedulePlanner({ camps, onClose }) {
                 {gaps.length > 0 && (
                   <span className="summer-strip-gaps">{gaps.length} gap{gaps.length > 1 ? 's' : ''}</span>
                 )}
-                {/* BUG-D-002: Work Schedule Overlay Indicator */}
+                {/* Work Schedule Overlay Indicator */}
                 {profile?.work_hours_start && profile?.work_hours_end && (
                   <>
                     <span className="summer-strip-divider" />
@@ -1936,11 +1471,13 @@ export function SchedulePlanner({ camps, onClose }) {
                       value={sidebarSearch}
                       onChange={(e) => setSidebarSearch(e.target.value)}
                       className="planner-sidebar-input"
+                      aria-label="Search camp library"
                     />
                     {sidebarSearch && (
                       <button
                         onClick={() => setSidebarSearch('')}
                         className="planner-sidebar-clear"
+                        aria-label="Clear search"
                       >
                         <XIcon />
                       </button>
@@ -2043,26 +1580,10 @@ export function SchedulePlanner({ camps, onClose }) {
               </div>
 
               {/* Mobile Week Navigator */}
-              <div className="planner-mobile-nav">
-                <button
-                  onClick={() => handleSwipe('right')}
-                  disabled={currentWeekIndex === 0}
-                  className="planner-nav-btn"
-                >
-                  <ChevronLeftIcon />
-                </button>
-                <div className="planner-nav-indicator">
-                  <span className="planner-nav-current">{summerWeeks[currentWeekIndex]?.label}</span>
-                  <span className="planner-nav-dates">{summerWeeks[currentWeekIndex]?.display}</span>
-                </div>
-                <button
-                  onClick={() => handleSwipe('left')}
-                  disabled={currentWeekIndex === summerWeeks.length - 1}
-                  className="planner-nav-btn"
-                >
-                  <ChevronRightIcon />
-                </button>
-              </div>
+              <WeekSelector
+                currentWeekIndex={currentWeekIndex}
+                onSwipe={handleSwipe}
+              />
             </div>
             </div>
           </div>
@@ -2081,7 +1602,7 @@ export function SchedulePlanner({ camps, onClose }) {
 
       {/* Camp Drawer (Mobile-first) */}
       {(showCampDrawer || showAddCamp) && (
-        <div className="planner-drawer-overlay" onClick={() => { setShowCampDrawer(false); setShowAddCamp(null); }}>
+        <div className="planner-drawer-overlay" onClick={() => { setShowCampDrawer(false); setShowAddCamp(null); }} role="dialog" aria-modal="true" aria-label={showAddCamp ? 'Add camp to schedule' : 'Camp Library'}>
           <div className="planner-drawer" onClick={e => e.stopPropagation()}>
             <div className="planner-drawer-handle" />
 
@@ -2190,7 +1711,6 @@ export function SchedulePlanner({ camps, onClose }) {
           </div>
 
           {/* Stats */}
-          {/* BUG-D-007: Budget warning threshold is now configurable via user settings */}
           <div className="planner-bottom-stats">
             <button
               className={`planner-bottom-stat clickable ${profile?.summer_budget && totalCost > profile.summer_budget ? 'over-budget' : ''} ${profile?.summer_budget && totalCost >= profile.summer_budget * budgetWarningThreshold && totalCost <= profile.summer_budget ? 'approaching-budget' : ''}`}
@@ -2313,63 +1833,16 @@ export function SchedulePlanner({ camps, onClose }) {
       </div>
       {/* Cost Breakdown Modal */}
       {showCostBreakdown && (
-        <div className="planner-modal-overlay" onClick={() => setShowCostBreakdown(false)}>
-          <div className="planner-modal cost-breakdown-modal" onClick={e => e.stopPropagation()}>
-            <div className="planner-modal-header">
-              <h2 className="planner-modal-title">Cost Breakdown</h2>
-              <button onClick={() => setShowCostBreakdown(false)} className="planner-modal-close" aria-label="Close">
-                <XIcon />
-              </button>
-            </div>
-            <div className="planner-modal-content">
-              <div className="cost-breakdown-summary">
-                <div className="cost-summary-stat">
-                  <span className="cost-summary-value">${costStats.totalCost.toLocaleString()}</span>
-                  <span className="cost-summary-label">Total</span>
-                </div>
-                <div className="cost-summary-stat">
-                  <span className="cost-summary-value">${Math.round(costStats.avgPerWeek)}</span>
-                  <span className="cost-summary-label">Avg/Week</span>
-                </div>
-              </div>
-              <div className="cost-breakdown-chart">
-                {costStats.byWeek.map(week => (
-                  <div key={week.weekNum} className="cost-breakdown-row">
-                    <span className="cost-week-label">Wk {week.weekNum}</span>
-                    <div className="cost-bar-container">
-                      <div
-                        className={`cost-bar ${week.isBlocked ? 'blocked' : ''}`}
-                        style={{
-                          width: `${costStats.maxWeekCost > 0 ? (week.cost / costStats.maxWeekCost) * 100 : 0}%`,
-                          '--bar-color': week.isBlocked ? week.blockType?.color : selectedChildData?.color
-                        }}
-                      />
-                    </div>
-                    <span className="cost-week-value">
-                      {week.isBlocked ? week.blockType?.label : week.cost > 0 ? `$${week.cost}` : '-'}
-                    </span>
-                    <span className="cost-week-running">${week.runningTotal}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="cost-breakdown-legend">
-                <span className="cost-legend-item">
-                  <span className="cost-legend-dot" style={{ background: selectedChildData?.color }} />
-                  Camp cost
-                </span>
-                <span className="cost-legend-item">
-                  <span className="cost-legend-line" />
-                  Running total
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CostSummary
+          costStats={costStats}
+          selectedChildData={selectedChildData}
+          onClose={() => setShowCostBreakdown(false)}
+        />
       )}
 
       {/* Share Schedule Modal */}
       {showShareModal && (
-        <div className="planner-modal-overlay" onClick={() => setShowShareModal(false)}>
+        <div className="planner-modal-overlay" onClick={() => setShowShareModal(false)} role="dialog" aria-modal="true" aria-label="Share Schedule">
           <div className="planner-modal share-modal" onClick={e => e.stopPropagation()}>
             <div className="planner-modal-header">
               <h2 className="planner-modal-title">Share Schedule</h2>
@@ -2427,7 +1900,7 @@ export function SchedulePlanner({ camps, onClose }) {
 
       {/* Auto-Fill Suggestions Modal */}
       {showAutoFillSuggestions && autoFillSuggestions.length > 0 && (
-        <div className="planner-modal-overlay" onClick={() => setShowAutoFillSuggestions(false)}>
+        <div className="planner-modal-overlay" onClick={() => setShowAutoFillSuggestions(false)} role="dialog" aria-modal="true" aria-label="Fill Coverage Gaps">
           <div className="planner-modal autofill-modal" onClick={e => e.stopPropagation()}>
             <div className="planner-modal-header">
               <h2 className="planner-modal-title">Fill Coverage Gaps</h2>
@@ -2484,7 +1957,7 @@ export function SchedulePlanner({ camps, onClose }) {
 
       {/* Session Picker Modal */}
       {showSessionPicker && (
-        <div className="planner-modal-overlay" onClick={() => setShowSessionPicker(null)}>
+        <div className="planner-modal-overlay" onClick={() => setShowSessionPicker(null)} role="dialog" aria-modal="true" aria-label="Select Session">
           <div className="planner-modal session-picker-modal" onClick={e => e.stopPropagation()}>
             <div className="planner-modal-header">
               <h2 className="planner-modal-title">Select Session</h2>
@@ -2504,7 +1977,6 @@ export function SchedulePlanner({ camps, onClose }) {
                         className="session-picker-item"
                       >
                         <span className="session-name">{session.name || 'Session'}</span>
-                        {/* BUG-D-003: Handle sessions without proper dates (from extracted data) */}
                         <span className="session-dates">
                           {session.start_date && session.end_date ? (
                             <>
@@ -2631,256 +2103,3 @@ export function SchedulePlanner({ camps, onClose }) {
   );
 }
 
-// Icons
-function ArrowLeftIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-    </svg>
-  );
-}
-
-function DownloadIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
-  );
-}
-
-function CalendarExportIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  );
-}
-
-function ChevronLeftIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
-
-function GripIcon({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
-    </svg>
-  );
-}
-
-function DragIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-    </svg>
-  );
-}
-
-// Custom Block Modal for vacations, family time, etc.
-function CustomBlockModal({ weekNum, editExisting, summerWeeks, onSave, onClose }) {
-  const week = summerWeeks.find(w => w.weekNum === weekNum);
-  const [label, setLabel] = useState(editExisting?.label || '');
-  const [note, setNote] = useState(editExisting?.note || '');
-  const [selectedColor, setSelectedColor] = useState(editExisting?.color || BLOCK_COLORS[0].color);
-  const [selectedIcon, setSelectedIcon] = useState(editExisting?.icon || 'beach-surf');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!label.trim()) return;
-
-    onSave(weekNum, {
-      id: 'custom',
-      label: label.trim(),
-      note: note.trim() || undefined,
-      icon: selectedIcon,
-      color: selectedColor
-    });
-  };
-
-  return (
-    <div className="custom-block-overlay" onClick={onClose}>
-      <div className="custom-block-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="custom-block-header">
-          <h3>{editExisting ? 'Edit Block' : 'Block This Week'}</h3>
-          <button onClick={onClose} className="custom-block-close" aria-label="Close">
-            <XIcon />
-          </button>
-        </div>
-
-        <div className="custom-block-week-info">
-          <span className="custom-block-week-dates">
-            {week ? `Week ${weekNum}: ${new Date(week.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(week.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : `Week ${weekNum}`}
-          </span>
-        </div>
-
-        <form onSubmit={handleSubmit} className="custom-block-form">
-          <div className="custom-block-field">
-            <label htmlFor="block-label">What's happening this week?</label>
-            <input
-              id="block-label"
-              type="text"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="e.g., Beach vacation, Grandparents visiting..."
-              autoFocus
-              maxLength={50}
-            />
-          </div>
-
-          <div className="custom-block-field">
-            <label htmlFor="block-note">Notes (optional)</label>
-            <textarea
-              id="block-note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Add any details..."
-              rows={2}
-              maxLength={200}
-            />
-          </div>
-
-          <div className="custom-block-field">
-            <label>Choose an icon</label>
-            <div className="custom-block-icons">
-              {BLOCK_ICONS.map(icon => (
-                <button
-                  key={icon.id}
-                  type="button"
-                  className={`custom-block-icon-btn ${selectedIcon === icon.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedIcon(icon.id)}
-                  title={icon.label}
-                  style={{ '--icon-color': selectedColor }}
-                >
-                  <BrandIcon name={icon.id} size={20} />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="custom-block-field">
-            <label>Choose a color</label>
-            <div className="custom-block-colors">
-              {BLOCK_COLORS.map(color => (
-                <button
-                  key={color.id}
-                  type="button"
-                  className={`custom-block-color-btn ${selectedColor === color.color ? 'selected' : ''}`}
-                  onClick={() => setSelectedColor(color.color)}
-                  title={color.label}
-                  style={{ '--swatch-color': color.color }}
-                >
-                  {selectedColor === color.color && (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="custom-block-preview">
-            <span className="custom-block-preview-label">Preview:</span>
-            <div className="custom-block-preview-card" style={{ '--block-color': selectedColor }}>
-              <span className="preview-icon"><BrandIcon name={selectedIcon} size={16} /></span>
-              <span className="preview-label">{label || 'Your event'}</span>
-            </div>
-          </div>
-
-          <div className="custom-block-actions">
-            <button type="button" onClick={onClose} className="custom-block-cancel">
-              Cancel
-            </button>
-            <button type="submit" disabled={!label.trim()} className="custom-block-save">
-              {editExisting ? 'Save Changes' : 'Block Week'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function WarningIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
-function ShareIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-    </svg>
-  );
-}
-
-function PrintIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-    </svg>
-  );
-}
-
-function EmailIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    </svg>
-  );
-}
-
-function MessageIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-    </svg>
-  );
-}

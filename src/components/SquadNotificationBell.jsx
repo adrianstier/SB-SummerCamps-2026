@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useSquads } from '../contexts/SquadsContext';
 import { markSquadNotificationRead, markAllSquadNotificationsRead } from '../lib/supabase';
 import BrandIcon from './BrandIcon';
 
 export default function SquadNotificationBell() {
-  const { squadNotifications, squadUnreadCount, refreshSquadNotifications } = useAuth();
+  const navigate = useNavigate();
+  const { squadNotifications, squadUnreadCount, refreshSquadNotifications } = useSquads();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -33,31 +35,15 @@ export default function SquadNotificationBell() {
 
     // Navigate based on notification type
     if (notification.type === 'friend_match' || notification.type === 'looking_for_friends') {
-      // Navigate to schedule view to see the camp match
-      window.dispatchEvent(new CustomEvent('navigate', {
-        detail: {
-          view: 'planner',
-          tab: 'schedule',
-          squadId: notification.squad_id
-        }
-      }));
+      navigate('/schedule');
     } else if (notification.squad_id) {
-      // Default: navigate to squads tab for squad-related notifications
-      window.dispatchEvent(new CustomEvent('navigate', {
-        detail: {
-          view: 'planner',
-          tab: 'squads',
-          squadId: notification.squad_id
-        }
-      }));
+      navigate('/schedule');
     }
   }
 
-  // BUG-F-016: Notification types handled here in the UI.
-  // NOTE: 'friend_match' and 'looking_for_friends' notifications require server-side
-  // database triggers or edge functions to detect when squad members schedule the same
-  // camp and create notifications accordingly. This is not yet implemented on the backend.
-  // See: Supabase trigger on scheduled_camps table to compare with squad members' schedules.
+  // NOTE: 'friend_match' and 'looking_for_friends' notification types are rendered here
+  // but require server-side triggers/edge functions to generate (not yet implemented).
+  // TODO: Create Supabase trigger on scheduled_camps to compare with squad members' schedules.
   function getNotificationIcon(type) {
     switch (type) {
       case 'friend_match':

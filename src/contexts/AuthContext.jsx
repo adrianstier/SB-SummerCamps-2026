@@ -6,26 +6,8 @@ import {
   onAuthStateChange,
   getProfile,
   getChildren,
-  getFavorites,
-  getScheduledCamps,
-  getNotifications,
-  getUnreadNotificationCount,
-  updateProfile,
-  getSquads,
-  getSquadNotifications,
-  getUnreadSquadNotificationCount,
-  getCampInterests,
-  getFriendInterestCounts,
-  getSummerWeeks2026,
-  getCampPopularityData
+  updateProfile
 } from '../lib/supabase';
-import {
-  getRecommendations,
-  getSimilarCamps,
-  getGapSuggestions,
-  getPopularCamps,
-  getPersonalizedHomepage
-} from '../lib/recommendations';
 
 const AuthContext = createContext(null);
 
@@ -34,22 +16,8 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [familyChildren, setFamilyChildren] = useState([]);
-  const [favorites, setFavorites] = useState([]);
-  const [scheduledCamps, setScheduledCamps] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [authError, setAuthError] = useState(null);
-
-  // Squads state
-  const [squads, setSquads] = useState([]);
-  const [squadNotifications, setSquadNotifications] = useState([]);
-  const [squadUnreadCount, setSquadUnreadCount] = useState(0);
-  const [campInterests, setCampInterests] = useState([]);
-  const [friendInterestCounts, setFriendInterestCounts] = useState({});
-
-  // Camp popularity data (count of favorites per camp)
-  const [campPopularity, setCampPopularity] = useState({});
 
   // Check if Supabase is configured
   const isConfigured = !!supabase;
@@ -92,15 +60,6 @@ export function AuthProvider({ children }) {
       } else {
         setProfile(null);
         setFamilyChildren([]);
-        setFavorites([]);
-        setScheduledCamps([]);
-        setNotifications([]);
-        setUnreadCount(0);
-        setSquads([]);
-        setSquadNotifications([]);
-        setSquadUnreadCount(0);
-        setCampInterests([]);
-        setFriendInterestCounts({});
         setShowOnboarding(false);
         setLoading(false);
       }
@@ -111,46 +70,13 @@ export function AuthProvider({ children }) {
 
   async function loadUserData(userId) {
     try {
-      const [
-        profileData,
-        childrenData,
-        favoritesData,
-        scheduledData,
-        notificationsData,
-        unreadCountData,
-        squadsData,
-        squadNotificationsData,
-        squadUnreadCountData,
-        campInterestsData,
-        friendInterestCountsData,
-        campPopularityData
-      ] = await Promise.all([
+      const [profileData, childrenData] = await Promise.all([
         getProfile(userId),
-        getChildren(),
-        getFavorites(),
-        getScheduledCamps(),
-        getNotifications(),
-        getUnreadNotificationCount(),
-        getSquads(),
-        getSquadNotifications(),
-        getUnreadSquadNotificationCount(),
-        getCampInterests(),
-        getFriendInterestCounts(),
-        getCampPopularityData()
+        getChildren()
       ]);
 
       setProfile(profileData);
       setFamilyChildren(childrenData);
-      setFavorites(favoritesData);
-      setScheduledCamps(scheduledData);
-      setNotifications(notificationsData);
-      setUnreadCount(unreadCountData);
-      setSquads(squadsData);
-      setSquadNotifications(squadNotificationsData);
-      setSquadUnreadCount(squadUnreadCountData);
-      setCampInterests(campInterestsData);
-      setFriendInterestCounts(friendInterestCountsData);
-      setCampPopularity(campPopularityData);
 
       // Check if user needs onboarding
       // Show for users who haven't completed onboarding and have no children
@@ -182,87 +108,12 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
-  const refreshFavorites = useCallback(async function refreshFavorites() {
-    try {
-      const data = await getFavorites();
-      setFavorites(data || []);
-    } catch (error) {
-      console.error('Failed to refresh favorites:', error);
-    }
-  }, []);
-
-  const refreshSchedule = useCallback(async function refreshSchedule() {
-    try {
-      const data = await getScheduledCamps();
-      setScheduledCamps(data || []);
-    } catch (error) {
-      console.error('Failed to refresh schedule:', error);
-    }
-  }, []);
-
   const refreshChildren = useCallback(async function refreshChildren() {
     try {
       const data = await getChildren();
       setFamilyChildren(data || []);
     } catch (error) {
       console.error('Failed to refresh children:', error);
-    }
-  }, []);
-
-  const refreshNotifications = useCallback(async function refreshNotifications() {
-    try {
-      const [notificationsData, unreadCountData] = await Promise.all([
-        getNotifications(),
-        getUnreadNotificationCount()
-      ]);
-      setNotifications(notificationsData || []);
-      setUnreadCount(unreadCountData || 0);
-    } catch (error) {
-      console.error('Failed to refresh notifications:', error);
-    }
-  }, []);
-
-  const refreshSquads = useCallback(async function refreshSquads() {
-    try {
-      const data = await getSquads();
-      setSquads(data || []);
-    } catch (error) {
-      console.error('Failed to refresh squads:', error);
-    }
-  }, []);
-
-  const refreshSquadNotifications = useCallback(async function refreshSquadNotifications() {
-    try {
-      const [notificationsData, unreadCountData] = await Promise.all([
-        getSquadNotifications(),
-        getUnreadSquadNotificationCount()
-      ]);
-      setSquadNotifications(notificationsData || []);
-      setSquadUnreadCount(unreadCountData || 0);
-    } catch (error) {
-      console.error('Failed to refresh squad notifications:', error);
-    }
-  }, []);
-
-  const refreshCampInterests = useCallback(async function refreshCampInterests() {
-    try {
-      const [interestsData, countsData] = await Promise.all([
-        getCampInterests(),
-        getFriendInterestCounts()
-      ]);
-      setCampInterests(interestsData || []);
-      setFriendInterestCounts(countsData || {});
-    } catch (error) {
-      console.error('Failed to refresh camp interests:', error);
-    }
-  }, []);
-
-  const refreshFriendInterests = useCallback(async function refreshFriendInterests() {
-    try {
-      const data = await getFriendInterestCounts();
-      setFriendInterestCounts(data || {});
-    } catch (error) {
-      console.error('Failed to refresh friend interests:', error);
     }
   }, []);
 
@@ -275,15 +126,6 @@ export function AuthProvider({ children }) {
     setUser(null);
     setProfile(null);
     setFamilyChildren([]);
-    setFavorites([]);
-    setScheduledCamps([]);
-    setNotifications([]);
-    setUnreadCount(0);
-    setSquads([]);
-    setSquadNotifications([]);
-    setSquadUnreadCount(0);
-    setCampInterests([]);
-    setFriendInterestCounts({});
     setShowOnboarding(false);
   }, []);
 
@@ -296,116 +138,6 @@ export function AuthProvider({ children }) {
   const clearAuthError = useCallback(function clearAuthError() {
     setAuthError(null);
   }, []);
-
-  // Check if a camp is favorited
-  const isFavorited = useCallback(function isFavorited(campId) {
-    return favorites.some(f => f.camp_id === campId);
-  }, [favorites]);
-
-  // Get scheduled camps for a specific week
-  const getScheduleForWeek = useCallback(function getScheduleForWeek(startDate, endDate) {
-    return scheduledCamps.filter(sc => {
-      const scStart = new Date(sc.start_date);
-      const scEnd = new Date(sc.end_date);
-      const weekStart = new Date(startDate);
-      const weekEnd = new Date(endDate);
-
-      return (scStart <= weekEnd && scEnd >= weekStart);
-    });
-  }, [scheduledCamps]);
-
-  // Calculate total cost
-  const getTotalCost = useCallback(function getTotalCost() {
-    return scheduledCamps
-      .filter(sc => sc.status !== 'cancelled')
-      .reduce((sum, sc) => sum + (parseFloat(sc.price) || 0), 0);
-  }, [scheduledCamps]);
-
-  // Get coverage gaps
-  const getCoverageGaps = useCallback(function getCoverageGaps(childId, summerWeeks) {
-    const childSchedule = scheduledCamps.filter(
-      sc => sc.child_id === childId && sc.status !== 'cancelled'
-    );
-
-    return summerWeeks.filter(week => {
-      const weekStart = new Date(week.startDate);
-      const weekEnd = new Date(week.endDate);
-
-      return !childSchedule.some(sc => {
-        const scStart = new Date(sc.start_date);
-        const scEnd = new Date(sc.end_date);
-        return (scStart <= weekEnd && scEnd >= weekStart);
-      });
-    });
-  }, [scheduledCamps]);
-
-  // Build recommendation context from current user state
-  const buildRecommendationContext = useCallback(function buildRecommendationContext(allCamps) {
-    return {
-      profile,
-      children: familyChildren,
-      favorites,
-      scheduledCamps,
-      allCamps,
-      summerWeeks: getSummerWeeks2026()
-    };
-  }, [profile, familyChildren, favorites, scheduledCamps]);
-
-  // Get recommended camps based on preferences and children (enhanced version)
-  const getRecommendationScores = useCallback(function getRecommendationScores(camps, limit = 10) {
-    if (!camps || camps.length === 0) return [];
-
-    // Use the new recommendation system
-    const context = buildRecommendationContext(camps);
-    return getRecommendations(camps, context, limit);
-  }, [buildRecommendationContext]);
-
-  // Get camps similar to a specific camp
-  const findSimilarCamps = useCallback(function findSimilarCamps(camp, allCamps, limit = 4) {
-    if (!camp || !allCamps) return [];
-    return getSimilarCamps(camp, allCamps, limit);
-  }, []);
-
-  // Get suggestions to fill coverage gaps
-  const getGapFillingSuggestions = useCallback(function getGapFillingSuggestions(camps) {
-    if (!camps || camps.length === 0) return {};
-    const context = buildRecommendationContext(camps);
-    return getGapSuggestions(camps, context);
-  }, [buildRecommendationContext]);
-
-  // Get popular camps in the area (using actual favorites data)
-  const getPopularInArea = useCallback(function getPopularInArea(camps, limit = 6) {
-    if (!camps || camps.length === 0) return [];
-    return getPopularCamps(camps, campPopularity, limit);
-  }, [campPopularity]);
-
-  // Get personalized homepage content
-  // BUG-E-008: This function is exported and available for future use in a personalized homepage.
-  // To use: destructure getHomepageContent from useAuth() and call getHomepageContent(camps).
-  // Returns { greeting: string, sections: array } with personalized camp recommendations.
-  const getHomepageContent = useCallback(function getHomepageContent(camps) {
-    if (!camps || camps.length === 0) return { greeting: 'Find the right camp', sections: [] };
-    const context = buildRecommendationContext(camps);
-    return getPersonalizedHomepage(camps, context);
-  }, [buildRecommendationContext]);
-
-  // Get dashboard stats
-  const getDashboardStats = useCallback(function getDashboardStats() {
-    const totalScheduled = scheduledCamps.filter(sc => sc.status !== 'cancelled').length;
-    const totalCost = scheduledCamps
-      .filter(sc => sc.status !== 'cancelled')
-      .reduce((sum, sc) => sum + (parseFloat(sc.price) || 0), 0);
-    const weeksWithCamps = new Set(scheduledCamps.map(sc => sc.start_date)).size;
-    const favoritesCount = favorites.length;
-
-    return {
-      totalScheduled,
-      totalCost,
-      weeksWithCamps,
-      favoritesCount,
-      childrenCount: familyChildren.length
-    };
-  }, [scheduledCamps, favorites, familyChildren]);
 
   const value = useMemo(() => ({
     user,
@@ -424,38 +156,7 @@ export function AuthProvider({ children }) {
     refreshProfile,
     // Family
     children: familyChildren,
-    refreshChildren,
-    // Favorites
-    favorites,
-    refreshFavorites,
-    isFavorited,
-    // Schedule
-    scheduledCamps,
-    refreshSchedule,
-    getScheduleForWeek,
-    getTotalCost,
-    getCoverageGaps,
-    // Notifications
-    notifications,
-    unreadCount,
-    refreshNotifications,
-    // Squads
-    squads,
-    squadNotifications,
-    squadUnreadCount,
-    campInterests,
-    friendInterestCounts,
-    refreshSquads,
-    refreshSquadNotifications,
-    refreshCampInterests,
-    refreshFriendInterests,
-    // Recommendations (enhanced)
-    getRecommendationScores,
-    findSimilarCamps,
-    getGapFillingSuggestions,
-    getPopularInArea,
-    getHomepageContent,
-    getDashboardStats
+    refreshChildren
   }), [
     user,
     profile,
@@ -469,33 +170,7 @@ export function AuthProvider({ children }) {
     completeOnboarding,
     refreshProfile,
     familyChildren,
-    refreshChildren,
-    favorites,
-    refreshFavorites,
-    isFavorited,
-    scheduledCamps,
-    refreshSchedule,
-    getScheduleForWeek,
-    getTotalCost,
-    getCoverageGaps,
-    notifications,
-    unreadCount,
-    refreshNotifications,
-    squads,
-    squadNotifications,
-    squadUnreadCount,
-    campInterests,
-    friendInterestCounts,
-    refreshSquads,
-    refreshSquadNotifications,
-    refreshCampInterests,
-    refreshFriendInterests,
-    getRecommendationScores,
-    findSimilarCamps,
-    getGapFillingSuggestions,
-    getPopularInArea,
-    getHomepageContent,
-    getDashboardStats
+    refreshChildren
   ]);
 
   return (

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useSquads } from '../contexts/SquadsContext';
 import CreateSquadModal from './CreateSquadModal';
 import SquadDetail from './SquadDetail';
 import BrandIcon from './BrandIcon';
 
 export default function SquadsPanel({ onClose }) {
-  const { squads, squadNotifications, squadUnreadCount } = useAuth();
+  const { squads, squadNotifications, squadUnreadCount } = useSquads();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedSquad, setSelectedSquad] = useState(null);
 

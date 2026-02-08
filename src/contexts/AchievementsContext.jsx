@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
+import { useFavorites } from './FavoritesContext';
+import { useSchedule } from './ScheduleContext';
+import { useSquads } from './SquadsContext';
 import { getSummerWeeks2026 } from '../lib/supabase';
 
 const AchievementsContext = createContext(null);
@@ -206,14 +209,10 @@ export const CAMP_FACTS = [
 ];
 
 export function AchievementsProvider({ children }) {
-  const {
-    scheduledCamps,
-    favorites,
-    children: familyChildren,
-    profile,
-    squads,
-    getCoverageGaps
-  } = useAuth();
+  const { children: familyChildren, profile } = useAuth();
+  const { favorites } = useFavorites();
+  const { scheduledCamps, getCoverageGaps } = useSchedule();
+  const { squads } = useSquads();
 
   const summerWeeks = useMemo(() => getSummerWeeks2026(), []);
 
@@ -223,8 +222,8 @@ export function AchievementsProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // BUG-F-016: Streak tracking using local timezone for day boundaries
-  // BUG-F-004: Streak initialization explained:
+  // Streak tracking uses local timezone for day boundaries.
+  // Streak initialization:
   // - First visit: count starts at 1 (day 1 of streak), NOT 0
   // - Same-day revisit: count stays the same (checkAndUpdateStreak returns early)
   // - Next-day visit: checkAndUpdateStreak increments count to 2, etc.
@@ -287,13 +286,13 @@ export function AchievementsProvider({ children }) {
     localStorage.setItem('sb-camps-streak', JSON.stringify(streak));
   }, [streak]);
 
-  // BUG-F-016: Helper to get local midnight date (ignores time component)
+  // Get local midnight date (ignores time component)
   const getLocalDateOnly = useCallback((date) => {
     const d = new Date(date);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }, []);
 
-  // BUG-F-016: Calculate calendar days difference using local timezone
+  // Calculate calendar days difference using local timezone
   const getCalendarDaysDiff = useCallback((date1, date2) => {
     const d1 = getLocalDateOnly(date1);
     const d2 = getLocalDateOnly(date2);

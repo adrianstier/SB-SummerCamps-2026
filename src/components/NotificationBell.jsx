@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../contexts/NotificationsContext';
 import {
   markNotificationRead,
   markAllNotificationsRead,
@@ -180,7 +181,8 @@ const CATEGORY_FILTERS = [
 ];
 
 export default function NotificationBell() {
-  const { notifications, unreadCount, refreshNotifications } = useAuth();
+  const navigate = useNavigate();
+  const { notifications, unreadCount, refreshNotifications } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const [isMarkingRead, setIsMarkingRead] = useState(false);
@@ -267,7 +269,7 @@ export default function NotificationBell() {
 
     // Navigate to action URL if provided
     if (notification.action_url) {
-      window.dispatchEvent(new CustomEvent('navigate', { detail: notification.action_url }));
+      navigate(`/${notification.action_url}`);
     }
 
     setIsOpen(false);
@@ -440,6 +442,9 @@ export default function NotificationBell() {
                   ? { backgroundColor: 'var(--ocean-500)' }
                   : { color: 'var(--earth-600)' }
                 }
+                aria-pressed={activeFilter === filter.key}
+                aria-label={`Filter by ${filter.label}`}
+                type="button"
               >
                 {filter.label}
               </button>
@@ -457,6 +462,7 @@ export default function NotificationBell() {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth={1.5}
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -485,7 +491,7 @@ export default function NotificationBell() {
             <div className="px-4 py-2 border-t text-center" style={{ borderColor: 'var(--sand-100)' }}>
               <button
                 onClick={() => {
-                  window.dispatchEvent(new CustomEvent('navigate', { detail: 'settings' }));
+                  navigate('/settings');
                   setIsOpen(false);
                 }}
                 className="text-xs font-medium transition-colors hover:underline"

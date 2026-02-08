@@ -11,10 +11,6 @@ vi.mock('../lib/supabase', () => ({
   onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
   getProfile: vi.fn(),
   getChildren: vi.fn(() => []),
-  getFavorites: vi.fn(() => []),
-  getScheduledCamps: vi.fn(() => []),
-  getNotifications: vi.fn(() => []),
-  getUnreadNotificationCount: vi.fn(() => 0),
   updateProfile: vi.fn()
 }));
 
@@ -76,16 +72,6 @@ describe('AuthContext', () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       expect(result.current.children).toEqual([]);
-      expect(result.current.favorites).toEqual([]);
-      expect(result.current.scheduledCamps).toEqual([]);
-      expect(result.current.notifications).toEqual([]);
-    });
-
-    it('has zero unread count', () => {
-      const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      expect(result.current.unreadCount).toBe(0);
     });
 
     it('showOnboarding is false initially', () => {
@@ -93,78 +79,6 @@ describe('AuthContext', () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       expect(result.current.showOnboarding).toBe(false);
-    });
-  });
-
-  describe('isFavorited function', () => {
-    it('returns false when favorites array is empty', () => {
-      const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      expect(result.current.isFavorited('camp-1')).toBe(false);
-    });
-  });
-
-  describe('getScheduleForWeek function', () => {
-    it('returns empty array when no scheduled camps', () => {
-      const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      const schedule = result.current.getScheduleForWeek('2026-06-08', '2026-06-12');
-      expect(schedule).toEqual([]);
-    });
-  });
-
-  describe('getTotalCost function', () => {
-    it('returns 0 when no scheduled camps', () => {
-      const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      expect(result.current.getTotalCost()).toBe(0);
-    });
-  });
-
-  describe('getCoverageGaps function', () => {
-    it('returns all weeks as gaps when no camps scheduled', () => {
-      const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      const summerWeeks = [
-        { weekNum: 1, startDate: '2026-06-08', endDate: '2026-06-12' },
-        { weekNum: 2, startDate: '2026-06-15', endDate: '2026-06-19' }
-      ];
-
-      const gaps = result.current.getCoverageGaps('child-1', summerWeeks);
-      expect(gaps).toHaveLength(2);
-    });
-  });
-
-  describe('getRecommendationScores function', () => {
-    it('returns empty array when no profile', () => {
-      const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      const camps = [{ id: 'camp-1', category: 'Art' }];
-      const scores = result.current.getRecommendationScores(camps);
-
-      expect(scores).toEqual([]);
-    });
-  });
-
-  describe('getDashboardStats function', () => {
-    it('returns zero stats when nothing scheduled', () => {
-      const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
-      const { result } = renderHook(() => useAuth(), { wrapper });
-
-      const stats = result.current.getDashboardStats();
-
-      expect(stats).toEqual({
-        totalScheduled: 0,
-        totalCost: 0,
-        weeksWithCamps: 0,
-        favoritesCount: 0,
-        childrenCount: 0
-      });
     });
   });
 
@@ -197,10 +111,6 @@ describe('AuthContext', () => {
       expect(result.current.user).toBeNull();
       expect(result.current.profile).toBeNull();
       expect(result.current.children).toEqual([]);
-      expect(result.current.favorites).toEqual([]);
-      expect(result.current.scheduledCamps).toEqual([]);
-      expect(result.current.notifications).toEqual([]);
-      expect(result.current.unreadCount).toBe(0);
       expect(result.current.showOnboarding).toBe(false);
     });
   });

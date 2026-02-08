@@ -246,6 +246,7 @@ const CategoryMultiSelect = memo(function CategoryMultiSelect({
             key={category}
             onClick={() => toggleCategory(category)}
             className={`category-chip ${isSelected ? 'active' : ''}`}
+            type="button"
             aria-pressed={isSelected}
           >
             <span className="category-chip-name">{category}</span>
@@ -280,8 +281,8 @@ const WeekSelector = memo(function WeekSelector({ selectedWeeks, onChange }) {
       <div className="week-selector-header">
         <span className="week-selector-label">Summer 2026 Weeks</span>
         <div className="week-selector-actions">
-          <button onClick={selectAll} className="week-selector-action">All</button>
-          <button onClick={clearAll} className="week-selector-action">None</button>
+          <button onClick={selectAll} className="week-selector-action" type="button" aria-label="Select all weeks">All</button>
+          <button onClick={clearAll} className="week-selector-action" type="button" aria-label="Clear all weeks">None</button>
         </div>
       </div>
       <div className="week-selector-grid">
@@ -292,6 +293,7 @@ const WeekSelector = memo(function WeekSelector({ selectedWeeks, onChange }) {
               key={week.id}
               onClick={() => toggleWeek(week.id)}
               className={`week-chip ${isSelected ? 'active' : ''}`}
+              type="button"
               aria-pressed={isSelected}
             >
               {week.label}
@@ -401,6 +403,7 @@ export const AdvancedFilters = memo(function AdvancedFilters({
               key={preset.id}
               onClick={() => handleApplyPreset(preset)}
               className="filter-preset-card"
+              type="button"
             >
               <span className="filter-preset-name">{preset.name}</span>
               <span className="filter-preset-desc">{preset.description}</span>
@@ -519,7 +522,7 @@ export const AdvancedFilters = memo(function AdvancedFilters({
               className={`feature-toggle-btn ${filters[key] ? 'active' : ''}`}
               aria-pressed={filters[key]}
             >
-              <span className="feature-toggle-icon">{icon}</span>
+              <span className="feature-toggle-icon" aria-hidden="true">{icon}</span>
               <span>{label}</span>
             </button>
           ))}
@@ -566,6 +569,7 @@ export const AdvancedFilters = memo(function AdvancedFilters({
                     onChange={(e) => setSearchName(e.target.value)}
                     placeholder="Name this search..."
                     className="save-search-input"
+                    aria-label="Name for saved search"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveSearch();

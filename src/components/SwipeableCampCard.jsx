@@ -20,7 +20,7 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
 }) {
   const haptic = useHaptic();
   const cardRef = useRef(null);
-  // BUG-B-006: Track if we're actively preventing scroll to cleanup properly
+  // Track scroll prevention state for proper cleanup on unmount or swipe end
   const isPreventingScrollRef = useRef(false);
 
   const [state, setState] = useState({
@@ -32,7 +32,7 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
     isAnimating: false
   });
 
-  // BUG-B-006: Cleanup effect - restore scroll behavior when component unmounts or swipe ends
+  // Restore scroll behavior on unmount
   useEffect(() => {
     return () => {
       // Reset the scroll prevention flag on cleanup
@@ -40,7 +40,7 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
     };
   }, []);
 
-  // BUG-B-006: Reset scroll prevention when dragging ends
+  // Reset scroll prevention when dragging ends
   useEffect(() => {
     if (!state.isDragging && isPreventingScrollRef.current) {
       isPreventingScrollRef.current = false;
@@ -68,13 +68,11 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
 
     // Only allow horizontal swipe if horizontal movement > vertical
     if (Math.abs(deltaX) < Math.abs(deltaY) && Math.abs(deltaX) < 10) {
-      // BUG-B-006: Reset scroll prevention if we switch to vertical scrolling
       isPreventingScrollRef.current = false;
       return;
     }
 
     // Prevent vertical scroll during horizontal swipe
-    // BUG-B-006: Track when we're preventing scroll for proper cleanup
     if (Math.abs(deltaX) > 10) {
       isPreventingScrollRef.current = true;
       e.preventDefault();
@@ -209,7 +207,6 @@ export const SwipeableCampCard = memo(function SwipeableCampCard({
 
   const { currentX, direction, isDragging } = state;
   const progress = Math.min(Math.abs(currentX) / swipeThreshold, 1);
-  // BUG-B-007: Guard against division by zero if window width is 0
   const rotation = (currentX / (window.innerWidth || 1)) * 15;
 
   // Background reveal colors based on swipe direction

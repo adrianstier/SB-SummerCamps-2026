@@ -257,7 +257,7 @@
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 480px) {
+@media (max-width: 639px) {
   .weekly-challenge {
     padding: var(--space-4);
   }

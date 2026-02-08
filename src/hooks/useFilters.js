@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import {
   SUMMER_WEEKS_2026,
   FILTER_PRESETS,
@@ -6,6 +7,8 @@ import {
   getLocationFromAddress,
   SB_DEFAULT_LOCATION
 } from '../components/AdvancedFilters';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 // Default filter state
 const DEFAULT_FILTERS = {
@@ -164,12 +167,16 @@ function getHoursDuration(hoursStr) {
 
 // Main useFilters hook
 export function useFilters(priceRange = { min: 0, max: Infinity }) {
-  // Initialize filters from URL or defaults
-  const [filters, setFilters] = useState(() => {
-    if (typeof window === 'undefined') return DEFAULT_FILTERS;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const isOnBrowsePage = location.pathname === '/';
 
-    const params = new URLSearchParams(window.location.search);
-    const urlFilters = decodeFiltersFromURL(params);
+  // Track whether this is the initial mount (to read URL params once)
+  const initializedRef = useRef(false);
+
+  // Initialize filters from URL search params or defaults
+  const [filters, setFilters] = useState(() => {
+    const urlFilters = decodeFiltersFromURL(searchParams);
 
     // Don't apply default price filter - let users see all camps initially
     // Price range filtering happens via the slider, not default URL params
@@ -192,16 +199,57 @@ export function useFilters(priceRange = { min: 0, max: Infinity }) {
     }
   });
 
-  // Update URL when filters change
-  useEffect(() => {
-    const encoded = encodeFiltersToURL(filters);
-    const newURL = encoded ? `${window.location.pathname}?${encoded}` : window.location.pathname;
+  // Debounced search input state
+  const [searchInput, setSearchInputRaw] = useState(filters.search || '');
+  const searchDebounceRef = useRef(null);
 
-    // Only update if different
-    if (window.location.search !== (encoded ? `?${encoded}` : '')) {
-      window.history.replaceState({}, '', newURL);
+  const setSearchInput = useCallback((val) => {
+    setSearchInputRaw(val);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      searchDebounceRef.current = null;
+      setFilters(prev => ({ ...prev, search: val }));
+    }, SEARCH_DEBOUNCE_MS);
+  }, []);
+
+  // Sync searchInput when filters.search changes externally (e.g. preset, clear, URL)
+  useEffect(() => {
+    if (!searchDebounceRef.current) {
+      setSearchInputRaw(filters.search || '');
     }
-  }, [filters]);
+  }, [filters.search]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, []);
+
+  // Sync filters to URL search params (only on the browse page)
+  useEffect(() => {
+    // Skip the initial render - filters were already read from URL
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      return;
+    }
+
+    // Only sync filter params to URL when on the browse page (/)
+    if (!isOnBrowsePage) return;
+
+    const encoded = encodeFiltersToURL(filters);
+    const currentSearch = searchParams.toString();
+
+    // Only update if different to avoid unnecessary re-renders
+    if (currentSearch !== encoded) {
+      if (encoded) {
+        setSearchParams(new URLSearchParams(encoded), { replace: true });
+      } else {
+        // Clear all params when filters are at defaults
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [filters, isOnBrowsePage, setSearchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update price range when it changes - but only if user has set a specific filter
   // Don't auto-apply price filter on initial load (Infinity means no filter)
@@ -277,7 +325,7 @@ export function useFilters(priceRange = { min: 0, max: Infinity }) {
   // Generate shareable URL
   const shareableURL = useMemo(() => {
     const encoded = encodeFiltersToURL(filters);
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin + '/' : '';
     return encoded ? `${baseUrl}?${encoded}` : baseUrl;
   }, [filters]);
 
@@ -434,6 +482,9 @@ export function useFilters(priceRange = { min: 0, max: Infinity }) {
     applyPreset,
     filterAndSortCamps,
     activeFilterCount,
+    // Debounced search
+    searchInput,
+    setSearchInput,
     // Location
     userLocation,
     locationError,
