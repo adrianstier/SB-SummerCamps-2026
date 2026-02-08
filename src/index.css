@@ -1026,177 +1026,98 @@ body::before {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   FILTER BAR - Editorial Warmth Style
-   Refined pills with organic shapes and Santa Barbara coastal warmth
+   FILTER BAR — Consolidated
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .filter-bar-section {
-  background: linear-gradient(180deg, #fefefe 0%, var(--sand-50) 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(250,248,244,0.95) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--sand-200);
+  transition: box-shadow 0.2s ease;
+}
+
+.filter-bar-section.scrolled {
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 4px 12px -4px rgba(139, 115, 85, 0.08);
+    0 4px 20px -4px rgba(45, 38, 30, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .filter-bar-inner {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 0;
-  min-height: 64px;
+  gap: 12px;
+  padding: 10px 0;
+  min-height: 56px;
 }
 
-/* Left side: Quick find presets with elegant grouping */
+/* Filter chips — scrollable row */
 .filter-presets {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: visible;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 4px 0;
   flex: 1 1 auto;
   min-width: 0;
-  margin-right: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 6px 0;
 }
 
 .filter-presets::-webkit-scrollbar {
   display: none;
 }
 
-.filter-presets-label {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 0.8125rem;
-  font-weight: 400;
-  font-style: italic;
-  color: var(--earth-600);
-  letter-spacing: 0.02em;
-  opacity: 0.85;
-  padding-right: 4px;
+/* Inline SVG icons inside chips */
+.chip-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.65;
+  transition: opacity 0.15s ease;
 }
 
-.filter-presets-divider {
-  width: 1px;
-  height: 20px;
-  background: linear-gradient(180deg, transparent, var(--sand-300), transparent);
-  margin: 0 8px;
-}
-
-/* Quick filter pills - organic, tactile feel */
 .filter-preset-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--earth-700);
-  background: linear-gradient(180deg, white 0%, var(--sand-50) 100%);
+  background: var(--sand-50);
   border: 1px solid var(--sand-200);
   border-radius: 20px;
-  padding: 8px 16px;
-  cursor: pointer;
-  position: relative;
+  padding: 7px 14px;
   white-space: nowrap;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  transition:
-    all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
-    transform 0.15s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Icon before text for quick filters */
-.filter-preset-link::before {
-  content: '';
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  margin-right: 6px;
-  vertical-align: -3px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-/* Individual filter icons */
-.filter-preset-link[data-filter="extended-care"]::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
-}
-
-.filter-preset-link[data-filter="under-300"]::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
-}
-
-.filter-preset-link[data-filter="sports"]::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9'/%3E%3C/svg%3E");
-}
-
-.filter-preset-link[data-filter="art"]::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42'/%3E%3C/svg%3E");
-}
-
-.filter-preset-link[data-filter="stem"]::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5'/%3E%3C/svg%3E");
-}
-
-.filter-preset-link[data-filter="outdoors"]::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z'/%3E%3C/svg%3E");
-}
-
-/* Hover state - lift and glow */
 .filter-preset-link:hover {
   color: var(--terra-600);
-  background: linear-gradient(180deg, white 0%, var(--terra-50) 100%);
+  background: var(--terra-50);
   border-color: var(--terra-200);
-  transform: translateY(-1px);
-  box-shadow:
-    0 4px 12px -2px rgba(212, 86, 50, 0.15),
-    0 2px 4px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 8px -2px rgba(212, 86, 50, 0.12);
 }
 
-.filter-preset-link:hover::before {
+.filter-preset-link:hover .chip-icon {
   opacity: 1;
 }
 
-/* Active press state */
 .filter-preset-link:active {
-  transform: translateY(0);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.08),
-    inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
-/* Selected/active filter */
-.filter-preset-link.active {
-  color: white;
-  background: linear-gradient(180deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
-  border-color: var(--ocean-500);
-  font-weight: 600;
-  box-shadow:
-    0 2px 8px -2px rgba(45, 149, 153, 0.5),
-    0 1px 2px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
+/* Active state colors defined in "Design Enhancements" section below (ocean palette) */
 
-.filter-preset-link.active::before {
+.filter-preset-link.active .chip-icon {
   opacity: 1;
-  filter: brightness(0) invert(1);
+  stroke: white;
 }
 
-.filter-preset-link.active:hover {
-  background: linear-gradient(180deg, var(--ocean-500) 0%, var(--ocean-600) 100%);
-  border-color: var(--ocean-600);
-  transform: translateY(-1px);
-  box-shadow:
-    0 4px 12px -2px rgba(45, 149, 153, 0.4),
-    0 2px 4px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-/* Right side: Filter controls */
+/* Right side: controls */
 .filter-controls {
   display: flex;
   align-items: center;
@@ -1208,43 +1129,38 @@ body::before {
 .filter-control-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
+  gap: 6px;
+  padding: 8px 14px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.9375rem; /* 15px - accessibility improvement */
-  font-weight: var(--font-medium);
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--earth-700);
-  background: var(--sand-50);
+  background: white;
   border: 1px solid var(--sand-200);
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.15s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition: all 0.15s ease;
 }
 
 .filter-control-btn:hover {
-  background: var(--sand-100);
+  background: var(--sand-50);
   border-color: var(--sand-300);
 }
 
 .filter-control-btn:active {
   transform: scale(0.97);
-  transition-duration: 0.08s;
 }
 
 .filter-control-btn.active {
-  background: var(--ocean-50);
-  color: var(--ocean-700);
-  border-color: var(--ocean-200);
+  background: var(--earth-700);
+  border-color: var(--earth-700);
+  color: white;
 }
 
 .filter-control-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .filter-count {
@@ -1262,29 +1178,30 @@ body::before {
 }
 
 .filter-control-btn.active .filter-count {
-  background: rgba(255, 255, 255, 0.25);
+  background: white;
+  color: var(--earth-700);
 }
 
 .filter-sort-select {
-  padding: 10px 32px 10px 14px;
+  padding: 8px 32px 8px 14px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.9375rem; /* 15px - accessibility improvement */
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--earth-700);
-  background: var(--sand-50);
+  background: white;
   border: 1px solid var(--sand-200);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234a3f35' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 9l4-4 4 4m0 6l-4 4-4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 9l4-4 4 4m0 6l-4 4-4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 8px center;
   background-size: 16px;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .filter-sort-select:hover {
-  background-color: var(--sand-100);
+  background-color: var(--sand-50);
   border-color: var(--sand-300);
 }
 
@@ -1295,93 +1212,76 @@ body::before {
 }
 
 .filter-clear-btn {
-  padding: 10px 14px;
+  padding: 8px 12px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.9375rem; /* 15px - accessibility improvement */
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--terra-500);
+  color: var(--terra-600);
   background: none;
   border: none;
   cursor: pointer;
-  transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
 .filter-clear-btn:hover {
-  color: var(--terra-600);
   text-decoration: underline;
 }
 
-/* Mobile responsive */
+/* Mobile filter bar */
 @media (max-width: 767px) {
   .filter-bar-inner {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 0;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 0;
   }
 
   .filter-presets {
     width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 8px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    /* Add gradient fade to indicate scrollable content (only on right side) */
-    position: relative;
-    mask-image: linear-gradient(to right, black 0, black calc(100% - 32px), transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 32px), transparent 100%);
-    padding-right: 32px; /* Space for the fade */
-    gap: 8px;
+    padding-bottom: 4px;
   }
 
-  .filter-presets::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Compact pills on mobile - keep icons but tighter spacing */
   .filter-preset-link {
-    flex-shrink: 0;
-    white-space: nowrap;
+    min-height: 44px;
     padding: 8px 14px;
     font-size: 0.8125rem;
   }
 
-  .filter-preset-link::before {
-    width: 14px;
-    height: 14px;
-    margin-right: 5px;
-    vertical-align: -2px;
-  }
-
-  .filter-presets-label {
-    display: none;
-  }
-
-  .filter-presets-divider {
-    display: none;
+  .chip-icon {
+    width: 13px;
+    height: 13px;
   }
 
   .filter-controls {
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-control-btn span:not(.filter-count) {
+    display: none;
+  }
+
+  .filter-control-btn {
+    padding: 8px 12px;
   }
 }
 
-/* Active Filters Bar - shows applied filters with easy remove */
+/* Active Filters Bar */
 .active-filters-bar {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
+  padding: 10px 0;
   border-top: 1px solid var(--sand-100);
-  margin-top: 8px;
   flex-wrap: wrap;
 }
 
 .active-filters-label {
   font-family: 'Fraunces', Georgia, serif;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-style: italic;
   color: var(--earth-600);
   flex-shrink: 0;
@@ -1390,24 +1290,24 @@ body::before {
 .active-filters-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
 }
 
 .active-filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 5px 10px;
   background: var(--terra-100);
   color: var(--terra-700);
   border: 1px solid var(--terra-200);
   border-radius: 100px;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .active-filter-chip:hover {
@@ -1426,14 +1326,13 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   background: var(--terra-500);
   color: white;
   border-radius: 50%;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1;
-  margin-left: 2px;
 }
 
 .active-filter-chip:hover .active-filter-remove {
@@ -1442,13 +1341,13 @@ body::before {
 
 .active-filters-clear {
   font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--terra-500);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 5px 10px;
   flex-shrink: 0;
 }
 
@@ -1472,29 +1371,25 @@ body::before {
     gap: 8px;
   }
 
-  .active-filters-label {
-    width: 100%;
-  }
-
   .active-filters-chips {
     width: 100%;
   }
 }
 
-/* Legacy pill styles (keep for expanded filters panel) */
+/* Filter pill (used in AdvancedFilters panel) */
 .filter-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 10px 18px;
   border-radius: 100px;
   font-weight: 500;
-  font-size: 0.9375rem; /* 15px - accessibility improvement */
+  font-size: 0.875rem;
   background: #fefefe;
   color: var(--earth-700);
-  border: 2px solid var(--sand-200);
+  border: 1px solid var(--sand-200);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s ease;
   white-space: nowrap;
 }
 
@@ -1504,9 +1399,9 @@ body::before {
 }
 
 .filter-pill.active {
-  background: var(--earth-800);
+  background: var(--ocean-500);
   color: white;
-  border-color: var(--earth-800);
+  border-color: var(--ocean-600);
 }
 
 .filter-pill:focus-visible {
@@ -2145,7 +2040,6 @@ textarea:focus-visible {
   color: white;
   background: linear-gradient(180deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
   border-color: var(--ocean-500);
-  font-weight: 600;
   box-shadow:
     0 2px 8px -2px rgba(45, 149, 153, 0.5),
     0 1px 2px rgba(0, 0, 0, 0.1),
@@ -2155,7 +2049,6 @@ textarea:focus-visible {
 .filter-preset-link.active:hover {
   background: linear-gradient(180deg, var(--ocean-500) 0%, var(--ocean-600) 100%);
   border-color: var(--ocean-600);
-  transform: translateY(-1px);
   box-shadow:
     0 4px 12px -2px rgba(45, 149, 153, 0.4),
     0 2px 4px rgba(0, 0, 0, 0.1),
@@ -2480,7 +2373,7 @@ textarea:focus-visible {
   .btn-secondary:hover,
   .btn-secondary:active,
   .filter-pill:hover,
-  .quick-filter-pill:hover,
+  .filter-preset-link:hover,
   .favorite-btn:hover,
   .favorite-btn:active {
     transform: none;
@@ -3141,11 +3034,6 @@ textarea:focus-visible {
 
   .modal-close {
     min-height: 44px;
-  }
-
-  .filter-preset-link {
-    min-height: 44px;
-    padding: 10px 16px;
   }
 
   .hero-editorial {
@@ -7780,7 +7668,6 @@ body.modal-open {
 
   /* Filter pills with proper spacing */
   .filter-pill,
-  .filter-preset-link,
   .active-filter-chip {
     min-height: 44px;
     padding: var(--space-2) var(--space-4);
@@ -8063,75 +7950,6 @@ button[aria-label*="favorite"]:active:not(:disabled) {
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   FILTER BAR POLISH - Frosted glass, better active states
-   ─────────────────────────────────────────────────────────────────────────── */
-
-.filter-bar-section {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(233, 224, 210, 0.6);
-  box-shadow:
-    0 4px 20px -4px rgba(45, 38, 30, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Enhanced active filter pill */
-.filter-preset-link.active {
-  background: linear-gradient(180deg, var(--ocean-500) 0%, var(--ocean-600) 100%);
-  border-color: var(--ocean-600);
-  color: white;
-  font-weight: 600;
-  box-shadow:
-    0 2px 8px rgba(30, 117, 120, 0.3),
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.filter-preset-link.active:hover {
-  background: linear-gradient(180deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
-}
-
-/* Filter pill hover bounce */
-.filter-preset-link {
-  transition:
-    transform var(--duration-normal) var(--ease-bounce),
-    background var(--duration-normal) ease,
-    border-color var(--duration-normal) ease,
-    box-shadow var(--duration-normal) ease;
-}
-
-.filter-preset-link:hover:not(.active) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(30, 117, 120, 0.12);
-}
-
-/* Mobile scroll fade indicator */
-@media (max-width: 767px) {
-  .filter-presets {
-    position: relative;
-  }
-
-  .filter-presets::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 40px;
-    background: linear-gradient(270deg, var(--sand-50) 0%, transparent 100%);
-    pointer-events: none;
-    z-index: 1;
-    opacity: 1;
-    transition: opacity var(--duration-normal) ease;
-  }
-
-  .filter-presets.scrolled-end::after {
-    opacity: 0;
-  }
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
    SECTION COLOR BLOCKING - Visual rhythm
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -8270,13 +8088,8 @@ section:has(.category-browse-grid) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-/* Mobile touch targets - minimum 48px */
+/* Mobile touch targets - minimum 44px */
 @media (max-width: 767px) {
-  .filter-preset-link {
-    min-height: 44px;
-    padding: 10px 16px;
-  }
-
   button[aria-label*="compare"],
   button[aria-label*="favorite"],
   .favorite-btn {
@@ -8329,52 +8142,7 @@ section:has(.category-browse-grid) {
    UX/UI DESIGN ENHANCEMENTS - Jan 2026 Audit Fixes
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* 1. ENHANCED ACTIVE FILTER STATES
-   Make active filters more visually distinct with stronger contrast and glow */
-
-.filter-preset-link.active {
-  color: white;
-  background: linear-gradient(180deg, var(--ocean-400) 0%, var(--ocean-500) 100%);
-  border-color: var(--ocean-600);
-  font-weight: 600;
-  box-shadow:
-    0 4px 14px -3px rgba(45, 149, 153, 0.55),
-    0 2px 6px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 2px rgba(45, 149, 153, 0.15);
-  transform: translateY(-1px);
-}
-
-.filter-pill.active {
-  background: var(--ocean-500);
-  color: white;
-  border-color: var(--ocean-600);
-  box-shadow:
-    0 4px 14px -3px rgba(45, 149, 153, 0.5),
-    0 0 0 2px rgba(45, 149, 153, 0.15);
-}
-
-.filter-control-btn.active {
-  background: linear-gradient(180deg, var(--ocean-100) 0%, var(--ocean-50) 100%);
-  color: var(--ocean-700);
-  border-color: var(--ocean-400);
-  box-shadow:
-    0 0 0 2px rgba(45, 149, 153, 0.12),
-    inset 0 1px 2px rgba(45, 149, 153, 0.1);
-}
-
-/* Active filter count badge pulsing animation */
-.filter-count {
-  animation: filterCountPulse 2s ease-in-out infinite;
-}
-
-@keyframes filterCountPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-}
-
-
-/* 2. CATEGORY-SPECIFIC COLORED SHADOWS FOR FILTER PILLS
+/* CATEGORY-SPECIFIC COLORED SHADOWS FOR FILTER PILLS
    When browsing by category, add colored shadows matching the category */
 
 .category-browse-card[data-category="Beach/Surf"]:hover,
@@ -8518,27 +8286,8 @@ section:has(.category-browse-grid) {
   opacity: 1;
 }
 
-/* Filter bar scroll fade */
-.filter-presets {
-  position: relative;
-}
-
-.filter-presets::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 40px;
-  background: linear-gradient(to right, transparent, rgba(254, 254, 254, 0.95));
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.filter-presets.can-scroll::after {
-  opacity: 1;
-}
+/* Filter bar scroll fade - removed dead ::after code (can-scroll class was never added by JS).
+   Scroll fade is handled via mask-image in the mobile media query. */
 
 
 /* 4. INCREASED PRICE PROMINENCE ON CAMP CARDS
@@ -8573,10 +8322,6 @@ section:has(.category-browse-grid) {
 
 .hero-section {
   padding-bottom: 4rem;
-}
-
-.filter-bar-section {
-  padding: 1rem 0;
 }
 
 section + section {
@@ -8697,473 +8442,4 @@ section + section {
   padding: 48px 32px;
   max-width: 480px;
   margin: 0 auto;
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   FILTER BAR - REBUILT FROM SCRATCH
-   Clean, simple layout that just works
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* Reset all filter bar styles with high specificity */
-section.filter-bar-section {
-  background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(250,248,244,0.95) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--sand-200);
-  padding: 0;
-  position: sticky;
-  top: 0;
-  z-index: 40;
-}
-
-section.filter-bar-section .filter-bar-inner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 0;
-  min-height: 64px;
-}
-
-/* Quick filters - scrollable container */
-section.filter-bar-section .filter-presets {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1 1 0;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: visible;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 6px 4px;
-  margin: -6px -4px;
-}
-
-section.filter-bar-section .filter-presets::-webkit-scrollbar {
-  display: none;
-}
-
-/* Quick filters label */
-section.filter-bar-section .filter-presets-label {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 0.8125rem;
-  font-weight: 400;
-  font-style: italic;
-  color: var(--earth-600);
-  opacity: 0.85;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-section.filter-bar-section .filter-presets-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--sand-300);
-  flex-shrink: 0;
-  margin: 0 4px;
-}
-
-/* Quick filter buttons */
-section.filter-bar-section .filter-preset-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--earth-700);
-  background: white;
-  border: 1px solid var(--sand-200);
-  border-radius: 20px;
-  padding: 8px 16px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-section.filter-bar-section .filter-preset-link:hover {
-  background: var(--sand-50);
-  border-color: var(--sand-300);
-  transform: translateY(-1px);
-}
-
-section.filter-bar-section .filter-preset-link.active {
-  background: var(--ocean-500);
-  border-color: var(--ocean-600);
-  color: white;
-  font-weight: 600;
-}
-
-section.filter-bar-section .filter-preset-link.active:hover {
-  background: var(--ocean-600);
-}
-
-/* Filter controls - right side */
-section.filter-bar-section .filter-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-section.filter-bar-section .filter-control-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--earth-700);
-  background: white;
-  border: 1px solid var(--sand-200);
-  border-radius: 8px;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-section.filter-bar-section .filter-control-btn:hover {
-  background: var(--sand-50);
-  border-color: var(--sand-300);
-}
-
-section.filter-bar-section .filter-control-btn.active {
-  background: var(--earth-700);
-  border-color: var(--earth-700);
-  color: white;
-}
-
-section.filter-bar-section .filter-control-btn svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-
-section.filter-bar-section .filter-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: var(--terra-500);
-  color: white;
-  border-radius: 10px;
-  padding: 0 6px;
-}
-
-section.filter-bar-section .filter-control-btn.active .filter-count {
-  background: white;
-  color: var(--earth-700);
-}
-
-/* Sort select */
-section.filter-bar-section .filter-sort-select {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--earth-700);
-  background: white;
-  border: 1px solid var(--sand-200);
-  border-radius: 8px;
-  padding: 8px 32px 8px 14px;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23524536'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 9l4-4 4 4m0 6l-4 4-4-4'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 16px;
-}
-
-section.filter-bar-section .filter-sort-select:hover {
-  background-color: var(--sand-50);
-  border-color: var(--sand-300);
-}
-
-/* Share button */
-section.filter-bar-section .share-url-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--earth-700);
-  background: white;
-  border: 1px solid var(--sand-200);
-  border-radius: 8px;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-section.filter-bar-section .share-url-btn:hover {
-  background: var(--sand-50);
-}
-
-section.filter-bar-section .share-url-btn.copied {
-  background: var(--sage-100);
-  border-color: var(--sage-300);
-  color: var(--sage-700);
-}
-
-/* Clear button */
-section.filter-bar-section .filter-clear-btn {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--terra-600);
-  background: none;
-  border: none;
-  padding: 8px 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-section.filter-bar-section .filter-clear-btn:hover {
-  text-decoration: underline;
-}
-
-/* Mobile layout */
-@media (max-width: 767px) {
-  section.filter-bar-section .filter-bar-inner {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 12px 0;
-  }
-
-  section.filter-bar-section .filter-presets {
-    order: 1;
-    width: 100%;
-    padding-bottom: 4px;
-  }
-
-  section.filter-bar-section .filter-presets-label,
-  section.filter-bar-section .filter-presets-divider {
-    display: none;
-  }
-
-  section.filter-bar-section .filter-controls {
-    order: 2;
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  section.filter-bar-section .filter-control-btn span:not(.filter-count) {
-    display: none;
-  }
-
-  section.filter-bar-section .filter-control-btn {
-    padding: 8px 12px;
-  }
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   FILTER BAR - PROGRESSIVE DISCLOSURE WITH "MORE" DROPDOWN
-   UX-optimized responsive pattern: show priority filters, hide overflow in dropdown
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* Reset filter-presets to visible (no scroll clipping) */
-section.filter-bar-section .filter-presets {
-  overflow: visible;
-}
-
-/* Priority quick filters - always visible */
-section.filter-bar-section .filter-preset-link.priority {
-  flex-shrink: 0;
-}
-
-/* Overflow quick filters - visible on large screens, hidden at medium */
-section.filter-bar-section .filter-preset-link.overflow {
-  flex-shrink: 0;
-}
-
-/* "More filters" wrapper for positioning */
-section.filter-bar-section .filter-more-wrapper {
-  position: relative;
-  flex-shrink: 0;
-}
-
-/* "More filters" dropdown button */
-section.filter-bar-section .filter-more-btn {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--earth-700);
-  background: white;
-  border: 1px solid var(--sand-200);
-  border-radius: 20px;
-  padding: 8px 14px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-section.filter-bar-section .filter-more-btn:hover {
-  background: var(--sand-50);
-  border-color: var(--sand-300);
-}
-
-section.filter-bar-section .filter-more-btn.has-selection {
-  background: var(--ocean-50);
-  border-color: var(--ocean-300);
-  color: var(--ocean-700);
-}
-
-section.filter-bar-section .filter-more-btn svg {
-  width: 16px;
-  height: 16px;
-  transition: transform 0.2s ease;
-}
-
-section.filter-bar-section .filter-more-btn[aria-expanded="true"] svg {
-  transform: rotate(180deg);
-}
-
-/* More filters dropdown panel */
-section.filter-bar-section .filter-more-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  min-width: 160px;
-  background: white;
-  border: 1px solid var(--sand-200);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  padding: 8px;
-  z-index: 50;
-}
-
-section.filter-bar-section .filter-more-dropdown .filter-preset-link {
-  width: 100%;
-  justify-content: flex-start;
-  border-radius: 8px;
-  margin-bottom: 4px;
-}
-
-section.filter-bar-section .filter-more-dropdown .filter-preset-link:last-child {
-  margin-bottom: 0;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   RESPONSIVE BREAKPOINTS
-   ───────────────────────────────────────────────────────────────────────────── */
-
-/* Extra large screens: 1440px+ - all filters visible */
-@media (min-width: 1440px) {
-  section.filter-bar-section .filter-preset-link.overflow {
-    display: inline-flex;
-  }
-
-  section.filter-bar-section .filter-more-wrapper {
-    display: none;
-  }
-}
-
-/* Large screens: 1280-1439px - all filters visible */
-@media (min-width: 1280px) and (max-width: 1439px) {
-  section.filter-bar-section .filter-preset-link.overflow {
-    display: inline-flex;
-  }
-
-  section.filter-bar-section .filter-more-wrapper {
-    display: none;
-  }
-}
-
-/* Medium-large screens: 1024-1279px - show 3 filters + More */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  section.filter-bar-section .filter-preset-link.overflow {
-    display: none;
-  }
-
-  section.filter-bar-section .filter-more-wrapper {
-    display: block;
-  }
-
-  section.filter-bar-section .filter-more-btn {
-    display: inline-flex;
-  }
-
-  /* Condense right-side controls */
-  section.filter-bar-section .filter-control-btn span:not(.filter-count) {
-    display: none;
-  }
-
-  section.filter-bar-section .filter-control-btn {
-    padding: 8px 12px;
-  }
-}
-
-/* Tablet: 768-1023px - show priority filters + More */
-@media (min-width: 768px) and (max-width: 1023px) {
-  section.filter-bar-section .filter-preset-link.overflow {
-    display: none;
-  }
-
-  section.filter-bar-section .filter-more-wrapper {
-    display: block;
-  }
-
-  section.filter-bar-section .filter-more-btn {
-    display: inline-flex;
-  }
-
-  section.filter-bar-section .filter-presets-label,
-  section.filter-bar-section .filter-presets-divider {
-    display: none;
-  }
-
-  section.filter-bar-section .filter-control-btn span:not(.filter-count) {
-    display: none;
-  }
-}
-
-/* Mobile: <768px - horizontal scroll with all filters */
-@media (max-width: 767px) {
-  section.filter-bar-section .filter-bar-inner {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    padding: 12px 0;
-  }
-
-  section.filter-bar-section .filter-presets {
-    order: 1;
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
-  }
-
-  section.filter-bar-section .filter-presets-label,
-  section.filter-bar-section .filter-presets-divider {
-    display: none;
-  }
-
-  /* On mobile, show all filters (scroll) and hide More button */
-  section.filter-bar-section .filter-preset-link.overflow {
-    display: inline-flex;
-  }
-
-  section.filter-bar-section .filter-more-wrapper {
-    display: none;
-  }
-
-  section.filter-bar-section .filter-controls {
-    order: 2;
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
 }
