@@ -220,11 +220,31 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const tableRef = useRef(null);
+  const resultsRef = useRef(null);
+  const CAMPS_PER_PAGE = 12;
 
   // Filtered camps
   const filteredCamps = useMemo(() => filterAndSortCamps(camps, profile), [camps, filterAndSortCamps, profile]);
   const searchResultCount = filteredCamps.length;
+
+  // Pagination
+  const totalPages = Math.ceil(filteredCamps.length / CAMPS_PER_PAGE);
+  const paginatedCamps = useMemo(() => {
+    const start = (currentPage - 1) * CAMPS_PER_PAGE;
+    return filteredCamps.slice(start, start + CAMPS_PER_PAGE);
+  }, [filteredCamps, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, searchInput]);
+
+  const goToPage = useCallback((page) => {
+    setCurrentPage(page);
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -285,10 +305,10 @@ export default function App() {
   return (
     <>
       {/* Hero Section */}
-      <header className="hero-section relative pt-4 pb-16 sm:pt-8 sm:pb-24 md:pt-12 md:pb-32">
+      <header className="hero-section hero-compact relative pt-4 pb-10 sm:pt-6 sm:pb-14 md:pt-8 md:pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           {/* Top Bar */}
-          <div className="flex items-center justify-between mb-6 sm:mb-12 md:mb-16">
+          <div className="flex items-center justify-between mb-4 sm:mb-8 md:mb-10">
             <div className="flex items-center gap-2 sm:gap-3">
               <AppLogo className="w-8 h-8 sm:w-9 sm:h-9" />
               <span className="font-sans font-semibold text-xs sm:text-sm tracking-wide uppercase hidden xs:block" style={{ color: 'var(--earth-700)', letterSpacing: '0.08em' }}>
@@ -466,45 +486,24 @@ export default function App() {
       )}
 
       {/* Main Content */}
-      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-        {/* Category Browse Grid */}
-        {!loading && camps.length > 0 && activeFilterCount === 0 && (
-          <section className="category-browse">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6">
-              <h2 className="category-browse-title">Browse by Interest</h2>
-              <div className="category-browse-grid">
-                {categoryIcons.map(({ name, icon }) => {
-                  const count = stats?.categories?.[name] || 0;
-                  if (count === 0) return null;
-                  return (
-                    <button key={name} onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes(name) ? cats.filter(c => c !== name) : [...cats, name] }); }} className={`category-browse-card ${categoryClasses[name] || ''} ${filters.categories?.includes(name) ? 'active' : ''}`} data-category={name}>
-                      <span className="category-browse-icon"><BrandIcon name={icon} size={28} /></span>
-                      <span className="category-browse-name">{name}</span>
-                      <span className="category-browse-count">{count} {count === 1 ? 'camp' : 'camps'}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Testimonial Banner */}
-        {!loading && camps.length > 0 && activeFilterCount === 0 && (
-          <section className="testimonial-banner">
-            <p className="testimonial-quote">"Found the right STEM camp for my 10-year-old in under 5 minutes."</p>
-            <p className="testimonial-author">-- Sarah M., Goleta</p>
-          </section>
-        )}
-        <div aria-live="polite" aria-atomic="true">
+      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* Results Header */}
+        <div ref={resultsRef} className="scroll-mt-24" aria-live="polite" aria-atomic="true">
           {!loading && filteredCamps.length > 0 && (
-            <p className="results-count">
-              Showing <strong>{filteredCamps.length}</strong> {filteredCamps.length === 1 ? 'camp' : 'camps'}
-              {filters.categories?.length > 0 && <> in <strong>{filters.categories.join(', ')}</strong></>}
-              {filters.childAge && <> for age <strong>{filters.childAge}</strong></>}
-              {Number.isFinite(filters.priceMax) && <> under <strong>${filters.priceMax}</strong></>}
-              {filters.matchWorkSchedule && <> that fit your schedule</>}
-            </p>
+            <div className="results-header">
+              <p className="results-count">
+                Showing <strong>{filteredCamps.length}</strong> {filteredCamps.length === 1 ? 'camp' : 'camps'}
+                {filters.categories?.length > 0 && <> in <strong>{filters.categories.join(', ')}</strong></>}
+                {filters.childAge && <> for age <strong>{filters.childAge}</strong></>}
+                {Number.isFinite(filters.priceMax) && <> under <strong>${filters.priceMax}</strong></>}
+                {filters.matchWorkSchedule && <> that fit your schedule</>}
+              </p>
+              {totalPages > 1 && (
+                <p className="results-page-indicator" style={{ color: 'var(--earth-600)', fontSize: '0.875rem' }}>
+                  Page {currentPage} of {totalPages}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
@@ -541,31 +540,121 @@ export default function App() {
             </div>
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCamps.map((camp, index) => (
-              <CampCard
-                key={camp.id}
-                camp={camp}
-                expanded={expandedCamp === camp.id}
-                onToggle={() => {
-                  if (isMobile) {
-                    setExpandedCamp(expandedCamp === camp.id ? null : camp.id);
-                  } else {
-                    navigate(`/camp/${camp.id}`, { state: { backgroundLocation: location } });
-                  }
-                }}
-                index={index}
-                isComparing={compareList.includes(camp.id)}
-                onToggleCompare={() => toggleCompare(camp.id)}
-                friendInterestCounts={friendInterestCounts}
-                hasSquads={squads?.length > 0}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedCamps.map((camp, index) => (
+                <CampCard
+                  key={camp.id}
+                  camp={camp}
+                  expanded={expandedCamp === camp.id}
+                  onToggle={() => {
+                    if (isMobile) {
+                      setExpandedCamp(expandedCamp === camp.id ? null : camp.id);
+                    } else {
+                      navigate(`/camp/${camp.id}`, { state: { backgroundLocation: location } });
+                    }
+                  }}
+                  index={index}
+                  isComparing={compareList.includes(camp.id)}
+                  onToggleCompare={() => toggleCompare(camp.id)}
+                  friendInterestCounts={friendInterestCounts}
+                  hasSquads={squads?.length > 0}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <nav className="pagination" aria-label="Camp results pagination">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="pagination-btn pagination-prev"
+                  aria-label="Previous page"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                  <span className="hidden sm:inline">Prev</span>
+                </button>
+                <div className="pagination-pages">
+                  {(() => {
+                    const pages = [];
+                    const showEllipsis = totalPages > 7;
+                    if (!showEllipsis) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                      pages.push(1);
+                      if (currentPage > 3) pages.push('...');
+                      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+                      if (currentPage < totalPages - 2) pages.push('...');
+                      pages.push(totalPages);
+                    }
+                    return pages.map((page, i) =>
+                      page === '...' ? (
+                        <span key={`ellipsis-${i}`} className="pagination-ellipsis">...</span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => goToPage(page)}
+                          className={`pagination-btn pagination-num ${currentPage === page ? 'active' : ''}`}
+                          aria-label={`Page ${page}`}
+                          aria-current={currentPage === page ? 'page' : undefined}
+                        >
+                          {page}
+                        </button>
+                      )
+                    );
+                  })()}
+                </div>
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="pagination-btn pagination-next"
+                  aria-label="Next page"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </nav>
+            )}
+          </>
         ) : (
           <div ref={tableRef}>
             <CampTable camps={filteredCamps} sortBy={filters.sortBy || 'camp_name'} sortDir={filters.sortDir || 'asc'} onSort={(field) => { if ((filters.sortBy || 'camp_name') === field) { updateFilters({ ...filters, sortDir: (filters.sortDir || 'asc') === 'asc' ? 'desc' : 'asc' }); } else { updateFilters({ ...filters, sortBy: field, sortDir: 'asc' }); } }} expandedCamp={expandedCamp} onToggle={(id) => setExpandedCamp(expandedCamp === id ? null : id)} />
           </div>
+        )}
+
+        {/* Testimonial + Category Discovery — below results for exploration */}
+        {!loading && camps.length > 0 && filteredCamps.length > 0 && (
+          <section className="discovery-section">
+            {/* Inline Testimonial */}
+            <div className="testimonial-inline">
+              <svg className="testimonial-quote-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11h4v10H0z"/></svg>
+              <blockquote>
+                <p className="testimonial-quote">"Found the right STEM camp for my 10-year-old in under 5 minutes."</p>
+                <cite className="testimonial-author">Sarah M., Goleta</cite>
+              </blockquote>
+            </div>
+
+            {/* Category Browse */}
+            {activeFilterCount === 0 && (
+              <div className="category-discover">
+                <h2 className="category-discover-title">Explore by interest</h2>
+                <div className="category-discover-grid">
+                  {categoryIcons.map(({ name, icon }) => {
+                    const count = stats?.categories?.[name] || 0;
+                    if (count === 0) return null;
+                    return (
+                      <button key={name} onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes(name) ? cats.filter(c => c !== name) : [...cats, name] }); }} className={`category-browse-card ${categoryClasses[name] || ''} ${filters.categories?.includes(name) ? 'active' : ''}`} data-category={name}>
+                        <span className="category-browse-icon"><BrandIcon name={icon} size={28} /></span>
+                        <span className="category-browse-name">{name}</span>
+                        <span className="category-browse-count">{count} {count === 1 ? 'camp' : 'camps'}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </section>
         )}
       </main>
 

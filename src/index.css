@@ -8479,3 +8479,233 @@ section + section {
   max-width: 480px;
   margin: 0 auto;
 }
+
+/* ── Results Header ── */
+.results-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--sand-200);
+}
+
+.results-header .results-count {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.results-page-indicator {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 2.5rem 0 1rem;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--earth-700);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-default);
+  user-select: none;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--sand-100);
+  color: var(--earth-800);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pagination-btn.active {
+  background: var(--ocean-500);
+  color: white;
+  font-weight: 600;
+  border-color: var(--ocean-500);
+  box-shadow: 0 2px 8px rgba(30, 117, 120, 0.25);
+}
+
+.pagination-btn.active:hover {
+  background: var(--ocean-600);
+  border-color: var(--ocean-600);
+}
+
+.pagination-prev,
+.pagination-next {
+  font-weight: 500;
+  color: var(--ocean-500);
+  border: 1px solid var(--sand-200);
+  background: white;
+}
+
+.pagination-prev:hover:not(:disabled),
+.pagination-next:hover:not(:disabled) {
+  background: var(--ocean-50);
+  border-color: var(--ocean-200);
+  color: var(--ocean-600);
+}
+
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 40px;
+  color: var(--sand-400);
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+}
+
+/* ── Discovery Section (below results) ── */
+.discovery-section {
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--sand-200);
+}
+
+/* ── Inline Testimonial ── */
+.testimonial-inline {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  max-width: 640px;
+  margin: 0 auto 3rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--sand-50) 0%, var(--ocean-50) 100%);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--sand-200);
+}
+
+.testimonial-quote-mark {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--ocean-300);
+  margin-top: 0.125rem;
+}
+
+.testimonial-inline .testimonial-quote {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--earth-700);
+  line-height: 1.5;
+  margin: 0 0 0.5rem;
+  max-width: none;
+}
+
+.testimonial-inline .testimonial-author {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--earth-600);
+  font-weight: 500;
+  font-style: normal;
+}
+
+/* ── Category Discovery (bottom section) ── */
+.category-discover {
+  text-align: center;
+}
+
+.category-discover-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--earth-800);
+  margin-bottom: 1.5rem;
+}
+
+.category-discover-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ── Compact Hero Adjustments ── */
+.hero-compact .hero-title h1 {
+  margin-bottom: 0.75rem;
+}
+
+.hero-compact .hero-subtitle {
+  margin-bottom: 1.5rem !important;
+}
+
+.hero-compact .hero-search {
+  margin-bottom: 1rem !important;
+}
+
+.hero-compact .hero-stats {
+  gap: 1rem;
+}
+
+/* ── Responsive: Pagination ── */
+@media (max-width: 639px) {
+  .pagination {
+    gap: 0.125rem;
+    padding: 2rem 0 0.5rem;
+  }
+  .pagination-btn {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8125rem;
+  }
+  .pagination-prev,
+  .pagination-next {
+    padding: 0.375rem 0.625rem;
+  }
+  .testimonial-inline {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+  }
+  .testimonial-quote-mark {
+    width: 20px;
+    height: 20px;
+  }
+  .testimonial-inline .testimonial-quote {
+    font-size: 1rem;
+  }
+  .category-discover-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .category-discover-grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
