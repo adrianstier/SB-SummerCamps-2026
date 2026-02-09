@@ -513,11 +513,11 @@ describe('App', () => {
   });
 
   describe('filter presets', () => {
-    it('renders quick find presets', async () => {
+    it('renders quick filter chips', async () => {
       render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(screen.getByText('Quick filters')).toBeInTheDocument();
+        expect(screen.getByText('Under $300')).toBeInTheDocument();
       });
     });
 

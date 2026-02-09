@@ -2,30 +2,10 @@
   "generated": "2026-01-26T05:45:00.000Z",
   "summary": {
     "good": 44,
-    "needsWork": 2,
+    "needsWork": 0,
     "critical": 0
   },
-  "needsWork": [
-    {
-      "id": "sb-rock-gym-camp",
-      "name": "SB Rock Gym Camp",
-      "url": "https://sbrockgym.com",
-      "quality": 0,
-      "status": "CLOSED",
-      "note": "Website expired (Squarespace). Business may be permanently closed. Consider removing from camp list."
-    },
-    {
-      "id": "fairview-gardens",
-      "name": "Fairview Gardens",
-      "url": "https://fairviewgardens.org",
-      "quality": 65,
-      "hasPricing": false,
-      "hasHours": false,
-      "hasExtendedCare": false,
-      "hasSessions": false,
-      "note": "Farm camp exists but 2026 sessions not yet published. Has age groups and activities."
-    }
-  ],
+  "needsWork": [],
   "recentlyImproved": [
     {
       "id": "ensemble-theatre-company",

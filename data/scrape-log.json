@@ -1,122 +1,81 @@
 {
-  "started_at": "2026-01-24T16:17:04.466Z",
-  "total_camps": 46,
+  "started_at": "2026-02-06T00:04:04.547Z",
+  "total_camps": 83,
   "successful": 0,
-  "failed": 3,
+  "failed": 1,
   "skipped": 0,
-  "cached": 43,
+  "cached": 82,
   "details": [
     {
       "camp": "Lobster Jo's Beach Camp",
       "status": "cached",
       "extracted": [
-        "pricing_tiers",
-        "price_found",
-        "price_min",
-        "price_max",
-        "age_groups",
-        "hours_found",
+        "pricing",
+        "ages",
+        "hours",
+        "extendedCare",
         "sessions",
-        "staff_ratio",
-        "cancellation_policy",
-        "food_info",
-        "email_found",
-        "phone_found",
         "activities",
-        "availability",
-        "testimonials",
-        "has_health_protocols",
-        "setting"
+        "registration",
+        "_meta",
+        "_confidence"
       ]
     },
     {
       "camp": "SB Parks & Recreation",
       "status": "cached",
       "extracted": [
-        "pricing_tiers",
-        "age_groups",
-        "ages_found",
-        "min_age",
-        "max_age",
-        "hours_found",
-        "registration_found",
+        "pricing",
+        "ages",
+        "hours",
+        "extendedCare",
         "sessions",
-        "staff_ratio",
-        "cancellation_policy",
-        "food_info",
-        "has_scholarships",
-        "email_found",
-        "phone_found",
         "activities",
-        "special_needs_friendly",
-        "availability",
-        "testimonials",
-        "setting"
+        "registration",
+        "_meta",
+        "_confidence"
       ]
     },
     {
       "camp": "UCSB Day Camp",
       "status": "cached",
       "extracted": [
-        "pricing_tiers",
-        "price_found",
-        "price_min",
-        "price_max",
-        "age_groups",
-        "ages_found",
-        "min_age",
-        "max_age",
-        "hours_found",
-        "pick_up_window",
-        "registration_found",
+        "pricing",
+        "ages",
+        "hours",
+        "extendedCare",
         "sessions",
-        "staff_ratio",
-        "cancellation_policy",
-        "food_info",
-        "has_sibling_discount",
-        "has_scholarships",
-        "certifications",
-        "email_found",
-        "phone_found",
         "activities",
-        "special_needs_friendly",
-        "availability",
-        "testimonials",
-        "has_health_protocols",
-        "setting"
+        "registration",
+        "_meta"
       ]
     },
     {
       "camp": "Peak2Pacific",
       "status": "cached",
       "extracted": [
-        "pricing_tiers",
-        "age_groups",
-        "registration_found",
+        "pricing",
+        "ages",
+        "hours",
+        "extendedCare",
         "sessions",
-        "staff_ratio",
-        "cancellation_policy",
-        "food_info",
-        "email_found",
-        "phone_found",
         "activities",
-        "availability",
-        "testimonials",
-        "setting"
+        "registration",
+        "_meta"
       ]
     },
     {
       "camp": "Wilderness Youth Project",
       "status": "cached",
       "extracted": [
-        "pricing_tiers",
-        "age_groups",
+        "pricing",
+        "ages",
+        "hours",
+        "extendedCare",
         "sessions",
-        "staff_ratio",
-        "cancellation_policy",
-        "food_info",
-        "availability",
-        "testimonials"
+        "activities",
+        "registration",
+        "_meta"
       ]
     },
     {
@@ -145,7 +104,22 @@
         "special_needs_friendly",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "YMCA Summer Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing",
+        "ages",
+        "hours",
+        "extendedCare",
+        "sessions",
+        "activities",
+        "registration",
+        "_meta"
       ]
     },
     {
@@ -168,7 +142,8 @@
         "phone_found",
         "activities",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -193,7 +168,8 @@
         "special_needs_friendly",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -213,7 +189,8 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -227,7 +204,8 @@
         "cancellation_policy",
         "food_info",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -250,7 +228,8 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -279,7 +258,8 @@
         "testimonials",
         "handles_allergies",
         "has_health_protocols",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -308,7 +288,8 @@
         "testimonials",
         "handles_allergies",
         "has_health_protocols",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -331,7 +312,8 @@
         "activities",
         "special_needs_friendly",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -352,7 +334,8 @@
         "availability",
         "testimonials",
         "has_health_protocols",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -366,7 +349,8 @@
         "cancellation_policy",
         "food_info",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -390,7 +374,8 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -417,7 +402,8 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -445,7 +431,8 @@
         "activities",
         "has_packing_list",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -464,7 +451,8 @@
         "phone_found",
         "activities",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -478,7 +466,8 @@
         "cancellation_policy",
         "food_info",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -504,7 +493,8 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -526,7 +516,8 @@
         "special_needs_friendly",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -548,7 +539,22 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Safety Town",
+      "status": "cached",
+      "extracted": [
+        "pricing",
+        "ages",
+        "hours",
+        "extendedCare",
+        "sessions",
+        "activities",
+        "registration",
+        "_meta"
       ]
     },
     {
@@ -569,8 +575,11 @@
         "email_found",
         "phone_found",
         "activities",
+        "special_needs_friendly",
         "availability",
-        "testimonials"
+        "testimonials",
+        "handles_allergies",
+        "_extraction_method"
       ]
     },
     {
@@ -594,7 +603,8 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -618,7 +628,8 @@
         "phone_found",
         "activities",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -639,14 +650,23 @@
         "special_needs_friendly",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
-      "camp": "YMCA Summer Camp",
-      "status": "error",
-      "error": "page.goto: net::ERR_ADDRESS_UNREACHABLE at https://ciymca.org/summer-camp\nCall log:\n\u001b[2m  - navigating to \"https://ciymca.org/summer-camp\", waiting until \"domcontentloaded\"\u001b[22m\n",
-      "extracted": []
+      "camp": "Refugio Jr. Guards",
+      "status": "cached",
+      "extracted": [
+        "pricing",
+        "ages",
+        "hours",
+        "extendedCare",
+        "sessions",
+        "activities",
+        "registration",
+        "_meta"
+      ]
     },
     {
       "camp": "Page Youth Center",
@@ -667,14 +687,9 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
-    },
-    {
-      "camp": "Refugio Jr. Guards",
-      "status": "error",
-      "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://parks.ca.gov/\nCall log:\n\u001b[2m  - navigating to \"https://parks.ca.gov/\", waiting until \"domcontentloaded\"\u001b[22m\n",
-      "extracted": []
     },
     {
       "camp": "GUSD Summer Thrive",
@@ -694,7 +709,8 @@
         "activities",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -724,7 +740,8 @@
         "availability",
         "testimonials",
         "has_health_protocols",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -745,7 +762,8 @@
         "activities",
         "has_packing_list",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -753,6 +771,9 @@
       "status": "cached",
       "extracted": [
         "pricing_tiers",
+        "price_found",
+        "price_min",
+        "price_max",
         "age_groups",
         "ages_found",
         "min_age",
@@ -770,7 +791,8 @@
         "availability",
         "testimonials",
         "has_health_protocols",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -789,21 +811,8 @@
         "phone_found",
         "activities",
         "availability",
-        "testimonials"
-      ]
-    },
-    {
-      "camp": "SB Rock Gym Camp",
-      "status": "cached",
-      "extracted": [
-        "pricing_tiers",
-        "age_groups",
-        "sessions",
-        "staff_ratio",
-        "cancellation_policy",
-        "food_info",
-        "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -821,7 +830,8 @@
         "email_found",
         "activities",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -848,7 +858,8 @@
         "special_needs_friendly",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -870,7 +881,8 @@
         "activities",
         "availability",
         "testimonials",
-        "handles_allergies"
+        "handles_allergies",
+        "_extraction_method"
       ]
     },
     {
@@ -884,7 +896,8 @@
         "cancellation_policy",
         "food_info",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
@@ -910,7 +923,8 @@
         "special_needs_friendly",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
@@ -938,11 +952,36 @@
         "special_needs_friendly",
         "availability",
         "testimonials",
-        "setting"
+        "setting",
+        "_extraction_method"
       ]
     },
     {
-      "camp": "Fairview Gardens",
+      "camp": "805 Beach Volleyball Club",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Adventure Lab @ Crane",
       "status": "cached",
       "extracted": [
         "pricing_tiers",
@@ -952,11 +991,12 @@
         "cancellation_policy",
         "food_info",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
-      "camp": "South Coast Railroad Museum",
+      "camp": "AHA! Summer Program",
       "status": "cached",
       "extracted": [
         "pricing_tiers",
@@ -970,16 +1010,822 @@
         "phone_found",
         "activities",
         "availability",
-        "testimonials"
+        "testimonials",
+        "_extraction_method"
       ]
     },
     {
-      "camp": "Safety Town",
+      "camp": "American Sign Language Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "has_health_protocols",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Art Studio 4 Kids",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "price_found",
+        "price_min",
+        "price_max",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "drop_off_window",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Artistic Horizons Atelier",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Bizzy Girls Entrepreneur Program",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_sibling_discount",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Camp Ignite for Teens",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "certifications",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Camp Improv",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "price_found",
+        "price_min",
+        "price_max",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Camp Millionaire",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Camp New Heights",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_transport",
+        "has_scholarships",
+        "certifications",
+        "email_found",
+        "phone_found",
+        "activities",
+        "has_packing_list",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "handles_allergies",
+        "has_health_protocols",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Camp Wheez (Sansum Clinic)",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_scholarships",
+        "email_found",
+        "phone_found",
+        "activities",
+        "has_packing_list",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "handles_allergies",
+        "has_health_protocols",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Camp Wild Things",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Chocolate Art Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Cliff Drive Care Center Summer Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "price_found",
+        "price_min",
+        "price_max",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_sibling_discount",
+        "has_scholarships",
+        "certifications",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Code Next Connect (Google)",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Costa de Oro Girl Scout Day Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_scholarships",
+        "email_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "County of Santa Barbara Junior Lifeguards",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "price_found",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_scholarships",
+        "email_found",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "has_health_protocols",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Crafters Library Summer Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Dance Jams Summer Camps",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Dos Pueblos Media Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Dynamite Pickleball Youth",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "has_health_protocols",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Elings Park Theater Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_scholarships",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "has_health_protocols",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Fusion Academy Summer",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Girls Inc. Gymnastics Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_sibling_discount",
+        "has_scholarships",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Gold Coast Surf School",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "price_found",
+        "price_min",
+        "price_max",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "certifications",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Goleta School of Ballet Summer",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "hours_found",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Grant House Sewing Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "hours_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Gustafson Dance Camps",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_early_bird_discount",
+        "certifications",
+        "email_found",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Hearts Landing Ranch Horseback",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_scholarships",
+        "certifications",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Irish Dance 805 Celtic Camps",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "hours_found",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "JAMS Rock Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Kathy's Music and Movement Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "price_found",
+        "price_min",
+        "price_max",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Lights Up Theatre Company",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "price_found",
+        "price_min",
+        "price_max",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Little Axolotl Club",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Math Camp at SB Family School",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "ages_found",
+        "min_age",
+        "max_age",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Mr. Rob's Place",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "price_found",
+        "price_min",
+        "price_max",
+        "age_groups",
+        "hours_found",
+        "registration_found",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "has_extended_care",
+        "has_scholarships",
+        "certifications",
+        "email_found",
+        "phone_found",
+        "activities",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "MyGym Santa Barbara",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "email_found",
+        "phone_found",
+        "activities",
+        "special_needs_friendly",
+        "availability",
+        "testimonials",
+        "setting",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Ocean Explorers Summer Camp",
+      "status": "cached",
+      "extracted": [
+        "pricing_tiers",
+        "age_groups",
+        "sessions",
+        "staff_ratio",
+        "cancellation_policy",
+        "food_info",
+        "availability",
+        "testimonials",
+        "_extraction_method"
+      ]
+    },
+    {
+      "camp": "Inspire Dance Camps",
       "status": "error",
-      "error": "page.goto: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://sbsafetytown.org/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "error": "page.goto: net::ERR_CERT_AUTHORITY_INVALID at https://inspiredancesb.com/\nCall log:\n  - navigating to \"https://inspiredancesb.com/\", waiting until \"domcontentloaded\"\n",
       "extracted": []
     }
   ],
-  "completed_at": "2026-01-24T16:18:27.774Z",
-  "duration_seconds": 83.308
+  "completed_at": "2026-02-06T00:04:12.274Z",
+  "duration_seconds": 7.727
 }

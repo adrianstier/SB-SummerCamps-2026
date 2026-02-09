@@ -308,5 +308,105 @@
     "id": "ocean-explorers-summer-camp",
     "camp_name": "Ocean Explorers Summer Camp",
     "image_url": "https://oceanexplorerscamp.com/wp-content/uploads/2023/12/OEC-Banner-snorkeling.jpg"
+  },
+  {
+    "id": "jams-rock-camp",
+    "camp_name": "JAMS Rock Camp",
+    "image_url": "https://d10j3mvrs1suex.cloudfront.net/s:bzglfiles/u/394484/1196087c9581ad76fede997893bc00b1a504ec7d/original/jams-instruments.jpg"
+  },
+  {
+    "id": "dance-jams-summer-camps",
+    "camp_name": "Dance Jams Summer Camps",
+    "image_url": "https://static.wixstatic.com/media/4c62c7_34ce4d3e22c84f43b4fc619b75879a53~mv2.jpg/v1/crop/x_14,y_0,w_5731,h_3840/fill/w_800,h_536,al_c,q_85,enc_avif,quality_auto/Backstage2_JPG.jpg"
+  },
+  {
+    "id": "irish-dance-805-celtic-camps",
+    "camp_name": "Irish Dance 805 Celtic Camps",
+    "image_url": "https://static.wixstatic.com/media/da4155_c126f1294fbd479caf12bf4cfc4b5187~mv2.jpg/v1/fill/w_1512,h_880,al_c,q_85,enc_avif,quality_auto/da4155_c126f1294fbd479caf12bf4cfc4b5187~mv2.jpg"
+  },
+  {
+    "id": "lights-up-theatre-company",
+    "camp_name": "Lights Up Theatre Company",
+    "image_url": "https://www.lightsupsb.com/wp-content/uploads/2025/08/LU-The-Addams-Family-Logo-Aug2025-1024x1024.png"
+  },
+  {
+    "id": "kathy-s-music-and-movement-camp",
+    "camp_name": "Kathy's Music and Movement Camp",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/65f8ac053ffd5c2a18fe7989/f8d79038-dcc5-4c5b-8624-3a4cf0e57898/IMG_8359.jpeg"
+  },
+  {
+    "id": "dynamite-pickleball-youth",
+    "camp_name": "Dynamite Pickleball Youth",
+    "image_url": "https://www.dynamitepickleball.com/wp-content/uploads/2024/08/hero-bg.jpg"
+  },
+  {
+    "id": "costa-de-oro-girl-scout-day-camp",
+    "camp_name": "Costa de Oro Girl Scout Day Camp",
+    "image_url": "https://www.girlscoutsccc.org/content/dam/girlscouts-shared-redesign/images/image-library/camp/22_CampBlueBay_SS_7089_610x610.jpg"
+  },
+  {
+    "id": "artistic-horizons-atelier",
+    "camp_name": "Artistic Horizons Atelier",
+    "image_url": "https://static.wixstatic.com/media/ee8f34c2b8bd41689908673ca5ef684a.jpg/v1/fill/w_1314,h_724,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ee8f34c2b8bd41689908673ca5ef684a.jpg"
+  },
+  {
+    "id": "camp-ignite-for-teens",
+    "camp_name": "Camp Ignite for Teens",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/62423188ba15072740c1fd66/91829a0f-be37-47ba-97ce-0a9154e677cc/Untitled+design+%287%29.png"
+  },
+  {
+    "id": "american-sign-language-camp",
+    "camp_name": "American Sign Language Camp",
+    "image_url": "https://static.wixstatic.com/media/4dea4f76408045e7a755466b83c01e6e.jpg/v1/fill/w_1200,h_1760,fp_0.50_0.50,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/4dea4f76408045e7a755466b83c01e6e.jpg"
+  },
+  {
+    "id": "little-axolotl-club",
+    "camp_name": "Little Axolotl Club",
+    "image_url": "https://dewey.tailorbrands.com/production/sitcom_entity_jpg/491/4853491_02d5ada3-889d-4409-aff5-a617a011b666.jpg"
+  },
+  {
+    "id": "math-camp-at-sb-family-school",
+    "camp_name": "Math Camp at SB Family School",
+    "image_url": "https://sbfamilyschool.com/images/groupaftershow.jpg"
+  },
+  {
+    "id": "camp-improv",
+    "camp_name": "Camp Improv",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/615e7572a8a2e30d56b8758f/d2d8877f-b36d-4562-9d3b-2c5c7227e4eb/IMG_8405.PNG"
+  },
+  {
+    "id": "hearts-landing-ranch-horseback",
+    "camp_name": "Hearts Landing Ranch Horseback",
+    "image_url": "https://www.heartslandingranch.com/uploads/1/1/9/9/119980639/editor/buttons-1200-x-1080-px.png"
+  },
+  {
+    "id": "adventure-lab-crane",
+    "camp_name": "Adventure Lab @ Crane",
+    "image_url": "https://resources.finalsite.net/images/f_auto,q_auto/v1709360450/craneschoolorg/hoc6dxv3plfmvnnfa7c8/WebsiteHome-Values1440x1024.png"
+  },
+  {
+    "id": "cliff-drive-care-center-summer-camp",
+    "camp_name": "Cliff Drive Care Center Summer Camp",
+    "image_url": "https://images.squarespace-cdn.com/content/v1/54fc7930e4b0433313325ff9/b70e4573-9751-486a-9dd7-ca6632aed808/CDCC+Website+Banners+%2817%29.jpg?format=1500w"
+  },
+  {
+    "id": "code-next-connect-google-",
+    "camp_name": "Code Next Connect (Google)",
+    "image_url": "https://lh3.googleusercontent.com/L295Icjdl9Jrq6v-jECACKKEAi8WC1X55aUGxmUNiQ_SYA5xIKQidAOvfDIhpXBrmys-1epswb-leBB3HWYXHOhLprgDreV5_bXrnJ60ZZV0CHhwotE=h720"
+  },
+  {
+    "id": "elings-park-theater-camp",
+    "camp_name": "Elings Park Theater Camp",
+    "image_url": "https://elingspark.org/wp-content/uploads/2026/01/WEB-BMX.png"
+  },
+  {
+    "id": "grant-house-sewing-camp",
+    "camp_name": "Grant House Sewing Camp",
+    "image_url": "https://media.rainpos.com/4929/ss_4929_6610704_17.png"
+  },
+  {
+    "id": "gustafson-dance-camps",
+    "camp_name": "Gustafson Dance Camps",
+    "image_url": "https://ssb-academy.com/wp-content/uploads/2021/12/classes-and-camps.jpg"
   }
 ]

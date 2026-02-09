@@ -1061,9 +1061,9 @@ body::before {
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 6px 24px 6px 0;
-  mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
+  padding: 6px 36px 6px 0;
+  mask-image: linear-gradient(to right, black 0, black calc(100% - 36px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 36px), transparent 100%);
 }
 
 .filter-presets::-webkit-scrollbar {
@@ -1227,6 +1227,17 @@ body::before {
 
 .filter-clear-btn:hover {
   text-decoration: underline;
+}
+
+/* Tablet: condense controls to give chips more room */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .filter-control-btn span:not(.filter-count) {
+    display: none;
+  }
+
+  .filter-control-btn {
+    padding: 8px 12px;
+  }
 }
 
 /* Mobile filter bar */

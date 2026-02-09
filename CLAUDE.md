@@ -489,3 +489,15 @@ Current data quality (as of Jan 2026):
 Target for next scrape:
 - **Average Score**: 80%+
 - **60+ Score**: 40/46 camps (87%)
+
+---
+
+## File Ownership (parallel work)
+- `src/` — frontend components, splittable by feature
+- `backend/` — API/server, independent from frontend
+- `supabase/` — database config, independent
+- `data/` — data files, read carefully before editing
+- `scripts/` — utility scripts, independent
+- `tests/`, `e2e/` — test files, each spec is independent
+- `docs/` — documentation, independent
+- `public/` — static assets, independent

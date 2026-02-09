@@ -24,20 +24,17 @@ test.describe('Filter Bar Progressive Disclosure', () => {
     await expect(artFilter).toBeVisible();
   });
 
-  test('medium screen (1100px) shows priority filters + Filters button', async ({ page }) => {
+  test('medium screen (1100px) shows all filter chips + Filters button', async ({ page }) => {
     await page.setViewportSize({ width: 1100, height: 800 });
     await page.goto('/');
     await page.waitForSelector('.filter-bar-section', { timeout: 15000 });
     await page.waitForTimeout(500);
 
-    // Priority filters visible
+    // All filter chips visible (no more priority/overflow distinction)
     await expect(page.locator('.filter-preset-link[data-filter="extended-care"]')).toBeVisible();
     await expect(page.locator('.filter-preset-link[data-filter="under-300"]')).toBeVisible();
     await expect(page.locator('.filter-preset-link[data-filter="sports"]')).toBeVisible();
-
-    // Overflow filters hidden at this width
-    const artFilter = page.locator('.filter-preset-link.overflow[data-filter="art"]');
-    await expect(artFilter).not.toBeVisible();
+    await expect(page.locator('.filter-preset-link[data-filter="art"]')).toBeVisible();
 
     // Filters button visible (opens AdvancedFilters panel)
     const filtersBtn = page.locator('.filter-control-btn').first();
