@@ -47,7 +47,7 @@
   {
     "id": "gusd-summer-thrive",
     "camp_name": "GUSD Summer Thrive",
-    "image_url": "https://lh3.googleusercontent.com/sitesv/APaQ0SQM2I_8vMB7tvGfWjh7YTvIgj5vHDB3svrJVliluSF7_ZSi3wxSawnTHRL7SwJgsGNGwqEqfXv9n9y-jI54a4jdoihTHpWB4piXSv179pb-SR43t6-Ol0Vo8K_qtfmxg2ymhiSsikCSSZKrmmG1FdkajZpj11s4sJEic6p1i0VTEOELIpZhRKu9ABeB7RJId3NDTgj6hAAMeu9WgQrqWHqNYlwZp1okF__WWMg=w16383"
+    "image_url": "https://www.gusd.us/files/images/silder-images/slider-iv.jpeg?mask=1"
   },
   {
     "id": "ice-in-paradise",
@@ -142,7 +142,7 @@
   {
     "id": "surf-happens",
     "camp_name": "Surf Happens",
-    "image_url": "https://surfhappens.com/wp-content/uploads/2021/08/Santa-Barbara-Surf-Lessons-1.jpg"
+    "image_url": "https://cdn.filestackcontent.com/AEncGMSKQ8O7Y9ymnhBRAz/resize=width:1200/auto_image/kV2tEhAiSaW4zsMGAjzB"
   },
   {
     "id": "terrific-scientific",
@@ -157,7 +157,7 @@
   {
     "id": "wilderness-youth-project",
     "camp_name": "Wilderness Youth Project",
-    "image_url": "https://wyp.org/wp-content/uploads/2024/02/hero-home-scaled406.jpg"
+    "image_url": "https://www.independent.com/wp-content/uploads/2023/03/WildernessYouthProject4.-Courtesy-of-WYP.jpeg"
   },
   {
     "id": "ymca-summer-camp",
@@ -187,12 +187,12 @@
   {
     "id": "nature-rangers",
     "camp_name": "Nature Rangers",
-    "image_url": "https://naturerangers.org/wp-content/uploads/2024/05/IMG_6153-scaled.jpeg"
+    "image_url": "https://www.independent.com/wp-content/uploads/2023/03/Nature-Rangers-Nature-Rangers-Wilderness-Programs.Courtesyjpeg.jpeg"
   },
   {
     "id": "ensemble-theatre-company",
     "camp_name": "Ensemble Theatre Company",
-    "image_url": "https://etcsb.org/wp-content/uploads/2025/01/YAC2024PageHeader.jpg"
+    "image_url": "https://www.santabarbara.com/community/performing-arts/ensemble-theatre-company/1.jpg"
   },
   {
     "id": "camp-stow",
@@ -252,7 +252,7 @@
   {
     "id": "camp-wild-things",
     "camp_name": "Camp Wild Things",
-    "image_url": "https://lh3.googleusercontent.com/sitesv/APaQ0SRpzsxErxot3fc-Zqlsb6c2_YRUheiPyCvfykt0zFDJ2TWVedIMcrZ14G6_QNjitmaVQtkWXVg8SdImKW8Tyn35LeX8mQcoy8AIqqj61hZpikWv4pPBP84o14r7RzlwKd4KOongR72DLw0J_stk_j7cfmK93GaUc6tjPkkAr64hlWtRXTJM7egJGohh8mBBheOaDY4Nt4zVdKBPOCasWHNHCxH98mIjt1oLBUk=w1280"
+    "image_url": "https://images.squarespace-cdn.com/content/v1/63a60137f9b4e8787675dd90/d11b2ada-f798-42d4-977a-4d71c429cc31/523346141_793932529982624_7655505279782112501_n.jpg"
   },
   {
     "id": "chocolate-art-camp",
@@ -307,7 +307,7 @@
   {
     "id": "ocean-explorers-summer-camp",
     "camp_name": "Ocean Explorers Summer Camp",
-    "image_url": "https://oceanexplorerscamp.com/wp-content/uploads/2023/12/OEC-Banner-snorkeling.jpg"
+    "image_url": "https://sbparksandrec.santabarbaraca.gov/sites/default/files/2026-01/Ocean%20Explorers%20Camps%20Page%20Select.jpg"
   },
   {
     "id": "jams-rock-camp",
@@ -362,7 +362,7 @@
   {
     "id": "little-axolotl-club",
     "camp_name": "Little Axolotl Club",
-    "image_url": "https://dewey.tailorbrands.com/production/sitcom_entity_jpg/491/4853491_02d5ada3-889d-4409-aff5-a617a011b666.jpg"
+    "image_url": "https://irp.cdn-website.com/bb1524e9/dms3rep/multi/4853492_7b20d501-e239-442c-9d3e-789d2a62c9ef-534f7a5a-6c2e9eca.jpg"
   },
   {
     "id": "math-camp-at-sb-family-school",
@@ -408,5 +408,10 @@
     "id": "gustafson-dance-camps",
     "camp_name": "Gustafson Dance Camps",
     "image_url": "https://ssb-academy.com/wp-content/uploads/2021/12/classes-and-camps.jpg"
+  },
+  {
+    "id": "inspire-dance-camps",
+    "camp_name": "Inspire Dance Camps",
+    "image_url": "https://img.grouponcdn.com/deal/QL7rKgapx1MZ96huKHNnY1JVoq9/QL-700x420/v1/t700x420.jpg"
   }
 ]
