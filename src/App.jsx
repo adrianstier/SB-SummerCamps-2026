@@ -149,7 +149,7 @@ const LoadingSpinner = memo(function LoadingSpinner({ className = "w-5 h-5" }) {
 });
 
 const AppLogo = ({ className = "w-8 h-8" }) => (
-  <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <circle cx="16" cy="11" r="5" fill="#f9cf45" />
     <path d="M16 3v3M16 14v3M9 11H6M26 11h-3M10.5 5.5l2 2M19.5 7.5l2-2M10.5 16.5l2-2M19.5 14.5l2 2" stroke="#f9cf45" strokeWidth="1.5" strokeLinecap="round" />
     <path d="M3 24c3-3 6-1 9 1s6 3 9 1 6-3 9-1" stroke="#3ba8a8" strokeWidth="2.5" strokeLinecap="round" />
@@ -351,9 +351,11 @@ export default function App() {
               {searchInput && searchInput !== (filters.search || '') && (<div className="absolute right-14 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--sand-500)' }}>Searching...</div>)}
             </div>
 
-            {searchResultCount !== null && filters.search && (
-              <p className="text-center text-sm mb-4" style={{ color: 'var(--earth-700)' }}>Found <strong>{searchResultCount}</strong> {searchResultCount === 1 ? 'camp' : 'camps'} matching "{filters.search}"</p>
-            )}
+            <div aria-live="polite" aria-atomic="true">
+              {searchResultCount !== null && filters.search && (
+                <p className="text-center text-sm mb-4" style={{ color: 'var(--earth-700)' }}>Found <strong>{searchResultCount}</strong> {searchResultCount === 1 ? 'camp' : 'camps'} matching "{filters.search}"</p>
+              )}
+            </div>
 
             {stats && (
               <div className="hero-stats animate-fade-up flex flex-wrap justify-center gap-6 text-sm" style={{ '--fade-delay': '300ms', color: 'var(--earth-700)' }}>
@@ -365,8 +367,8 @@ export default function App() {
             )}
           </div>
         </div>
-        <div className="wave-decoration">
-          <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <div className="wave-decoration" aria-hidden="true">
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
             <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="wave-fill"></path>
           </svg>
         </div>
@@ -463,38 +465,37 @@ export default function App() {
         </section>
       )}
 
-      {/* Category Browse Grid */}
-      {!loading && camps.length > 0 && activeFilterCount === 0 && (
-        <section className="category-browse">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <h2 className="category-browse-title">Browse by Interest</h2>
-            <div className="category-browse-grid">
-              {categoryIcons.map(({ name, icon }) => {
-                const count = stats?.categories?.[name] || 0;
-                if (count === 0) return null;
-                return (
-                  <button key={name} onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes(name) ? cats.filter(c => c !== name) : [...cats, name] }); }} className={`category-browse-card ${categoryClasses[name] || ''} ${filters.categories?.includes(name) ? 'active' : ''}`} data-category={name}>
-                    <span className="category-browse-icon"><BrandIcon name={icon} size={28} /></span>
-                    <span className="category-browse-name">{name}</span>
-                    <span className="category-browse-count">{count} {count === 1 ? 'camp' : 'camps'}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Testimonial Banner */}
-      {!loading && camps.length > 0 && activeFilterCount === 0 && (
-        <section className="testimonial-banner">
-          <p className="testimonial-quote">"Found the right STEM camp for my 10-year-old in under 5 minutes."</p>
-          <p className="testimonial-author">-- Sarah M., Goleta</p>
-        </section>
-      )}
-
       {/* Main Content */}
       <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        {/* Category Browse Grid */}
+        {!loading && camps.length > 0 && activeFilterCount === 0 && (
+          <section className="category-browse">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6">
+              <h2 className="category-browse-title">Browse by Interest</h2>
+              <div className="category-browse-grid">
+                {categoryIcons.map(({ name, icon }) => {
+                  const count = stats?.categories?.[name] || 0;
+                  if (count === 0) return null;
+                  return (
+                    <button key={name} onClick={() => { const cats = filters.categories || []; updateFilters({ ...filters, categories: cats.includes(name) ? cats.filter(c => c !== name) : [...cats, name] }); }} className={`category-browse-card ${categoryClasses[name] || ''} ${filters.categories?.includes(name) ? 'active' : ''}`} data-category={name}>
+                      <span className="category-browse-icon"><BrandIcon name={icon} size={28} /></span>
+                      <span className="category-browse-name">{name}</span>
+                      <span className="category-browse-count">{count} {count === 1 ? 'camp' : 'camps'}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Testimonial Banner */}
+        {!loading && camps.length > 0 && activeFilterCount === 0 && (
+          <section className="testimonial-banner">
+            <p className="testimonial-quote">"Found the right STEM camp for my 10-year-old in under 5 minutes."</p>
+            <p className="testimonial-author">-- Sarah M., Goleta</p>
+          </section>
+        )}
         <div aria-live="polite" aria-atomic="true">
           {!loading && filteredCamps.length > 0 && (
             <p className="results-count">
@@ -640,7 +641,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
 
   return (
     <article id={`camp-${camp.id}`} ref={cardRef} className={`camp-card scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`} style={{ '--stagger-index': index % 12, '--card-accent': categoryGradient, ...(isComparing ? { ringColor: 'var(--ocean-500)' } : {}) }}>
-      <div className="camp-card-button" role="button" tabIndex={0} onClick={onToggle} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }} aria-label={`View details for ${camp.camp_name}`}>
+      <div className="camp-card-button" onClick={onToggle}>
         {camp.image_url && !imageError ? (
           <div className="camp-card-image"><img src={camp.image_url} alt={camp.camp_name} loading="lazy" decoding="async" onError={() => setImageError(true)} /><div className="camp-card-image-overlay" style={{ background: categoryGradient }}></div></div>
         ) : (
@@ -648,7 +649,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
         )}
         <div className="p-6">
           <div className="flex items-start justify-between gap-2 mb-4">
-            <h3 className="font-serif text-xl font-heading leading-tight flex-1" style={{ color: 'var(--earth-800)' }}>{camp.camp_name}</h3>
+            <h3 className="font-serif text-xl font-heading leading-tight flex-1" style={{ color: 'var(--earth-800)' }}><button type="button" className="text-left hover:underline focus:underline focus:outline-none" onClick={(e) => { e.stopPropagation(); onToggle(); }} aria-label={`View details for ${camp.camp_name}`}>{camp.camp_name}</button></h3>
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
               <button onClick={(e) => { e.stopPropagation(); onToggleCompare?.(); }} className={`min-w-[44px] min-h-[44px] p-2 rounded-full transition-colors flex items-center justify-center ${isComparing ? '' : 'hover:bg-sand-100'}`} style={{ color: isComparing ? 'var(--ocean-600)' : 'var(--sand-400)', background: isComparing ? 'var(--ocean-100)' : 'transparent' }} title={isComparing ? 'Remove from compare' : 'Add to compare'} aria-label={isComparing ? 'Remove from compare' : 'Add to compare'} aria-pressed={isComparing}>
                 <svg className="w-5 h-5" fill={isComparing ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
