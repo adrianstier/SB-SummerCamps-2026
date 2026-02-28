@@ -1,32 +1,112 @@
-import { memo, useState } from 'react';
+import { memo, useState, useMemo } from 'react';
 import BrandIcon from '../BrandIcon';
-import { BLOCK_COLORS, BLOCK_ICONS, XIcon } from './utils';
+import { BLOCK_COLORS, BLOCK_ICONS, XIcon, generateGroupId } from './utils';
 
-const BlockedWeekManager = memo(function BlockedWeekManager({ weekNum, editExisting, summerWeeks, onSave, onClose }) {
-  const week = summerWeeks.find(w => w.weekNum === weekNum);
+// Parse date string as local time to avoid timezone shifts
+function parseLocal(s) {
+  if (!s) return null;
+  const [y, m, d] = s.split('T')[0].split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+const BlockedWeekManager = memo(function BlockedWeekManager({
+  weekNum,
+  editExisting,
+  summerWeeks,
+  blockedWeeks,       // Current child's blocked weeks object { [weekNum]: block }
+  scheduledCamps,     // Camps scheduled for current child (to disable occupied weeks)
+  initialWeekNums,    // Array of week nums when editing a grouped block
+  onSave,
+  onClose
+}) {
   const [label, setLabel] = useState(editExisting?.label || '');
   const [note, setNote] = useState(editExisting?.note || '');
   const [selectedColor, setSelectedColor] = useState(editExisting?.color || BLOCK_COLORS[0].color);
   const [selectedIcon, setSelectedIcon] = useState(editExisting?.icon || 'beach-surf');
+  const [selectedWeeks, setSelectedWeeks] = useState(() =>
+    initialWeekNums?.length ? [...initialWeekNums].sort((a, b) => a - b) : [weekNum]
+  );
+
+  // Determine which weeks are available (no camps, no other blocks)
+  const weekAvailability = useMemo(() => {
+    const editingGroupId = editExisting?.groupId;
+    return summerWeeks.map(w => {
+      const block = blockedWeeks?.[w.weekNum];
+      const hasCamps = scheduledCamps?.some(sc => {
+        const scStart = parseLocal(sc.start_date);
+        const scEnd = sc.end_date ? parseLocal(sc.end_date) : scStart;
+        const wStart = parseLocal(w.startDate);
+        const wEnd = parseLocal(w.endDate);
+        if (!scStart || !wStart || !wEnd) return false;
+        wEnd.setHours(23, 59, 59);
+        if (scEnd) scEnd.setHours(23, 59, 59);
+        // True overlap: camp starts before week ends AND camp ends after week starts
+        return scStart <= wEnd && (scEnd || scStart) >= wStart;
+      });
+      // Available if: no camps AND (no block OR block is part of the group we're editing)
+      const isOccupiedByOtherBlock = block && (!editingGroupId || block.groupId !== editingGroupId);
+      return {
+        weekNum: w.weekNum,
+        display: w.display,
+        available: !hasCamps && !isOccupiedByOtherBlock,
+        isSelected: selectedWeeks.includes(w.weekNum),
+        hasCamps,
+      };
+    });
+  }, [summerWeeks, blockedWeeks, scheduledCamps, editExisting?.groupId, selectedWeeks]);
+
+  function handleWeekToggle(wNum) {
+    setSelectedWeeks(prev => {
+      if (prev.includes(wNum)) {
+        // Can't deselect the last week
+        if (prev.length <= 1) return prev;
+        const next = prev.filter(n => n !== wNum);
+        // Ensure remaining weeks are consecutive
+        next.sort((a, b) => a - b);
+        for (let i = 1; i < next.length; i++) {
+          if (next[i] !== next[i - 1] + 1) {
+            // Removing this week would create a gap — don't allow
+            return prev;
+          }
+        }
+        return next;
+      } else {
+        const next = [...prev, wNum].sort((a, b) => a - b);
+        // Ensure consecutive
+        for (let i = 1; i < next.length; i++) {
+          if (next[i] !== next[i - 1] + 1) return prev;
+        }
+        return next;
+      }
+    });
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!label.trim()) return;
 
-    onSave(weekNum, {
+    const groupId = editExisting?.groupId || generateGroupId();
+    onSave(selectedWeeks, {
       id: 'custom',
       label: label.trim(),
       note: note.trim() || undefined,
       icon: selectedIcon,
-      color: selectedColor
+      color: selectedColor,
+      groupId,
     });
   };
+
+  const firstWeek = summerWeeks.find(w => w.weekNum === selectedWeeks[0]);
+  const lastWeek = summerWeeks.find(w => w.weekNum === selectedWeeks[selectedWeeks.length - 1]);
+  const weekRangeLabel = selectedWeeks.length === 1
+    ? `Week ${selectedWeeks[0]}`
+    : `Weeks ${selectedWeeks[0]}-${selectedWeeks[selectedWeeks.length - 1]}`;
 
   return (
     <div className="custom-block-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={editExisting ? 'Edit blocked week' : 'Block this week'}>
       <div className="custom-block-modal" onClick={(e) => e.stopPropagation()}>
         <div className="custom-block-header">
-          <h3>{editExisting ? 'Edit Block' : 'Block This Week'}</h3>
+          <h3>{editExisting ? 'Edit Block' : 'Block Weeks'}</h3>
           <button onClick={onClose} className="custom-block-close" aria-label="Close">
             <XIcon />
           </button>
@@ -34,13 +114,39 @@ const BlockedWeekManager = memo(function BlockedWeekManager({ weekNum, editExist
 
         <div className="custom-block-week-info">
           <span className="custom-block-week-dates">
-            {week ? `Week ${weekNum}: ${new Date(week.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(week.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : `Week ${weekNum}`}
+            {firstWeek && lastWeek
+              ? `${weekRangeLabel}: ${firstWeek.display.split(' - ')[0]} - ${lastWeek.display.split(' - ')[1]}`
+              : weekRangeLabel}
           </span>
+        </div>
+
+        {/* Week Range Picker */}
+        <div className="custom-block-field">
+          <label>Select weeks</label>
+          <div className="custom-block-week-picker">
+            {weekAvailability.map(w => (
+              <button
+                key={w.weekNum}
+                type="button"
+                disabled={!w.available && !w.isSelected}
+                className={`week-picker-chip ${w.isSelected ? 'selected' : ''} ${!w.available && !w.isSelected ? 'disabled' : ''}`}
+                onClick={() => (w.available || w.isSelected) && handleWeekToggle(w.weekNum)}
+                title={w.hasCamps ? 'Has camps scheduled' : !w.available ? 'Already blocked' : w.display}
+                style={w.isSelected ? { '--chip-color': selectedColor } : undefined}
+              >
+                <span className="week-picker-num">{w.weekNum}</span>
+                <span className="week-picker-dates">{w.display.split(' - ')[0]}</span>
+              </button>
+            ))}
+          </div>
+          {selectedWeeks.length > 1 && (
+            <span className="custom-block-week-hint">{selectedWeeks.length} weeks selected</span>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="custom-block-form">
           <div className="custom-block-field">
-            <label htmlFor="block-label">What's happening this week?</label>
+            <label htmlFor="block-label">What's happening?</label>
             <input
               id="block-label"
               type="text"
@@ -111,6 +217,9 @@ const BlockedWeekManager = memo(function BlockedWeekManager({ weekNum, editExist
             <div className="custom-block-preview-card" style={{ '--block-color': selectedColor }}>
               <span className="preview-icon"><BrandIcon name={selectedIcon} size={16} /></span>
               <span className="preview-label">{label || 'Your event'}</span>
+              {selectedWeeks.length > 1 && (
+                <span className="preview-weeks">{selectedWeeks.length} weeks</span>
+              )}
             </div>
           </div>
 
@@ -119,7 +228,7 @@ const BlockedWeekManager = memo(function BlockedWeekManager({ weekNum, editExist
               Cancel
             </button>
             <button type="submit" disabled={!label.trim()} className="custom-block-save">
-              {editExisting ? 'Save Changes' : 'Block Week'}
+              {editExisting ? 'Save Changes' : `Block ${selectedWeeks.length === 1 ? 'Week' : `${selectedWeeks.length} Weeks`}`}
             </button>
           </div>
         </form>

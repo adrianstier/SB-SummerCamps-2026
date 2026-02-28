@@ -21,7 +21,7 @@ import WeekSelector from './schedule/WeekSelector';
 import BlockedWeekManager from './schedule/BlockedWeekManager';
 import {
   summerWeeks, TOTAL_SUMMER_WEEKS, CATEGORY_COLORS, CONFLICT_TYPES,
-  BLOCK_COLORS, BLOCK_ICONS,
+  BLOCK_COLORS, BLOCK_ICONS, generateGroupId,
   formatWorkTime,
   ArrowLeftIcon, XIcon, PlusIcon, DownloadIcon, CalendarExportIcon,
   SearchIcon, ChevronLeftIcon, ChevronRightIcon, GripIcon, DragIcon,
@@ -84,6 +84,7 @@ export function SchedulePlanner({ camps, onClose }) {
   const [showSessionPicker, setShowSessionPicker] = useState(null); // { camp, weekNum }
   const [movingCamp, setMovingCamp] = useState(null); // For drag between weeks
   const [moveMenuCamp, setMoveMenuCamp] = useState(null); // For keyboard-accessible move menu { id, currentWeek }
+  const [draggingBlock, setDraggingBlock] = useState(null); // For dragging blocked weeks { weekNum, block, groupWeeks }
 
   // Touch drag state for mobile
   const [touchDragState, setTouchDragState] = useState(null);
@@ -261,6 +262,38 @@ export function SchedulePlanner({ camps, onClose }) {
 
   // Get current child's schedule
   const currentChildSchedule = selectedChild ? scheduleByChildAndWeek[selectedChild] || {} : {};
+
+  // Compute group positions for connected block styling
+  const blockGroupPositions = useMemo(() => {
+    if (!selectedChild) return {};
+    const childBlocks = blockedWeeks[selectedChild] || {};
+    const positions = {};
+
+    // Group blocks by groupId
+    const groups = {};
+    Object.entries(childBlocks).forEach(([wn, block]) => {
+      const gid = block.groupId;
+      if (gid) {
+        if (!groups[gid]) groups[gid] = [];
+        groups[gid].push(Number(wn));
+      }
+    });
+
+    Object.entries(childBlocks).forEach(([wn, block]) => {
+      const weekNum = Number(wn);
+      const gid = block.groupId;
+      if (!gid || !groups[gid] || groups[gid].length <= 1) {
+        positions[weekNum] = 'solo';
+      } else {
+        const sorted = [...groups[gid]].sort((a, b) => a - b);
+        if (weekNum === sorted[0]) positions[weekNum] = 'start';
+        else if (weekNum === sorted[sorted.length - 1]) positions[weekNum] = 'end';
+        else positions[weekNum] = 'middle';
+      }
+    });
+
+    return positions;
+  }, [selectedChild, blockedWeeks]);
 
   // Calculate week-by-week cost breakdown
   const weekCostBreakdown = useMemo(() => {
@@ -591,51 +624,140 @@ export function SchedulePlanner({ camps, onClose }) {
   // Block week functions
   function handleBlockWeek(weekNum, blockType) {
     if (!selectedChild) return;
-
-    // If it's the custom type, open the custom block modal
-    if (blockType.isCustom) {
-      setShowBlockMenu(null);
-      setShowCustomBlockModal({ weekNum });
-      return;
-    }
-
-    setBlockedWeeks(prev => ({
-      ...prev,
-      [selectedChild]: {
-        ...(prev[selectedChild] || {}),
-        [weekNum]: blockType
-      }
-    }));
     setShowBlockMenu(null);
+
+    // All block types go through the modal so users can pick week range
+    if (blockType.isCustom) {
+      setShowCustomBlockModal({ weekNum });
+    } else {
+      // Pre-fill the modal with the selected type
+      setShowCustomBlockModal({
+        weekNum,
+        editExisting: {
+          ...blockType,
+          groupId: generateGroupId(),
+        },
+      });
+    }
   }
 
-  function handleSaveCustomBlock(weekNum, customBlock) {
+  function handleSaveCustomBlock(weekNums, customBlock) {
     if (!selectedChild) return;
-    setBlockedWeeks(prev => ({
-      ...prev,
-      [selectedChild]: {
-        ...(prev[selectedChild] || {}),
-        [weekNum]: customBlock
+
+    setBlockedWeeks(prev => {
+      const childBlocks = { ...(prev[selectedChild] || {}) };
+
+      // If editing, remove old group weeks first
+      if (customBlock.groupId) {
+        Object.keys(childBlocks).forEach(wn => {
+          if (childBlocks[wn]?.groupId === customBlock.groupId) {
+            delete childBlocks[wn];
+          }
+        });
       }
-    }));
+
+      // Apply block to all selected weeks
+      weekNums.forEach(wn => {
+        childBlocks[wn] = { ...customBlock };
+      });
+
+      return { ...prev, [selectedChild]: childBlocks };
+    });
     setShowCustomBlockModal(null);
   }
 
   function handleEditBlock(weekNum) {
     if (!selectedChild) return;
     const existingBlock = blockedWeeks[selectedChild]?.[weekNum];
-    if (existingBlock) {
-      setShowCustomBlockModal({ weekNum, editExisting: existingBlock });
+    if (!existingBlock) return;
+
+    // Assign groupId to legacy blocks so the editor can track them
+    let blockToEdit = existingBlock;
+    if (!existingBlock.groupId) {
+      blockToEdit = { ...existingBlock, groupId: generateGroupId() };
+      setBlockedWeeks(prev => ({
+        ...prev,
+        [selectedChild]: { ...(prev[selectedChild] || {}), [weekNum]: blockToEdit }
+      }));
     }
+
+    // Find all weeks in this group
+    const groupId = blockToEdit.groupId;
+    const groupWeekNums = Object.keys(blockedWeeks[selectedChild] || {})
+      .filter(wn => blockedWeeks[selectedChild][wn]?.groupId === groupId)
+      .map(Number)
+      .sort((a, b) => a - b);
+
+    // For legacy blocks that just got a groupId, the filter above won't find them yet
+    if (groupWeekNums.length === 0) groupWeekNums.push(weekNum);
+
+    setShowCustomBlockModal({
+      weekNum,
+      editExisting: blockToEdit,
+      initialWeekNums: groupWeekNums,
+    });
   }
 
   function handleUnblockWeek(weekNum) {
     if (!selectedChild) return;
-    setBlockedWeeks(prev => {
-      const childBlocks = { ...(prev[selectedChild] || {}) };
-      delete childBlocks[weekNum];
-      return { ...prev, [selectedChild]: childBlocks };
-    });
+    const block = blockedWeeks[selectedChild]?.[weekNum];
+    const groupId = block?.groupId;
+
+    // Count weeks in this group
+    const groupWeekCount = groupId
+      ? Object.values(blockedWeeks[selectedChild] || {}).filter(b => b?.groupId === groupId).length
+      : 1;
+
+    const doRemove = () => {
+      setBlockedWeeks(prev => {
+        const childBlocks = { ...(prev[selectedChild] || {}) };
+        if (groupId) {
+          Object.keys(childBlocks).forEach(wn => {
+            if (childBlocks[wn]?.groupId === groupId) {
+              delete childBlocks[wn];
+            }
+          });
+        } else {
+          delete childBlocks[weekNum];
+        }
+        return { ...prev, [selectedChild]: childBlocks };
+      });
+    };
+
+    // Confirm before removing multi-week blocks
+    if (groupWeekCount > 1) {
+      setConfirmAction({
+        message: `Remove all ${groupWeekCount} weeks of "${block.label}"?`,
+        onConfirm: doRemove,
+      });
+    } else {
+      doRemove();
+    }
+  }
+
+  // Block drag-and-drop handlers
+  function handleBlockDragStart(weekNum, e) {
+    if (!selectedChild) return;
+    const block = blockedWeeks[selectedChild]?.[weekNum];
+    if (!block) return;
+
+    // Find all weeks in this group
+    const groupId = block.groupId;
+    const groupWeeks = groupId
+      ? Object.keys(blockedWeeks[selectedChild] || {})
+          .filter(wn => blockedWeeks[selectedChild][wn]?.groupId === groupId)
+          .map(Number)
+          .sort((a, b) => a - b)
+      : [weekNum];
+
+    e.dataTransfer.setData('blockWeekNum', String(weekNum));
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggingBlock({ weekNum, block, groupWeeks });
+  }
+
+  function handleBlockDragEnd() {
+    setDraggingBlock(null);
+    setDragOverWeek(null);
   }
 
   function getBlockedWeek(weekNum) {
@@ -921,8 +1043,11 @@ export function SchedulePlanner({ camps, onClose }) {
 
   function handleTouchEnd(e) {
     if (touchDragState && dragOverWeek) {
-      // Drop the camp on the target week
-      handleAddCamp(touchDragState.camp, dragOverWeek);
+      // Don't drop on blocked weeks
+      const isTargetBlocked = !!(selectedChild && blockedWeeks[selectedChild]?.[dragOverWeek]);
+      if (!isTargetBlocked) {
+        handleAddCamp(touchDragState.camp, dragOverWeek);
+      }
     }
 
     touchStartRef.current = null;
@@ -964,6 +1089,63 @@ export function SchedulePlanner({ camps, onClose }) {
       setDragOverWeek(null);
       setDraggedCamp(null);
       setMovingCamp(null);
+      setDraggingBlock(null);
+      return;
+    }
+
+    // Check if we're moving a block
+    const blockWeekNum = e.dataTransfer.getData('blockWeekNum');
+    if (blockWeekNum) {
+      if (!draggingBlock) {
+        // State lost — clean up lingering UI state
+        setDragOverWeek(null);
+        return;
+      }
+      const { groupWeeks, block } = draggingBlock;
+      const draggedWeek = Number(blockWeekNum);
+      const offset = weekNum - draggedWeek;
+
+      if (offset === 0) {
+        setDraggingBlock(null);
+        setDragOverWeek(null);
+        return;
+      }
+
+      // Calculate new week positions
+      const newWeeks = groupWeeks.map(w => w + offset);
+
+      // Validate: all new weeks must be valid and empty (no camps, no other blocks)
+      const childBlocks = blockedWeeks[selectedChild] || {};
+      const valid = newWeeks.every(nw => {
+        if (nw < 1 || nw > TOTAL_SUMMER_WEEKS) return false;
+        const existingBlock = childBlocks[nw];
+        // Allow if it's part of the same group being moved
+        if (existingBlock && existingBlock.groupId === block.groupId) return true;
+        if (existingBlock) return false;
+        // Check for scheduled camps
+        const weekCamps = currentChildSchedule[nw] || [];
+        return weekCamps.length === 0;
+      });
+
+      if (!valid) {
+        showStatus('Can\'t move here — some weeks are occupied.');
+        setDraggingBlock(null);
+        setDragOverWeek(null);
+        return;
+      }
+
+      // Move the block group
+      setBlockedWeeks(prev => {
+        const cb = { ...(prev[selectedChild] || {}) };
+        // Remove old positions
+        groupWeeks.forEach(w => delete cb[w]);
+        // Set new positions
+        newWeeks.forEach(w => { cb[w] = { ...block }; });
+        return { ...prev, [selectedChild]: cb };
+      });
+
+      setDraggingBlock(null);
+      setDragOverWeek(null);
       return;
     }
 
@@ -990,7 +1172,11 @@ export function SchedulePlanner({ camps, onClose }) {
   }
 
   const totalCost = getTotalCost();
-  const gaps = selectedChild ? getCoverageGaps(selectedChild, summerWeeks) : [];
+  const gaps = selectedChild
+    ? getCoverageGaps(selectedChild, summerWeeks).filter(
+        week => !blockedWeeks[selectedChild]?.[week.weekNum]
+      )
+    : [];
   const selectedChildData = children.find(c => c.id === selectedChild);
 
   // Check if a camp is marked as "looking for friends"
@@ -1035,6 +1221,8 @@ export function SchedulePlanner({ camps, onClose }) {
         campLookup={campLookup}
         conflicts={conflicts}
         movingCamp={movingCamp}
+        draggingBlock={draggingBlock}
+        groupPosition={blockGroupPositions[week.weekNum] || null}
         selectedChildData={selectedChildData}
         isLookingForFriends={isLookingForFriends}
         hasSquads={hasSquads}
@@ -1048,6 +1236,8 @@ export function SchedulePlanner({ camps, onClose }) {
         onBlockWeek={handleBlockWeek}
         onEditBlock={handleEditBlock}
         onUnblockWeek={handleUnblockWeek}
+        onBlockDragStart={handleBlockDragStart}
+        onBlockDragEnd={handleBlockDragEnd}
         onStartMoveCamp={handleStartMoveCamp}
         onMoveCamp={handleMoveCamp}
         onRemoveCamp={handleRemoveCamp}
@@ -1098,7 +1288,10 @@ export function SchedulePlanner({ camps, onClose }) {
         <BlockedWeekManager
           weekNum={showCustomBlockModal.weekNum}
           editExisting={showCustomBlockModal.editExisting}
+          initialWeekNums={showCustomBlockModal.initialWeekNums}
           summerWeeks={summerWeeks}
+          blockedWeeks={blockedWeeks[selectedChild] || {}}
+          scheduledCamps={scheduledCamps.filter(sc => sc.child_id === selectedChild)}
           onSave={handleSaveCustomBlock}
           onClose={() => setShowCustomBlockModal(null)}
         />

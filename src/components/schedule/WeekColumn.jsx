@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import BrandIcon from '../BrandIcon';
 import CampSlot from './CampSlot';
-import { CATEGORY_COLORS, BLOCK_TYPES, XIcon, PlusIcon, WarningIcon, ClockIcon, summerWeeks } from './utils';
+import { CATEGORY_COLORS, BLOCK_TYPES, XIcon, PlusIcon, WarningIcon, ClockIcon, GripIcon, summerWeeks } from './utils';
 
 const WeekColumn = memo(function WeekColumn({
   week,
@@ -15,6 +15,8 @@ const WeekColumn = memo(function WeekColumn({
   campLookup,
   conflicts,
   movingCamp,
+  draggingBlock,
+  groupPosition,
   selectedChildData,
   isLookingForFriends,
   hasSquads,
@@ -28,6 +30,8 @@ const WeekColumn = memo(function WeekColumn({
   onBlockWeek,
   onEditBlock,
   onUnblockWeek,
+  onBlockDragStart,
+  onBlockDragEnd,
   onStartMoveCamp,
   onMoveCamp,
   onRemoveCamp,
@@ -55,11 +59,9 @@ const WeekColumn = memo(function WeekColumn({
   const hasWorkHoursCoverage = !workStart || !workEnd || weekCamps.length === 0 || weekCamps.some(sc => {
     const campInfo = campLookup.get(sc.camp_id);
     if (!campInfo) return false;
-    // Simple check: compare camp hours with work hours
     const campHoursStart = campInfo.drop_off || campInfo.hours?.split('-')[0]?.trim();
     const campHoursEnd = campInfo.pick_up || campInfo.hours?.split('-')[1]?.trim();
-    if (!campHoursStart || !campHoursEnd) return true; // No camp hours, can't determine - assume OK
-    // Normalize times to 24h for comparison
+    if (!campHoursStart || !campHoursEnd) return true;
     const normalizeTime = (t) => {
       if (!t) return null;
       const match = t.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
@@ -73,7 +75,6 @@ const WeekColumn = memo(function WeekColumn({
     };
     const normCampStart = normalizeTime(campHoursStart);
     const normCampEnd = normalizeTime(campHoursEnd);
-    // Camp should start at or before work starts and end at or after work ends
     return normCampStart && normCampEnd && normCampStart <= workStart && normCampEnd >= workEnd;
   });
   const showWorkHoursWarning = workStart && workEnd && weekCamps.length > 0 && !hasWorkHoursCoverage;
@@ -89,6 +90,9 @@ const WeekColumn = memo(function WeekColumn({
   );
   const hasConflict = weekConflicts.length > 0;
 
+  // Group position class for connected blocks (solo = normal single block, no special class)
+  const groupClass = blocked && groupPosition && groupPosition !== 'solo' ? `group-${groupPosition}` : '';
+
   // Build accessible label for the week
   const weekStatus = blocked
     ? `blocked for ${blocked.label}`
@@ -99,20 +103,25 @@ const WeekColumn = memo(function WeekColumn({
         : 'empty';
   const ariaLabel = `Week ${week.weekNum}, ${week.display}, ${weekStatus}. ${weekCamps.length === 0 && !blocked ? 'Press Enter to add a camp or block this week.' : ''}`;
 
+  // Allow drops on blocked weeks when dragging a block (to enable moving blocks)
+  const allowBlockDrop = !!draggingBlock;
+
   return (
     <div
       data-week-num={week.weekNum}
-      className={`week-card ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''} ${hasConflict ? 'has-conflict' : ''} ${movingCamp ? 'move-target' : ''} ${isCurrentWeek ? 'is-current-week' : ''} ${showWorkHoursWarning ? 'work-hours-warning' : ''}`}
+      className={`week-card ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''} ${groupClass} ${hasConflict ? 'has-conflict' : ''} ${movingCamp ? 'move-target' : ''} ${isCurrentWeek ? 'is-current-week' : ''} ${showWorkHoursWarning ? 'work-hours-warning' : ''} ${isDragOver && draggingBlock ? 'block-drag-over' : ''}`}
       style={blocked ? { '--block-color': blocked.color } : { '--child-color': selectedChildData?.color || 'var(--ocean-500)' }}
       role="button"
       tabIndex={0}
       aria-label={ariaLabel}
       onDragOver={(e) => {
         e.preventDefault();
-        if (!blocked) setDragOverWeek(week.weekNum);
+        if (!blocked || allowBlockDrop) setDragOverWeek(week.weekNum);
       }}
       onDragLeave={() => setDragOverWeek(null)}
-      onDrop={(e) => !blocked && onWeekDrop(week.weekNum, e)}
+      onDrop={(e) => {
+        if (!blocked || allowBlockDrop) onWeekDrop(week.weekNum, e);
+      }}
       onClick={() => {
         if (weekCamps.length === 0 && !blocked && !isBlockMenuOpen) {
           setShowBlockMenu({ weekNum: week.weekNum });
@@ -125,21 +134,18 @@ const WeekColumn = memo(function WeekColumn({
             setShowBlockMenu({ weekNum: week.weekNum });
           }
         }
-        // Arrow key navigation between weeks
         if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
           e.preventDefault();
           const prevWeekNum = week.weekNum - 1;
           if (prevWeekNum >= 1) {
-            const prevWeekCard = document.querySelector(`[data-week-num="${prevWeekNum}"]`);
-            prevWeekCard?.focus();
+            document.querySelector(`[data-week-num="${prevWeekNum}"]`)?.focus();
           }
         }
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
           e.preventDefault();
           const nextWeekNum = week.weekNum + 1;
           if (nextWeekNum <= summerWeeks.length) {
-            const nextWeekCard = document.querySelector(`[data-week-num="${nextWeekNum}"]`);
-            nextWeekCard?.focus();
+            document.querySelector(`[data-week-num="${nextWeekNum}"]`)?.focus();
           }
         }
       }}
@@ -183,6 +189,12 @@ const WeekColumn = memo(function WeekColumn({
           <div
             className="week-blocked"
             style={{ '--block-color': blocked.color }}
+            draggable
+            onDragStart={(e) => {
+              e.stopPropagation();
+              onBlockDragStart?.(week.weekNum, e);
+            }}
+            onDragEnd={() => onBlockDragEnd?.()}
             onClick={(e) => {
               e.stopPropagation();
               onEditBlock(week.weekNum);
@@ -198,6 +210,9 @@ const WeekColumn = memo(function WeekColumn({
             }}
             title={blocked.note ? `${blocked.label}: ${blocked.note}` : blocked.label}
           >
+            <span className="week-blocked-grip" aria-hidden="true" onClick={(e) => e.stopPropagation()}>
+              <GripIcon className="grip-icon-small" />
+            </span>
             <span className="week-blocked-icon"><BrandIcon name={blocked.icon} size={24} /></span>
             <span className="week-blocked-label">{blocked.label}</span>
             {blocked.note && (

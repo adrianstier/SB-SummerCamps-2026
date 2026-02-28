@@ -900,8 +900,12 @@ export const DEFAULT_SUMMER_START = '2026-06-08'; // First Monday after school e
 export function getSummerWeeks(schoolEndDate = DEFAULT_SCHOOL_END, schoolStartDate = DEFAULT_SCHOOL_START) {
   const weeks = [];
 
+  // Parse dates as local time to avoid timezone shifts
+  const parseLocal = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
   // Find the first Monday after school ends
-  const schoolEnd = new Date(schoolEndDate);
+  const schoolEnd = parseLocal(schoolEndDate);
   const summerStart = new Date(schoolEnd);
   summerStart.setDate(schoolEnd.getDate() + 1); // Day after school ends
 
@@ -910,35 +914,28 @@ export function getSummerWeeks(schoolEndDate = DEFAULT_SCHOOL_END, schoolStartDa
     summerStart.setDate(summerStart.getDate() + 1);
   }
 
-  // Calculate end date (Friday before school starts)
-  const schoolStart = new Date(schoolStartDate);
+  const schoolStart = parseLocal(schoolStartDate);
 
   let weekNum = 1;
   let currentWeekStart = new Date(summerStart);
 
   while (currentWeekStart < schoolStart) {
     const weekEnd = new Date(currentWeekStart);
-    weekEnd.setDate(currentWeekStart.getDate() + 4); // Mon-Fri
+    weekEnd.setDate(currentWeekStart.getDate() + 4); // Mon + 4 = Fri
 
-    // Don't add partial weeks that extend past school start
-    if (weekEnd >= schoolStart) {
-      weekEnd.setTime(schoolStart.getTime());
-      weekEnd.setDate(weekEnd.getDate() - 1);
-    }
+    // Only include full Mon-Fri weeks
+    if (weekEnd >= schoolStart) break;
 
-    // Only add if we have at least 1 day
-    if (weekEnd >= currentWeekStart) {
-      weeks.push({
-        weekNum,
-        startDate: currentWeekStart.toISOString().split('T')[0],
-        endDate: weekEnd.toISOString().split('T')[0],
-        label: `Week ${weekNum}`,
-        display: `${currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-      });
-      weekNum++;
-    }
+    weeks.push({
+      weekNum,
+      startDate: formatDate(currentWeekStart),
+      endDate: formatDate(weekEnd),
+      label: `Week ${weekNum}`,
+      display: `${currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    });
+    weekNum++;
 
-    // Move to next week
+    // Move to next Monday
     currentWeekStart.setDate(currentWeekStart.getDate() + 7);
   }
 

@@ -353,7 +353,7 @@ export function AchievementsProvider({ children }) {
     const activeCamps = scheduledCamps.filter(sc => sc.status !== 'cancelled');
     const totalWeeks = summerWeeks.length;
 
-    // Count covered weeks (weeks with at least one camp overlapping)
+    // Count covered weeks (weeks with at least one camp overlapping OR blocked)
     const coveredWeekNums = new Set();
     activeCamps.forEach(sc => {
       const scStart = new Date(sc.start_date);
@@ -366,6 +366,16 @@ export function AchievementsProvider({ children }) {
           coveredWeekNums.add(week.weekNum);
         }
       });
+    });
+    // Also count blocked weeks (vacations, family time, etc.) as covered
+    const blockedWeeks = profile?.blocked_weeks || {};
+    familyChildren.forEach(child => {
+      const childBlocks = blockedWeeks[child.id];
+      if (childBlocks) {
+        Object.keys(childBlocks).forEach(weekNum => {
+          coveredWeekNums.add(parseInt(weekNum, 10));
+        });
+      }
     });
 
     // Count unique categories

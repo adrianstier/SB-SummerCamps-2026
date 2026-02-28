@@ -1081,6 +1081,117 @@
   border-color: var(--block-color);
 }
 
+/* Connected multi-week block styles (horizontal grid layout) */
+.week-card.is-blocked.group-start {
+  border-right-color: transparent;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-right: -8px;
+  padding-right: 20px;
+  z-index: 1;
+}
+
+.week-card.is-blocked.group-middle {
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-radius: 0;
+  margin-left: -8px;
+  margin-right: -8px;
+  padding-left: 20px;
+  padding-right: 20px;
+  z-index: 1;
+}
+
+.week-card.is-blocked.group-end {
+  border-left-color: transparent;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -8px;
+  padding-left: 20px;
+  z-index: 1;
+}
+
+/* Suppress hover transform on grouped blocks to keep alignment */
+.week-card.is-blocked.group-start:hover,
+.week-card.is-blocked.group-middle:hover,
+.week-card.is-blocked.group-end:hover {
+  transform: none;
+}
+
+/* Mobile: switch to vertical connection since weeks stack in a single column */
+@media (max-width: 639px) {
+  .week-card.is-blocked.group-start {
+    border-right-color: var(--block-color);
+    border-bottom-color: transparent;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-right: 0;
+    margin-bottom: -8px;
+    padding-right: 16px;
+    padding-bottom: 20px;
+  }
+
+  .week-card.is-blocked.group-middle {
+    border-left-color: var(--block-color);
+    border-right-color: var(--block-color);
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-radius: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: -8px;
+    margin-bottom: -8px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .week-card.is-blocked.group-end {
+    border-left-color: var(--block-color);
+    border-top-color: transparent;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 16px;
+    margin-left: 0;
+    margin-top: -8px;
+    padding-left: 16px;
+    padding-top: 20px;
+  }
+}
+
+/* Block drag feedback */
+.week-card.block-drag-over {
+  outline: 2px dashed var(--ocean-400);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--ocean-100) 40%, white);
+}
+
+/* Grip handle for draggable blocks */
+.week-blocked-grip {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  cursor: grab;
+  color: var(--earth-400);
+}
+
+.week-blocked-grip:active {
+  cursor: grabbing;
+}
+
+.week-blocked:hover .week-blocked-grip {
+  opacity: 0.7;
+}
+
+.week-blocked-grip .grip-icon-small {
+  width: 14px;
+  height: 14px;
+}
+
 .week-card-header {
   display: flex;
   align-items: flex-start;
@@ -3970,6 +4081,75 @@
 .custom-block-save:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Week Range Picker */
+.custom-block-week-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.week-picker-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid var(--sand-200);
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 56px;
+}
+
+.week-picker-chip:hover:not(:disabled) {
+  border-color: var(--ocean-300);
+  background: var(--ocean-50);
+}
+
+.week-picker-chip.selected {
+  border-color: var(--chip-color, var(--ocean-500));
+  background: color-mix(in srgb, var(--chip-color, var(--ocean-500)) 10%, white);
+}
+
+.week-picker-chip.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: var(--sand-50);
+}
+
+.week-picker-num {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--earth-700);
+}
+
+.week-picker-chip.selected .week-picker-num {
+  color: color-mix(in srgb, var(--chip-color, var(--ocean-600)) 80%, black);
+}
+
+.week-picker-dates {
+  font-size: 0.625rem;
+  color: var(--earth-500);
+  white-space: nowrap;
+}
+
+.custom-block-week-hint {
+  font-size: 0.75rem;
+  color: var(--ocean-600);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Preview weeks badge */
+.preview-weeks {
+  font-size: 0.625rem;
+  color: color-mix(in srgb, var(--block-color) 60%, black);
+  opacity: 0.7;
 }
 
 /* Mobile adjustments */

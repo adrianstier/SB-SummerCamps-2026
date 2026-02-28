@@ -5,6 +5,11 @@ export const summerWeeks = getSummerWeeks2026();
 // Calculate total summer weeks for coverage
 export const TOTAL_SUMMER_WEEKS = summerWeeks.length;
 
+// Generate unique group ID for multi-week blocks
+export function generateGroupId() {
+  return 'grp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
 export const CATEGORY_COLORS = {
   'Sports': '#3b82f6',
   'Arts': '#8b5cf6',

@@ -34,7 +34,7 @@ const TOUR_STEPS = [
     title: 'Coverage gaps',
     description: 'Dashed borders show weeks with no camps scheduled.',
     position: 'center',
-    highlightSelector: '.gap-cell'
+    highlightSelector: '.week-card.is-gap'
   },
   {
     id: 'children',
