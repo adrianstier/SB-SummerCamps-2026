@@ -776,12 +776,17 @@ export function SchedulePlanner({ camps, onClose }) {
     setShowTour(shouldShowTour);
   }, [profile, hasSampleData]);
 
-  // Close block menu when clicking outside
+  // Close block menu when clicking outside (defer so opening click doesn't immediately close it)
   useEffect(() => {
     if (!showBlockMenu) return;
     const handleClickOutside = () => setShowBlockMenu(null);
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClickOutside);
+    };
   }, [showBlockMenu]);
 
   // Detect conflicts whenever schedule changes
