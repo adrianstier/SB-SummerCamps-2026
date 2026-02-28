@@ -85,7 +85,7 @@ export const FavoriteButton = memo(function FavoriteButton({ campId, size = 'md'
       disabled={loading}
       className={`
         ${config.button}
-        favorite-btn flex items-center justify-center gap-2 rounded-full
+        favorite-btn flex items-center justify-center gap-2 rounded-full overflow-hidden
         ${loading ? 'opacity-50 cursor-wait' : 'cursor-pointer'}
         ${animating && isFav ? 'is-favorited' : ''}
       `}

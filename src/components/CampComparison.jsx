@@ -111,6 +111,9 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
   const [scrollFadeRight, setScrollFadeRight] = useState(true);
   const tableScrollRef = useRef(null);
 
+  // Ref for focus trap (must be declared before any early returns)
+  const modalRef = useRef(null);
+
   // Get selected camps (max 6 for optimal UI display in comparison view)
   const selectedCamps = useMemo(() => {
     return selectedCampIds
@@ -186,6 +189,38 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
     handleTableScroll();
     return () => el.removeEventListener('scroll', handleTableScroll);
   }, [viewMode, handleTableScroll, selectedCamps.length]);
+
+  // Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  // Focus trap
+  useEffect(() => {
+    if (!modalRef.current) return;
+    const modal = modalRef.current;
+    const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first?.focus();
+
+    const handleTab = (e) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+    modal.addEventListener('keydown', handleTab);
+    return () => modal.removeEventListener('keydown', handleTab);
+  }, [selectedCamps.length, showSearch, viewMode]);
 
   const handleSave = async () => {
     if (!user || !saveName.trim()) return;
@@ -278,41 +313,6 @@ export function CampComparison({ camps, selectedCampIds, onClose, onRemoveCamp, 
       </div>
     );
   }
-
-  // Ref for focus trap
-  const modalRef = useRef(null);
-
-  // Escape key handler
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
-  // Focus trap
-  useEffect(() => {
-    if (!modalRef.current) return;
-    const modal = modalRef.current;
-    const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    first?.focus();
-
-    const handleTab = (e) => {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last?.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first?.focus();
-      }
-    };
-    modal.addEventListener('keydown', handleTab);
-    return () => modal.removeEventListener('keydown', handleTab);
-  }, [selectedCamps.length, showSearch, viewMode]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} role="dialog" aria-modal="true" aria-label="Compare Camps">

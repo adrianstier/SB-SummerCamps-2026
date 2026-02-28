@@ -100,6 +100,11 @@ export function SchedulePlanner({ camps, onClose }) {
     }
   }, [children, selectedChild]);
 
+  // Clear block menu when switching children
+  useEffect(() => {
+    setShowBlockMenu(null);
+  }, [selectedChild]);
+
   // Auto-dismiss status message after 4 seconds
   useEffect(() => {
     if (!statusMessage) return;
@@ -1104,6 +1109,8 @@ export function SchedulePlanner({ camps, onClose }) {
   function handleDragEnd() {
     setDraggedCamp(null);
     setDragOverWeek(null);
+    setMovingCamp(null);
+    setDraggingBlock(null);
   }
 
   function handleWeekDrop(weekNum, e) {
@@ -1869,7 +1876,7 @@ export function SchedulePlanner({ camps, onClose }) {
                   style={{ opacity: addingCamp ? 0.6 : 1, pointerEvents: addingCamp ? 'none' : 'auto' }}
                 >
                   {camp.image_url ? (
-                    <img src={camp.image_url} alt="" className="planner-drawer-camp-img" />
+                    <img src={camp.image_url} alt="" className="planner-drawer-camp-img" width={48} height={48} loading="lazy" decoding="async" />
                   ) : (
                     <div className="planner-drawer-camp-placeholder"><BrandIcon name="overnight" size={20} /></div>
                   )}

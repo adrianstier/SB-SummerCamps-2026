@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect, memo } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useCamps } from '../contexts/CampsContext';
-import { useFavorites } from '../contexts/FavoritesContext';
 import { useCompare } from '../contexts/CompareContext';
+import { FavoriteButton } from '../components/FavoriteButton';
 import { useRecommendations } from '../hooks/useRecommendations';
 import { getRegistrationStatus } from '../lib/supabase';
 import { formatPrice } from '../lib/formatters';
@@ -66,7 +66,6 @@ export default function CampDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { camps, loading } = useCamps();
-  const { favorites } = useFavorites();
   const { compareList, toggleCompare } = useCompare();
   const { findSimilarCamps } = useRecommendations();
 
@@ -76,10 +75,6 @@ export default function CampDetailPage() {
     if (!camps || camps.length === 0) return null;
     return camps.find(c => c.id === id);
   }, [camps, id]);
-
-  const isFavorite = useMemo(() => {
-    return favorites.some(f => f.camp_id === id);
-  }, [favorites, id]);
 
   const isInCompare = useMemo(() => {
     return compareList.includes(id);
@@ -124,7 +119,7 @@ export default function CampDetailPage() {
   function handleSelectSimilar(similarCamp) {
     navigate(`/camp/${similarCamp.id}`, {
       state: isOverlay ? { backgroundLocation: location.state.backgroundLocation } : undefined,
-      replace: true,
+      replace: isOverlay,
     });
   }
 
@@ -185,7 +180,7 @@ export default function CampDetailPage() {
       categoryGradient={categoryGradient}
       featurePills={featurePills}
       regStatus={regStatus}
-      isFavorite={isFavorite}
+      campId={id}
       isInCompare={isInCompare}
       similarCamps={similarCamps}
       onClose={handleClose}
@@ -237,7 +232,7 @@ const CampDetailContent = memo(function CampDetailContent({
   categoryGradient,
   featurePills,
   regStatus,
-  isFavorite,
+  campId,
   isInCompare,
   similarCamps,
   onClose,
@@ -255,7 +250,7 @@ const CampDetailContent = memo(function CampDetailContent({
       </button>
       <header className="modal-hero">
         {camp.image_url && !imageError ? (
-          <img src={camp.image_url} alt={camp.camp_name} className="modal-hero-img" decoding="async" onError={() => setImageError(true)} />
+          <img src={camp.image_url} alt={camp.camp_name} className="modal-hero-img" width={800} height={280} loading="lazy" decoding="async" onError={() => setImageError(true)} />
         ) : (
           <div className="modal-hero-fallback" style={{ background: categoryGradient }} />
         )}
@@ -266,9 +261,7 @@ const CampDetailContent = memo(function CampDetailContent({
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
             </button>
           )}
-          <button className={`modal-favorite ${isFavorite ? 'is-active' : ''}`} onClick={() => {}} aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-          </button>
+          <FavoriteButton campId={campId} size="md" />
         </div>
         <div className="modal-hero-content">
           <p className="modal-category">{camp.category}</p>
@@ -363,7 +356,7 @@ const CampDetailContent = memo(function CampDetailContent({
               {similarCamps.map(({ camp: similarCamp, explanation }) => (
                 <button key={similarCamp.id} className="modal-similar-card" onClick={() => onSelectSimilar?.(similarCamp)}>
                   {similarCamp.image_url ? (
-                    <img src={similarCamp.image_url} alt="" className="modal-similar-img" loading="lazy" />
+                    <img src={similarCamp.image_url} alt="" className="modal-similar-img" width={200} height={100} loading="lazy" decoding="async" />
                   ) : (
                     <div className="modal-similar-img-fallback" style={{ background: categoryGradients[similarCamp.category] || 'var(--sand-200)' }} />
                   )}

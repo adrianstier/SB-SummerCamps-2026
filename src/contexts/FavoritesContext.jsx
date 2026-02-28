@@ -69,11 +69,12 @@ export function FavoritesProvider({ children }) {
 
   const value = useMemo(() => ({
     favorites,
+    loaded,
     campPopularity,
     refreshFavorites,
     refreshCampPopularity,
     isFavorited
-  }), [favorites, campPopularity, refreshFavorites, refreshCampPopularity, isFavorited]);
+  }), [favorites, loaded, campPopularity, refreshFavorites, refreshCampPopularity, isFavorited]);
 
   return (
     <FavoritesContext.Provider value={value}>

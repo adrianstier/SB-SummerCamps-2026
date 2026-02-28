@@ -303,24 +303,28 @@ describe('Wishlist', () => {
       expect(screen.queryByText(/Compare\s*\d+/)).not.toBeInTheDocument();
     });
 
-    it('limits selection to 4 camps max', () => {
+    it('limits selection to 6 camps max', () => {
       mockFavoritesCtx.favorites = [
         { id: 'fav-1', camp_id: 'camp-1' },
         { id: 'fav-2', camp_id: 'camp-2' },
         { id: 'fav-3', camp_id: 'camp-3' },
         { id: 'fav-4', camp_id: 'camp-4' },
         { id: 'fav-5', camp_id: 'camp-5' },
+        { id: 'fav-6', camp_id: 'camp-6' },
+        { id: 'fav-7', camp_id: 'camp-7' },
       ];
       const moreCamps = [
         ...mockCamps,
         { id: 'camp-4', camp_name: 'Camp 4', category: 'Sports', ages: '5-12', min_price: 100, max_price: 100 },
         { id: 'camp-5', camp_name: 'Camp 5', category: 'Music', ages: '5-12', min_price: 200, max_price: 200 },
+        { id: 'camp-6', camp_name: 'Camp 6', category: 'Art', ages: '5-12', min_price: 150, max_price: 150 },
+        { id: 'camp-7', camp_name: 'Camp 7', category: 'Dance', ages: '5-12', min_price: 175, max_price: 175 },
       ];
       render(<Wishlist camps={moreCamps} onClose={mockOnClose} onCompareCamps={mockOnCompareCamps} />);
       const checkboxes = screen.getAllByRole('checkbox');
       checkboxes.forEach(cb => fireEvent.click(cb));
-      // Should only have 4 selected
-      expect(screen.getByText(/Compare\s*4/)).toBeInTheDocument();
+      // Should only have 6 selected (max limit)
+      expect(screen.getByText(/Compare\s*6/)).toBeInTheDocument();
     });
   });
 

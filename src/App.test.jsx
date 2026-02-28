@@ -847,7 +847,7 @@ describe('App', () => {
       render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(screen.getByText('Could not load camps')).toBeInTheDocument();
+        expect(screen.getByText("Couldn't load camps")).toBeInTheDocument();
       });
     });
 
@@ -865,7 +865,7 @@ describe('App', () => {
       render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
-        expect(screen.getByText('Refresh Page')).toBeInTheDocument();
+        expect(screen.getByText('Retry')).toBeInTheDocument();
       });
     });
   });

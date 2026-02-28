@@ -533,8 +533,9 @@ describe('SchedulePlanner', () => {
       const weekCards = document.querySelectorAll('.week-card');
       fireEvent.click(weekCards[0]);
       fireEvent.click(screen.getByText('Vacation'));
-      // Block should now show on the week
-      expect(screen.queryByText("What's happening?")).not.toBeInTheDocument();
+      // After selecting a block type, the block menu should close
+      // (the "What's happening?" label may still appear in the blocked week manager)
+      expect(screen.queryByText('Add a Camp')).not.toBeInTheDocument();
     });
   });
 

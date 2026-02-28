@@ -41,6 +41,8 @@ export const RecommendationCard = memo(function RecommendationCard({
           <img
             src={camp.image_url}
             alt=""
+            width={400}
+            height={120}
             loading="lazy"
             decoding="async"
           />

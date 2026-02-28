@@ -6,14 +6,14 @@ import { getSummerWeeks2026 } from './supabase';
 
 describe('supabase utilities', () => {
   describe('getSummerWeeks2026', () => {
-    it('returns exactly 11 weeks', () => {
+    it('returns exactly 10 weeks', () => {
       const weeks = getSummerWeeks2026();
-      expect(weeks).toHaveLength(11);
+      expect(weeks).toHaveLength(10);
     });
 
-    it('starts on June 9, 2026 (first Monday after school ends)', () => {
+    it('starts on June 8, 2026 (first Monday after school ends June 5)', () => {
       const weeks = getSummerWeeks2026();
-      expect(weeks[0].startDate).toBe('2026-06-09');
+      expect(weeks[0].startDate).toBe('2026-06-08');
     });
 
     it('each week start and end are consistent weekdays', () => {
@@ -86,27 +86,29 @@ describe('supabase utilities', () => {
     it('display format is human-readable', () => {
       const weeks = getSummerWeeks2026();
 
-      // First week: Jun 8 - Jun 12
+      // First week should be in June
       expect(weeks[0].display).toMatch(/Jun \d+ - Jun \d+/);
 
       // Last week should be in August
-      expect(weeks[10].display).toMatch(/Aug \d+ - Aug \d+/);
+      const lastWeek = weeks[weeks.length - 1];
+      expect(lastWeek.display).toMatch(/Aug \d+ - Aug \d+/);
     });
 
-    it('covers full summer (June 9 - August 18)', () => {
+    it('covers full summer (June 8 - August 14)', () => {
       const weeks = getSummerWeeks2026();
 
       // Parse as UTC to avoid timezone issues
       const [firstYear, firstMonth, firstDay] = weeks[0].startDate.split('-').map(Number);
-      const [lastYear, lastMonth, lastDay] = weeks[10].endDate.split('-').map(Number);
+      const lastWeek = weeks[weeks.length - 1];
+      const [lastYear, lastMonth, lastDay] = lastWeek.endDate.split('-').map(Number);
 
-      // June 9 (Week 1 start)
+      // June 8 (Week 1 start - first Monday after school ends June 5)
       expect(firstMonth).toBe(6);
-      expect(firstDay).toBe(9);
+      expect(firstDay).toBe(8);
 
-      // August 18 (Week 11 end - partial week before school starts Aug 19)
+      // August 14 (Week 10 end - last full week before school starts Aug 19)
       expect(lastMonth).toBe(8);
-      expect(lastDay).toBe(18);
+      expect(lastDay).toBe(14);
     });
 
     it('dates are valid ISO date strings', () => {

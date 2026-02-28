@@ -193,7 +193,7 @@ const VerifiedIcon = memo(function VerifiedIcon() {
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { camps, categories, stats, loading, error } = useCamps();
+  const { camps, categories, stats, loading, error, refreshCamps } = useCamps();
   const { compareList, toggleCompare, removeFromCompare, clearCompare } = useCompare();
   const { profile, user } = useAuth();
   const { favorites } = useFavorites();
@@ -292,11 +292,11 @@ export default function App() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h1 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>Could not load camps</h1>
+          <h1 className="font-serif text-2xl font-heading mb-3" style={{ color: 'var(--earth-800)' }}>Couldn't load camps</h1>
           <p className="text-base mb-2" style={{ color: 'var(--earth-700)' }}>
-            {error.includes('network') || error.includes('fetch') ? 'Check your internet connection and try again.' : 'Something went wrong loading camp data.'}
+            {error.includes('network') || error.includes('fetch') ? 'Check your connection and try again.' : 'Something went wrong loading camp data.'}
           </p>
-          <button onClick={() => window.location.reload()} className="btn-primary mt-6">Refresh Page</button>
+          <button onClick={refreshCamps} className="btn-primary mt-6">Retry</button>
         </div>
       </div>
     );
@@ -668,7 +668,7 @@ export default function App() {
             </div>
             <div className="text-center md:text-right">
               <p className="text-sm mb-1" style={{ color: 'var(--sand-200)' }}>Data from camp websites - Updated Jan 2026</p>
-              <p className="text-xs" style={{ color: 'var(--sand-400)' }}>Verify prices and availability directly with camps before enrolling.</p>
+              <p className="text-xs" style={{ color: 'var(--sand-200)' }}>Verify prices and availability directly with camps before enrolling.</p>
             </div>
           </div>
         </div>
@@ -732,7 +732,7 @@ const CampCard = memo(function CampCard({ camp, expanded, onToggle, index, isCom
     <article id={`camp-${camp.id}`} ref={cardRef} className={`camp-card scroll-reveal stagger-${(index % 6) + 1} ${isRevealed ? 'revealed' : ''} ${camp.is_closed ? 'opacity-50' : ''} ${isComparing ? 'ring-2' : ''}`} style={{ '--stagger-index': index % 12, '--card-accent': categoryGradient, ...(isComparing ? { ringColor: 'var(--ocean-500)' } : {}) }}>
       <div className="camp-card-button" onClick={onToggle}>
         {camp.image_url && !imageError ? (
-          <div className="camp-card-image"><img src={camp.image_url} alt={camp.camp_name} loading="lazy" decoding="async" onError={() => setImageError(true)} /><div className="camp-card-image-overlay" style={{ background: categoryGradient }}></div></div>
+          <div className="camp-card-image"><img src={camp.image_url} alt={camp.camp_name} width={400} height={200} loading="lazy" decoding="async" onError={() => setImageError(true)} /><div className="camp-card-image-overlay" style={{ background: categoryGradient }}></div></div>
         ) : (
           <div className="camp-card-image" style={{ background: categoryGradient }}><div className="w-full h-full flex items-center justify-center opacity-40"><BrandIcon name={categoryIcons.find(c => c.name === camp.category)?.icon || 'overnight'} size={48} /></div></div>
         )}
@@ -848,7 +848,7 @@ const CampDetailModal = memo(function CampDetailModal({ camp, allCamps = [], onC
           <span>Close</span>
         </button>
         <header className="modal-hero">
-          {camp.image_url && !imageError ? (<img src={camp.image_url} alt={camp.camp_name} className="modal-hero-img" decoding="async" onError={() => setImageError(true)} />) : (<div className="modal-hero-fallback" style={{ background: categoryGradient }} />)}
+          {camp.image_url && !imageError ? (<img src={camp.image_url} alt={camp.camp_name} className="modal-hero-img" width={800} height={280} loading="lazy" decoding="async" onError={() => setImageError(true)} />) : (<div className="modal-hero-fallback" style={{ background: categoryGradient }} />)}
           <div className="modal-hero-gradient" />
           <div style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'flex', gap: '0.5rem', zIndex: 10 }}>
             {onToggleCompare && (<button type="button" className={`modal-favorite ${isInCompare ? 'is-active' : ''}`} onClick={onToggleCompare} aria-label={isInCompare ? 'Remove from comparison' : 'Add to comparison'}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg></button>)}
@@ -921,7 +921,7 @@ const CampDetailModal = memo(function CampDetailModal({ camp, allCamps = [], onC
               <div className="modal-similar-grid">
                 {similarCamps.map(({ camp: similarCamp, explanation }) => (
                   <button key={similarCamp.id} className="modal-similar-card" onClick={() => onSelectSimilar?.(similarCamp)}>
-                    {similarCamp.image_url ? (<img src={similarCamp.image_url} alt="" className="modal-similar-img" loading="lazy" />) : (<div className="modal-similar-img-fallback" style={{ background: categoryGradients[similarCamp.category] || 'var(--sand-200)' }} />)}
+                    {similarCamp.image_url ? (<img src={similarCamp.image_url} alt="" className="modal-similar-img" width={200} height={100} loading="lazy" decoding="async" />) : (<div className="modal-similar-img-fallback" style={{ background: categoryGradients[similarCamp.category] || 'var(--sand-200)' }} />)}
                     <div className="modal-similar-info">
                       <p className="modal-similar-name">{similarCamp.camp_name}</p>
                       <p className="modal-similar-meta">{similarCamp.ages || 'All ages'} · {formatPrice(similarCamp)}</p>

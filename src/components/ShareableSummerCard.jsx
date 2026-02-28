@@ -27,6 +27,13 @@ export const ShareableSummerCard = memo(function ShareableSummerCard({
 
   const firstName = profile?.full_name?.split(' ')[0] || 'My';
 
+  // Build possessive name: "My Summer" (no apostrophe), "James' Summer", "Emma's Summer"
+  const possessiveName = firstName === 'My'
+    ? 'My'
+    : firstName.endsWith('s')
+      ? `${firstName}'`
+      : `${firstName}'s`;
+
   // Get top categories from scheduled camps
   const topCategories = React.useMemo(() => {
     const categoryCounts = {};
@@ -61,7 +68,7 @@ export const ShareableSummerCard = memo(function ShareableSummerCard({
 
     try {
       // Create shareable text content (image download not implemented)
-      const shareText = `${firstName}'s Summer 2026 is ${planningStats.coveragePercent}% planned!
+      const shareText = `${possessiveName} Summer 2026 is ${planningStats.coveragePercent}% planned!
 ${planningStats.coveredWeeks} weeks covered with ${planningStats.scheduledCount} camps.
 ${achievementProgress.earned} achievements unlocked.
 #SummerCamps #SantaBarbara #SummerPlanning`;
@@ -73,7 +80,7 @@ ${achievementProgress.earned} achievements unlocked.
     } finally {
       setIsGenerating(false);
     }
-  }, [firstName, planningStats, achievementProgress]);
+  }, [possessiveName, planningStats, achievementProgress]);
 
   // Share functionality with Open Graph image support
   const handleShare = useCallback(async () => {
@@ -96,7 +103,7 @@ ${achievementProgress.earned} achievements unlocked.
       try {
         // Try sharing with files first if supported (for image preview)
         const shareData = {
-          title: `${firstName}'s Summer 2026 Plan`,
+          title: `${possessiveName} Summer 2026 Plan`,
           text: content.text,
           url: shareUrl.toString(),
         };
@@ -132,7 +139,7 @@ ${achievementProgress.earned} achievements unlocked.
         console.error('Copy failed:', error);
       }
     }
-  }, [generateImage, firstName, planningStats, achievementProgress]);
+  }, [generateImage, possessiveName, planningStats, achievementProgress]);
 
   return (
     <div className={`shareable-card-overlay ${className}`} onClick={onClose}>
@@ -174,7 +181,7 @@ ${achievementProgress.earned} achievements unlocked.
                 <span className="shareable-card-brand">SB Camps</span>
               </div>
 
-              <h3 className="shareable-card-name">{firstName}'s Summer</h3>
+              <h3 className="shareable-card-name">{possessiveName} Summer</h3>
 
               {/* Progress circle */}
               <div className="shareable-progress-container">

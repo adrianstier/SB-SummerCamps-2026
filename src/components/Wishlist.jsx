@@ -159,7 +159,7 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
       if (prev.includes(campId)) {
         return prev.filter(id => id !== campId);
       }
-      if (prev.length >= 4) {
+      if (prev.length >= 6) {
         return prev;
       }
       return [...prev, campId];
@@ -311,7 +311,10 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
                         <img
                           src={item.camp.image_url}
                           alt={item.camp.camp_name}
+                          width={96}
+                          height={96}
                           loading="lazy"
+                          decoding="async"
                         />
                       ) : (
                         <div
@@ -516,7 +519,7 @@ export function Wishlist({ camps, onClose, onScheduleCamp, onCompareCamps }) {
 
         {/* Footer */}
         <div className="modal-footer">
-          <p className="body-sm text-muted flex-1">Check 2-4 camps to compare</p>
+          <p className="body-sm text-muted flex-1">Check 2-6 camps to compare</p>
           <button onClick={onClose} className="btn-secondary btn-sm">
             Close
           </button>

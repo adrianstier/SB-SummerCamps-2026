@@ -87,11 +87,12 @@ export function ScheduleProvider({ children }) {
 
   const value = useMemo(() => ({
     scheduledCamps,
+    loaded,
     refreshSchedule,
     getScheduleForWeek,
     getTotalCost,
     getCoverageGaps
-  }), [scheduledCamps, refreshSchedule, getScheduleForWeek, getTotalCost, getCoverageGaps]);
+  }), [scheduledCamps, loaded, refreshSchedule, getScheduleForWeek, getTotalCost, getCoverageGaps]);
 
   return (
     <ScheduleContext.Provider value={value}>

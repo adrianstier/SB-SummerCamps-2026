@@ -2127,6 +2127,7 @@
   .planner-bottom-bar {
     padding: 10px 16px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    bottom: 88px; /* Clear the mobile bottom navigation bar */
   }
 
   .planner-bottom-stats {

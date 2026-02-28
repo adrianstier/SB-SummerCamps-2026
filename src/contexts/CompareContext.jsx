@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
 const CompareContext = createContext(null);
 
@@ -56,7 +56,7 @@ export function CompareProvider({ children }) {
 
   const isComparing = compareList.length > 0;
 
-  const value = {
+  const value = useMemo(() => ({
     compareList,
     setCompareList,
     toggleCompare,
@@ -64,7 +64,7 @@ export function CompareProvider({ children }) {
     removeFromCompare,
     clearCompare,
     isComparing
-  };
+  }), [compareList, toggleCompare, addToCompare, removeFromCompare, clearCompare, isComparing]);
 
   return (
     <CompareContext.Provider value={value}>
