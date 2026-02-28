@@ -109,7 +109,7 @@ const WeekColumn = memo(function WeekColumn({
   return (
     <div
       data-week-num={week.weekNum}
-      className={`week-card ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''} ${groupClass} ${hasConflict ? 'has-conflict' : ''} ${movingCamp ? 'move-target' : ''} ${isCurrentWeek ? 'is-current-week' : ''} ${showWorkHoursWarning ? 'work-hours-warning' : ''} ${isDragOver && draggingBlock ? 'block-drag-over' : ''}`}
+      className={`week-card ${weekCamps.length > 0 ? 'has-camps' : ''} ${isGap && !blocked ? 'is-gap' : ''} ${isDragOver ? 'drag-over' : ''} ${blocked ? 'is-blocked' : ''} ${groupClass} ${hasConflict ? 'has-conflict' : ''} ${movingCamp ? 'move-target' : ''} ${isCurrentWeek ? 'is-current-week' : ''} ${showWorkHoursWarning ? 'work-hours-warning' : ''} ${isDragOver && draggingBlock ? 'block-drag-over' : ''} ${isBlockMenuOpen ? 'menu-open' : ''}`}
       style={blocked ? { '--block-color': blocked.color } : { '--child-color': selectedChildData?.color || 'var(--ocean-500)' }}
       role="button"
       tabIndex={0}

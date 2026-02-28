@@ -641,11 +641,9 @@ export function SchedulePlanner({ camps, onClose }) {
     }
   }
 
-  function handleSaveCustomBlock(weekNums, customBlock) {
-    if (!selectedChild) return;
-
+  function applyBlockToChild(childId, weekNums, customBlock) {
     setBlockedWeeks(prev => {
-      const childBlocks = { ...(prev[selectedChild] || {}) };
+      const childBlocks = { ...(prev[childId] || {}) };
 
       // If editing, remove old group weeks first
       if (customBlock.groupId) {
@@ -661,9 +659,32 @@ export function SchedulePlanner({ camps, onClose }) {
         childBlocks[wn] = { ...customBlock };
       });
 
-      return { ...prev, [selectedChild]: childBlocks };
+      return { ...prev, [childId]: childBlocks };
     });
+  }
+
+  function handleSaveCustomBlock(weekNums, customBlock) {
+    if (!selectedChild) return;
+
+    // Apply to the current child
+    applyBlockToChild(selectedChild, weekNums, customBlock);
     setShowCustomBlockModal(null);
+
+    // If there are other children, offer to apply the same block to them
+    const otherChildren = children.filter(c => c.id !== selectedChild);
+    if (otherChildren.length > 0) {
+      const otherNames = otherChildren.map(c => c.name).join(' and ');
+      setConfirmAction({
+        message: `Apply "${customBlock.label}" to ${otherNames} too?`,
+        onConfirm: () => {
+          otherChildren.forEach(child => {
+            // Use a new groupId per child so they're independently editable
+            const childBlock = { ...customBlock, groupId: generateGroupId() };
+            applyBlockToChild(child.id, weekNums, childBlock);
+          });
+        },
+      });
+    }
   }
 
   function handleEditBlock(weekNum) {

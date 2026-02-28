@@ -1036,6 +1036,10 @@
   position: relative;
 }
 
+.week-card.menu-open {
+  z-index: 50;
+}
+
 .week-card:hover {
   background: white;
   border-color: var(--sand-200);
